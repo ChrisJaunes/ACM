@@ -1,0 +1,1625 @@
+\documentclass[10pt]{ctexart}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{xeCJK}
+\usepackage{fontspec}
+\usepackage{titlesec}
+\usepackage{titletoc}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{a4paper,scale=0.8}
+\renewcommand\contentsname{Contents}
+\setmonofont[Mapping={}]{Monaco}    %英文引号之类的正常显示，相当于设置英文字体
+%\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
+%\setmainfont{Monaco} %设置英文字体
+% 定义可能使用到的颜色
+\definecolor{CPPLight}  {HTML} {686868}
+\definecolor{CPPSteel}  {HTML} {888888}
+\definecolor{CPPDark}   {HTML} {262626}
+\definecolor{CPPBlue}   {HTML} {4172A3}
+\definecolor{CPPGreen}  {HTML} {487818}
+\definecolor{CPPBrown}  {HTML} {A07040}
+\definecolor{CPPRed}    {HTML} {AD4D3A}
+\definecolor{CPPViolet} {HTML} {7040A0}
+\definecolor{CPPGray}  {HTML} {B8B8B8}
+\lstset{
+    columns=fixed,       
+    numbers=left,                                        % 在左侧显示行号
+    frame=none,                                          % 不显示背景边框
+    backgroundcolor=\color[RGB]{245,245,244},            % 设定背景颜色
+    keywordstyle=\color[RGB]{40,40,255},                 % 设定关键字颜色
+    numberstyle=\small\color{darkgray},                  % 设定行号格式
+    commentstyle=\it\color[RGB]{0,96,96},                % 设置代码注释的格式
+    stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   % 设置字符串格式
+    showstringspaces=false,                              % 不显示字符串中的空格
+    language=c++,                                        % 设置语言
+    morekeywords={alignas,continute,friend,register,true,alignof,decltype,goto,
+    reinterpret_cast,try,asm,defult,if,return,typedef,auto,delete,inline,short,
+    typeid,bool,do,int,signed,typename,break,double,long,sizeof,union,case,
+    dynamic_cast,mutable,static,unsigned,catch,else,namespace,static_assert,using,
+    char,enum,new,static_cast,virtual,char16_t,char32_t,explict,noexcept,struct,
+    void,export,nullptr,switch,volatile,class,extern,operator,template,wchar_t,
+    const,false,private,this,while,constexpr,float,protected,thread_local,
+    const_cast,for,public,throw,std},
+    emph={map,set,multimap,multiset,unordered_map,unordered_set,
+    unordered_multiset,unordered_multimap,vector,string,list,deque,
+    array,stack,forwared_list,iostream,memory,shared_ptr,unique_ptr,
+    random,bitset,ostream,istream,cout,cin,endl,move,default_random_engine,
+    uniform_int_distribution,iterator,algorithm,functional,bing,numeric,},
+    emphstyle=\color{CPPViolet},
+    basicstyle=\linespread{1}\small\fontspec{Courier New Bold}\ttfamily,
+    breaklines=true,
+    %xleftmargin=1em,xrightmargin=1em, aboveskip=1em,
+}
+%\setmainfont{Courier New Bold}
+%\begin{lstlisting}
+
+%\end{lstlisting}
+\CTEXoptions[today=old]
+\title{TEMPLATE}
+\author{}
+\date{Last build at \today}
+
+\begin{document}{
+\begin{titlepage}
+    \centering
+    {\scshape\Large South China University of Technology \par}
+    \vspace{1cm}
+    {\scshape\Large SCUT\_gugugu\par}
+    \vspace{1.5cm}
+    {\Huge\bfseries TEMPLATE\par}
+    \vspace{3.5cm}
+    \includegraphics[width=0.5\textwidth]{./LOGO}\par\vspace{1cm}
+    %\vspace{5cm}
+    %{\Large\itshape Nickwzk\par}
+
+    \vfill
+
+% Bottom of the page
+    {\large Last build at \today\par}
+
+%\setcounter{page}{0}
+\thispagestyle{empty}
+%\newpage
+\end{titlepage}
+\tableofcontents
+\newpage
+\section{Graph Theory}
+\subsection{Shortest Path}
+\subsubsection{Dijkstra}
+\begin{lstlisting}
+typedef pair<int, int> P;
+struct Edge {
+    int to, nxt;
+    LL w;
+}e[MAXM];
+int head[MAXN], ecnt;
+LL d[MAXN];
+priority_queue<P, vector<P>, greater<P> > q;
+inline void addEdge(int x, int y, LL w) {
+    e[++ecnt] = (Edge) {y, head[x], w}; head[x] = ecnt;
+}
+void dijkstra(int st) {
+    memset(d, 0x3f, sizeof(d));
+    d[st] = 0;
+    q.push(make_pair(0, st));
+    while(!q.empty()) {
+        P x = q.top(); q.pop();
+        int u = x.second;
+        for(int i = head[u], v; i; i = e[i].nxt) {
+            v = e[i].to;
+            if(d[v] > d[u] + e[i].w) {
+                d[v] = d[u] + e[i].w;
+                q.push(make_pair(d[v], v));
+            }
+        }
+    }
+}
+\end{lstlisting}
+\subsubsection{SPFA}
+\begin{lstlisting}
+struct Edge {
+    int to, nxt;
+    LL w;
+}e[MAXE];
+int head[MAXN], ecnt;
+LL d[MAXN];
+bool exist[MAXN];
+queue<int> q;
+inline void addEdge(int x, int y, LL w) {
+   e[++ecnt] = (Edge) {y, head[x], w}; head[x] = ecnt;
+}
+void SPFA(int st) {
+    memset(d,0x3f,sizeof(d));
+    d[st] = 0;
+    q.push(st);
+    exist[st] = 1;
+    while(!q.empty()) {
+        int u = q.front(); q.pop();
+        exist[u] = 0;
+        for(int i = head[u], v; i; i = e[i].nxt) {
+            v = e[i].to;
+            if(d[v] > d[u] + e[i].w) {
+                d[v] = d[u] + e[i].w;
+                //pre[v] = u;
+                if(!exist[v]) {
+                    q.push(v);
+                    exist[v] = 1;
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+\subsection{Network Flow}
+\subsubsection{ISAP}
+\begin{lstlisting}
+namespace NWF {
+    struct Edge{
+        int to, nxt;LL f;
+    }e[MAXM << 1];
+    int S, T, tot;
+    int ecnt, head[MAXN], cur[MAXN], pre[MAXN], num[MAXN], dis[MAXN];
+    queue<int> q;
+    void init(int _S, int _T, int _tot){
+        ecnt = 1; S = _S; T = _T; tot = _tot;
+        memset(num,  0, (tot + 1) * sizeof(int));
+        memset(head, 0, (tot + 1) * sizeof(int));
+    } 
+    inline void addEdge(int u, int v, LL f) {
+        e[++ecnt] = (Edge) {v, head[u], f}; head[u] = ecnt;
+        e[++ecnt] = (Edge) {u, head[v], 0}; head[v] = ecnt;
+    }
+    void bfs() {
+        memset(dis, 0, (tot + 1) * sizeof(int));
+        q.push(T);
+        dis[T] = 1;
+        while(!q.empty()) {
+            int u = q.front(), v; q.pop();
+            num[dis[u]]++;
+            for(int i = cur[u] = head[u]; i; i = e[i].nxt) {
+                if(!dis[v = e[i].to]) {
+                    dis[v] = dis[u] + 1;
+                    q.push(v);
+                }
+            }
+        }
+    }
+    LL augment() {
+        LL flow = INF;
+        for(int i = S; i != T; i = e[cur[i]].to) 
+            flow = min(flow, e[cur[i]].f);
+        for(int i = S; i != T; i = e[cur[i]].to) {
+            e[cur[i]].f -= flow;
+            e[cur[i] ^ 1].f += flow;
+        }
+        return flow;
+    }
+    LL isap() {
+        bfs();
+        int u = S, v;
+        LL flow = 0;
+        while(dis[S] <= tot) {
+            if(u == T) {
+                flow += augment();
+                u = S;
+            }
+            bool fg = 0;
+            for(int i = cur[u]; i; i = e[i].nxt) {
+                if(e[i].f && dis[u] > dis[v = e[i].to]) {
+                    pre[v] = u;
+                    cur[u] = i;
+                    u = v;
+                    fg = 1;
+                    break;
+                }
+            }
+            if(fg) continue;
+            if(!--num[dis[u]]) break;
+            int maxDis = tot;
+            for(int i = head[u]; i; i = e[i].nxt) {
+                if(e[i].f && maxDis > dis[v = e[i].to]) {
+                    maxDis = dis[v];
+                    cur[u] = i;
+                }
+            }
+            num[dis[u] = maxDis + 1]++;
+            if(u != S) u = pre[u];
+        }
+        return flow;
+    }
+}
+\end{lstlisting}
+\subsubsection{HLPP}
+\begin{lstlisting}
+namespace NWF{
+    struct Edge{
+        int to,nxt;LL f;
+    }e[MAXM << 1];
+    int S, T, tot;
+    int ecnt, head[MAXN], dis[MAXN], num[MAXN];
+    LL sumf[MAXN];
+    queue<int> q;
+    list<int> dep[MAXN];
+    void init(int _S,int _T,int _tot){
+        ecnt = 1;S = _S;T = _T;tot = _tot;
+        memset(num,  0, (tot + 1) * sizeof(int));
+        memset(head, 0, (tot + 1) * sizeof(int));
+        memset(sumf, 0, (tot + 1) * sizeof(LL));
+    }
+    void addEdge(int u,int v,LL f){
+        e[++ecnt] = (Edge) {v, head[u], f};head[u] = ecnt;
+        e[++ecnt] = (Edge) {u, head[v], 0};head[v] = ecnt;
+    }
+    void bfs(){
+        memset(dis, 0, (tot + 1) * sizeof(int));
+        q.push(T); dis[T] = 1;
+        while(!q.empty()){
+            int u=q.front(), v; q.pop();
+            for(int i = head[u]; i; i = e[i].nxt)
+            if(!dis[v = e[i].to]){
+                dis[v] = dis[u] + 1;
+                q.push(v);
+            }
+        }
+    }
+    LL hlpp(){
+        bfs();
+        dis[S] = tot + 1;
+        for(int i = 1;i <= tot; ++i)num[dis[i]]++;
+        for(int i = tot + 1; ~i; --i)dep[i].clear();
+        int maxd = dis[S];LL f;
+        dep[maxd].push_back(S);sumf[S] = INF;
+        for(;;){
+            while(maxd && dep[maxd].empty())maxd--;
+            if(!maxd)break;
+            int u = dep[maxd].back(), v;dep[maxd].pop_back();
+            int minDis = tot + 1;
+            for(int i = head[u]; i;i = e[i].nxt)
+            if(e[i].f){
+                if(dis[u] > dis[v = e[i].to]){
+                    f = min(sumf[u], e[i].f);
+                    e[i].f -= f;e[i^1].f += f;
+                    if(sumf[u] != INF) sumf[u] -= f;
+                    if(sumf[v] != INF) sumf[v] += f; 
+                    if(v!=S && v!=T && sumf[v] == f){
+                        maxd = max(maxd, dis[v]);
+                        dep[dis[v]].push_back(v);
+                    }
+                    if(!sumf[u])break;
+                }else minDis=min(minDis, dis[v] + 1);
+            }
+            if(sumf[u]){
+                if(!--num[dis[u]]){
+                    for(int i = dis[u];i <= maxd;++i){
+                        while(!dep[i].empty()){
+                            --num[i];
+                            dis[dep[i].back()] = tot + 1;
+                            dep[i].pop_back();
+                        }
+                    }
+                    maxd = dis[u] - 1;dis[u] = tot + 1;
+                }else{
+                    dis[u] = minDis;
+                    if(minDis > tot)continue;
+                    num[minDis]++;
+                    maxd = max(maxd, minDis);
+                    dep[minDis].push_back(u);
+                }
+            }
+        }
+        return sumf[T];
+    }
+}
+\end{lstlisting}
+\subsubsection{Dinic}
+\begin{lstlisting}
+namespace NWF {
+    struct Edge {
+        int to, nxt;LL f;
+    } e[MAXM << 1]; 
+    int S, T, tot;
+    int ecnt, head[MAXN], cur[MAXN], dis[MAXN];
+    queue<int> q;
+    void init(int _S, int _T, int _tot){
+        ecnt = 1; S = _S; T = _T; tot = _tot;
+        memset(head, 0, (tot + 1) * sizeof(int));
+    } 
+    void addEdge(int u, int v, LL f) {
+        e[++ecnt] = (Edge) {v, head[u], f}; head[u] = ecnt;
+        e[++ecnt] = (Edge) {u, head[v], 0}; head[v] = ecnt;
+    }
+    bool bfs() {
+        memset(dis, 0, (tot + 1) * sizeof(int));
+        q.push(S); dis[S] = 1;
+        while (!q.empty()) {
+            int u = q.front(), v; q.pop();
+            for (int i = cur[u] = head[u]; i ; i = e[i].nxt) {
+                if (e[i].f && !dis[v = e[i].to]) {
+                    q.push(v);
+                    dis[v] = dis[u] + 1;
+                }
+            }
+        }
+        return dis[T];
+    }
+    LL dfs(int u, LL maxf) {
+        if (u == T) return maxf;
+        LL sumf = maxf;
+        for (int &i = cur[u]; i; i = e[i].nxt) {
+            if (e[i].f && dis[e[i].to] > dis[u]) {
+                LL tmpf = dfs(e[i].to, min(sumf, e[i].f));
+                e[i].f -= tmpf; e[i ^ 1].f += tmpf;
+                sumf -= tmpf;
+                if (!sumf) return maxf;
+            }
+        }
+        return maxf - sumf;
+    }
+    LL dinic() {
+        LL ret = 0;
+        while (bfs()) ret += dfs(S, INF);
+        return ret;
+    }
+}
+\end{lstlisting}
+\subsubsection{MCMF}
+\begin{lstlisting}
+namespace NWF{
+    struct Edge {
+        int to, nxt;LL f, c;
+    } e[MAXM << 1]; 
+    int S, T, tot;
+    int ecnt, head[MAXN], cur[MAXN];LL dis[MAXN];
+    bool exist[MAXN];
+    queue<int> q;
+    void init(int _S, int _T, int _tot){
+        ecnt = 1; S = _S; T = _T; tot = _tot;
+        memset(head, 0, (tot + 1) * sizeof(int));
+    } 
+    void addEdge(int u, int v, LL f, LL c) {
+        e[++ecnt] = (Edge) {v, head[u], f, c}; head[u] = ecnt;
+        e[++ecnt] = (Edge) {u, head[v], 0,-c}; head[v] = ecnt;
+    }
+    bool spfa() {
+        for(int i = 0;i <= tot; ++i){
+            dis[i] = INF;exist[i] = cur[i] = 0;
+        }
+        q.push(S);dis[S] = 0;exist[S] = 1;
+        while(!q.empty()) {
+            int u = q.front(), v; q.pop();exist[u] = 0;
+            for(int i = head[u]; i; i = e[i].nxt) {
+                if(e[i].f && dis[v = e[i].to] > dis[u] + e[i].c) {
+                    dis[v] = dis[u] + e[i].c;
+                    cur[v] = i;
+                    if(!exist[v]) {
+                        q.push(v);
+                        exist[v] = 1;
+                    }
+                }
+            }
+        }
+        return dis[T] != INF;
+    }
+    LL mcmf() {
+        LL cost = 0;
+        while(spfa()) {
+            LL flow = INF;
+            for(int i = T; i != S; i = e[cur[i] ^ 1].to)
+                flow = min(flow, e[cur[i]].f);
+            for(int i = T; i != S; i = e[cur[i] ^ 1].to) {
+                e[cur[i]].f -= flow;
+                e[cur[i] ^ 1].f += flow;
+            }
+            cost += flow * dis[T];
+        }
+        return cost;
+    }
+}
+\end{lstlisting}
+\subsection{Tree Related}
+\subsubsection{Kruskal}
+\begin{lstlisting}
+namespace MST{
+    struct Edge{
+        int u,v; LL w;
+        bool operator < (const Edge& x) const { return w < x.w; }
+    }e[MAXM];
+    int ecnt, fa[MAXN];
+    void addEdge(int u, int v, LL w) {
+        e[++ecnt] = (Edge){v, u, w}; headp[u] = ecnt;
+    }
+    int Find(int x) { return x == fa[x] ? x : fa[x] = Find(fa[x]); }
+    LL kruskal(int n) {
+        sort(e + 1, e + ecnt + 1);
+        for(int i = 1; i <= n; i++) fa[i] = i;
+        LL sum = 0;
+        for (int i = 1; i <= ecnt; i++){
+            int fu = Find(e[i].u), fv = Find(e[i].v);
+            if(fu != fv){
+                fa[fu] = fv;
+                sum += e[i].w;
+            }
+        }
+        return sum;
+    }
+}
+\end{lstlisting}
+\subsubsection{Prim}
+\begin{lstlisting}
+namespace MST {
+    struct Edge{
+        int to,nxt; LL w;
+    }e[MAXM];
+    int ecnt, head[MAXN], vis[MAXN]; // pre[MAXN];
+    LL dis[MAXN];
+    void addEdge(int u, int v, LL w){
+        e[++ecnt] = (Edge){v, head[u], w}; head[u] = ecnt;
+        e[++ecnt] = (Edge){u, head[v], w}; head[v] = ecnt;
+    }
+    LL Prim(int n){
+        for (int i = 1; i <= n; i++){
+            //pre[i] = 0;
+            vis[i] = 0;
+            dis[i] = INF;
+        }
+        vis[1] = 1;
+        LL sum = 0;
+        for (int i = head[1]; i; i = e[i].nxt)
+            dis[e[i].to] = min(dis[e[i].to],e[i].w);
+        for (int j = 1; j < n; j++){
+            int u; LL minDis = INF;
+            for (int i = 1; i <= n; ++i)
+                if (!vis[i] && dis[i] < minDis){
+                    minDis = dis[i];
+                    u = i;
+                }
+            if (minDis == INF) return -1;
+            vis[u] = 1;
+            sum += minDis;
+            for (int i = head[u], v; i; i = e[i].nxt)
+            if (!vis[v = e[i].to] && e[i].w < dis[v]){
+                //pre[u] = v;
+                dis[v] = e[i].w;
+            }
+        }
+        return sum;
+    }
+}
+\end{lstlisting}
+\subsubsection{Tree Divide and Conquer}
+\begin{lstlisting}
+struct Edge {
+    int to, nxt, w;
+}e[MAXM];
+int head[MAXN], ecnt;
+int sz[MAXN];
+int d[MAXN], t[5], ans;
+bool vis[MAXN];
+inline void add_edge(int u, int v, int w) {
+    e[++ecnt] = (Edge) {v, h[u], w}; head[u] = ecnt;
+    e[++ecnt] = (Edge) {u, h[v], w}; head[v] = ecnt;
+}
+int getsz(int x, int fa) {
+    sz[x] = 1;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        sz[x] += getsz(y, x);
+    }
+    return sz[x];
+}
+int getrt(int x) {
+    int tot = getsz(x, 0) >> 1;
+    while(1) {
+        int u = -1;
+        for(int i = h[x]; i; i = e[i].nxt) {
+            int y = e[i].to;
+            if(vis[y] || sz[y] > sz[x]) continue;
+            if(u == -1 || sz[y] > sz[u]) u = y;
+        }
+        if(~u && sz[u] > tot) x = u;
+        else break;
+    }
+    return x;
+}
+void getdep(int x, int fa) {
+    t[d[x]]++;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        d[y] = (d[x] + e[i].w) % 3;
+        getdep(y, x);
+    }
+}
+int cal(int x, int v) {
+    t[0] = t[1] = t[2] = 0;
+    d[x] = v % 3;
+    getdep(x, 0);
+    return t[0] * t[0] + t[1] * t[2] * 2;
+}
+void solve(int x) {
+    vis[x] = 1;
+    ans += cal(x, 0);
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        ans -= cal(y, e[i].w);
+        solve(getrt(y));
+    }
+}
+int main() {
+    solve(getrt(1));
+}
+\end{lstlisting}
+\subsection{LCA}
+\subsubsection{Tree Decomposition LCA}
+\begin{lstlisting}
+int sz[MAXN], dep[MAXN], top[MAXN], fa[MAXN], son[MAXN], num[MAXN], totw;
+struct Edge {
+    int to, nxt;
+}e[MAXN << 1];
+int head[MAXN], ecnt;
+inline void add_edge(int x, int y) {
+    e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
+}
+void dfs1(int x) {
+    sz[x] = 1; son[x] = 0;
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(v == fa[x]) continue;
+        fa[v] = x;
+        dep[v] = dep[x] + 1;
+        dfs1(v);
+        sz[x] += sz[v];
+        if(sz[v] > sz[son[x]]) son[x] = v;
+    }
+}
+void dfs2(int x) {
+    B[num[x]] = A[x];
+    if(son[x]) {
+        top[son[x]] = top[x];
+        num[son[x]] = ++totw;
+        dfs2(son[x]);
+    }
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(v == fa[x] || v == son[x]) continue;
+        top[v] = v;
+        num[v] = ++totw;
+        dfs2(v);
+    }
+}
+int lca(int u, int v) {
+    if(u == v) return u;
+    while(top[u] != top[v]) {
+        if(dep[top[u]] > dep[top[v]]) swap(u, v);
+        v = fa[top[v]];
+    }
+    if(dep[u] > dep[v]) swap(u, v);
+    return u;
+}
+inline void init() {
+    memset(head, 0, sizeof(head)); ecnt = 0;
+    fa[1] = 0; dep[1] = 1; top[1] = 1; num[1] = 1; totw = 1;
+}
+inline void pre() {
+    dfs1(1); dfs2(1); build(1, 1, totw);
+}
+\end{lstlisting}
+\subsubsection{Tarjan LCA}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Tarjan}
+\subsubsection{SCC}
+\begin{lstlisting}
+namespace SCC{
+    vector<int> G[MAXN];
+    int dfs_clock, scc_cn, dfn[MAXN], low[MAXN], sccno[MAXN];
+    stack<int> S;
+    void addEdge(int u, int v) {
+        G[u].push_back(v);
+    }
+    void tarjan(int u) {
+        dfn[u] = low[u] = ++dfs_clock;
+        S.push(u);
+        for(auto v : G[u]) {
+            if(!dfn[v]) {
+                tarjan(v);
+                low[u] = min(low[u], low[v]);
+            }else if(!sccno[v]) {
+                low[u] = min(low[u], dfn[v]);
+            }
+        }
+        if(dfn[u] == low[u]) {
+            scc_cnt++;
+            for(;;) {
+                int v = S.top(); S.pop();
+                sccno[v] = scc_cnt;
+                if(v == u) break;
+            }
+        }
+    }
+    void findSCC(int n) {
+        for(int i = 1; i <= n; i++)
+            if(!dfn[i]) tarjan(i);
+    }
+    void init(int n){
+        dfs_clock = scc_cnt = 0;
+        for(int i = 0;i <= n;++i){
+            dfn[i] = low[i] = sccno[i] = 0;
+            G[i].clear();
+        }
+    }
+}
+\end{lstlisting}
+\subsubsection{BCC}
+\begin{lstlisting}
+struct Edge {
+    int to, nxt;
+}e[MAXE];
+struct Node {
+    int u, v;
+};
+int head[MAXN], ecnt;
+int pre[MAXN], low[MAXN], iscut[MAXN], bccno[MAXN], dfs_clock, bcc_cnt;
+vector<int> bcc[MAXN];
+stack<Node> S;
+inline void add_edge(int x, int y) {
+    e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
+    e[++ecnt] = (Edge) {x, head[y]}; head[y] = ecnt;
+}
+inline void init() {
+    memset(pre, 0, sizeof(pre));
+    memset(low, 0, sizeof(low));
+    memset(bccno, 0, sizeof(bccno));
+    memset(iscut, 0, sizeof(iscut));
+    memset(head, 0, sizeof(head)); ecnt = 0;
+    dfs_clock = bcc_cnt = 0;
+}
+void tarjan(int u, int fa) {
+    low[u] = pre[u] = ++dfs_clock;
+    int ch = 0;
+    for(int i = head[u]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(!pre[v]) {
+            S.push((Node) {u, v});
+            ch++;
+            tarjan(v, u);
+            low[u] = min(low[u], low[v]);
+            if(low[v] >= pre[u]) {
+                iscut[u] = 1;
+                bcc[bcc_cnt++].clear();
+                for(;;) {
+                    Node x = S.top(); S.pop();
+                    if(bccno[x.u] != bcc_cnt) {
+                        bcc[bcc_cnt].push_back(x.u);
+                        bccno[x.u] = bcc_cnt;
+                    }
+                    if(bccno[x.v] != bcc_cnt) {
+                        bcc[bcc_cnt].push_back(x.v);
+                        bccno[x.v] = bcc_cnt;
+                    }
+                    if(x.u == u && x.v == v) break;
+                }
+            }
+        }
+        else if(pre[v] < pre[u] && v != fa) {
+            S.push((Node) {u, v});
+            low[u] = min(low[u], pre[v]);
+        }
+    }
+    if(u == fa && ch <= 1) iscut[u] = 0;
+}
+\end{lstlisting}
+
+
+
+
+
+\newpage
+\section{Data Structures}
+\subsection{Basic Structures}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Tree Structures}
+\subsubsection{Tree Decomposition}
+\begin{lstlisting}
+int sz[MAXN], dep[MAXN], top[MAXN], fa[MAXN], son[MAXN], num[MAXN], totw;
+struct Edge {
+    int to, nxt;
+}e[MAXN << 1];
+int head[MAXN], ecnt;
+int n, m, Q;
+#define Ls(x) (x << 1)
+#define Rs(x) (x << 1 | 1)
+struct Tree {
+    int l, r, lazy;
+    LL sum, mx;
+}tree[MAXN << 2];
+int A[MAXN], B[MAXN];
+void push_up(int x) {
+    tree[x].sum = tree[Ls(x)].sum + tree[Rs(x)].sum;
+    tree[x].mx = max(tree[Ls(x)].mx, tree[Rs(x)].mx);
+}
+void push_down(int x) {
+    if(tree[x].lazy) {
+        tree[Ls(x)].sum += tree[x].lazy * (tree[Ls(x)].r - tree[Ls(x)].l + 1);
+        tree[Rs(x)].sum += tree[x].lazy * (tree[Rs(x)].r - tree[Rs(x)].l + 1);
+        tree[Ls(x)].mx += tree[x].lazy;
+        tree[Rs(x)].mx += tree[x].lazy;
+        tree[Ls(x)].lazy += tree[x].lazy;
+        tree[Rs(x)].lazy += tree[x].lazy;
+        tree[x].lazy = 0;
+    }
+}
+void build(int x, int L, int R) {
+    tree[x].lazy = 0;
+    tree[x].l = L; tree[x].r = R;
+    if(L == R) {
+        tree[x].sum = B[L];
+        tree[x].mx = B[L];
+        return;
+    }
+    int mid = (L + R) >> 1;
+    build(Ls(x), L, mid);
+    build(Rs(x), mid + 1, R);
+    push_up(x);
+}
+void update(int x, int L, int R, LL val) {
+    if(tree[x].l >= L && tree[x].r <= R) {
+        tree[x].lazy += val;
+        tree[x].sum += val * (tree[x].r - tree[x].l + 1);
+        tree[x].mx += val;
+        return;
+    }
+    push_down(x);
+    int mid = (tree[x].l + tree[x].r) >> 1;
+    if(L <= mid) update(Ls(x), L, R, val);
+    if(R > mid) update(Rs(x), L, R, val);
+    push_up(x);
+}
+LL query(int x, int L, int R) {
+    if(tree[x].l >= L && tree[x].r <= R)
+        return tree[x].sum;
+    push_down(x);
+    int mid = (tree[x].l + tree[x].r) >> 1;
+    LL res = 0;
+    if(L <= mid) res += query(Ls(x), L, R);
+    if(R > mid) res += query(Rs(x), L, R);
+    return res;
+}
+LL query2(int x, int L, int R) {
+    if(tree[x].l >= L && tree[x].r <= R)
+        return tree[x].mx;
+    push_down(x);
+    int mid = (tree[x].l + tree[x].r) >> 1;
+    LL res = -INF;
+    if(L <= mid) res = max(res, query2(Ls(x), L, R));
+    if(R > mid) res = max(res, query2(Rs(x), L, R));
+    return res;
+}
+inline void add_edge(int x, int y) {
+    e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
+}
+void dfs1(int x) {
+    sz[x] = 1; son[x] = 0;
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(v == fa[x]) continue;
+        fa[v] = x;
+        dep[v] = dep[x] + 1;
+        dfs1(v);
+        sz[x] += sz[v];
+        if(sz[v] > sz[son[x]]) son[x] = v;
+    }
+}
+void dfs2(int x) {
+    B[num[x]] = A[x];
+    if(son[x]) {
+        top[son[x]] = top[x];
+        num[son[x]] = ++totw;
+        dfs2(son[x]);
+    }
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(v == fa[x] || v == son[x]) continue;
+        top[v] = v;
+        num[v] = ++totw;
+        dfs2(v);
+    }
+}
+void up(int a, int b, int c) {
+    int f1 = top[a], f2 = top[b];
+    while(f1 != f2) {
+        if(dep[f1] < dep[f2]) { swap(a, b); swap(f1, f2); }
+        update(1, num[f1], num[a], c);
+        a = fa[f1];
+        f1 = top[a];
+    }
+    if(dep[a] > dep[b]) swap(a, b);
+    update(1, num[a], num[b], c);
+}
+int qsum(int a, int b) {
+    if(a == b) return query(1, num[a], num[a]);
+    int f1 = top[a], f2 = top[b];
+    int res = 0;
+    while(f1 != f2) {
+        if(dep[f1] < dep[f2]) { swap(a, b); swap(f1, f2); }
+        res += query(1, num[f1], num[a]);
+        a = fa[f1];
+        f1 = top[a];
+    }
+    if(dep[a] > dep[b]) swap(a, b);
+    res += query(1, num[a], num[b]);
+    return res;
+}
+int qmax(int a, int b) {
+    if(a == b) return query2(1, num[a], num[a]);
+    int f1 = top[a], f2 = top[b];
+    int res = -1000000000;
+    while(f1 != f2) {
+        if(dep[f1] < dep[f2]) { swap(a, b); swap(f1, f2); }
+        res = max(res, query2(1, num[f1], num[a]));
+        a = fa[f1];
+        f1 = top[a];
+    }
+    if(dep[a] > dep[b]) swap(a, b);
+    res = max(res, query2(1, num[a], num[b]));
+    return res;
+}
+inline void init() {
+    memset(head, 0, sizeof(head)); ecnt = 0;
+    fa[1] = 0; dep[1] = 1; top[1] = 1; num[1] = 1; totw = 1;
+}
+inline void pre() {
+    dfs1(1); dfs2(1); build(1, 1, totw);
+}
+\end{lstlisting}
+\subsubsection{Link-Cut Tree}
+\begin{lstlisting}
+namespace LCT {
+    int fa[MAXN], rev[MAXN], tr[MAXN][2];
+    int s[MAXN], val[MAXN];
+    void push_up(int x) {
+        int l = tr[x][0], r = tr[x][1];
+        s[x] = s[l] + s[r] + val[x];
+    }
+    void Rev(int x) {
+        rev[x] ^= 1; swap(tr[x][0], tr[x][1]);
+    }
+    void push_down(int x) {
+        if(!rev[x]) return;
+        int l = tr[x][0], r = tr[x][1];
+        rev[x] = 0;
+        if(l) Rev(l); if(r) Rev(r);
+    }
+    bool isroot(int x) {
+        return tr[fa[x]][0] != x && tr[fa[x]][1] != x;
+    }
+    void pre(int x) {
+        if(!isroot(x)) pre(fa[x]);
+        push_down(x);
+    }
+    void rotate(int x) {
+        int y = fa[x]; int z = fa[y];
+        int l = tr[y][1] == x;
+        int r = l ^ 1;
+        if(!isroot(y)) tr[z][tr[z][1] == y] = x;
+        fa[x] = z; fa[y] = x; fa[tr[x][r]] = y;
+        tr[y][l] = tr[x][r]; tr[x][r] = y;
+        push_up(y);
+    }
+    void splay(int x) {
+        pre(x);
+        int y, z;
+        while(!isroot(x)) {
+            y = fa[x]; z = fa[y];
+            if(!isroot(y)) {
+                if((tr[z][0] == y) == (tr[y][0] == x))rotate(y);
+                else rotate(x);
+            }
+            rotate(x);
+        }
+        push_up(x);
+    }
+    void access(int x) {
+        int y = 0;
+        while(x) {
+            splay(x); tr[x][1] = y;
+            push_up(x);
+            y = x; x = fa[x];
+        }
+    }
+    void makeroot(int x) {
+        access(x); splay(x); Rev(x);
+    }
+    void lnk(int x, int y) {
+        makeroot(x); fa[x] = y;
+    }
+    void cut(int x, int y) {
+        makeroot(x); access(y); splay(y);
+        tr[y][0] = fa[x] = 0; push_up(y);
+    }
+    void update(int x, int y) {
+        makeroot(x); val[x] = y; push_up(x);
+    }
+    int query(int x, int y) {
+        makeroot(x); access(y); splay(y);
+        return s[y];
+    }
+    bool check(int x, int y) {
+        int tmp = y;
+        makeroot(x); access(y); splay(x);
+        while(!isroot(y)) y = fa[y];
+        splay(tmp);
+        return x == y;
+    }
+}
+\end{lstlisting}
+\subsection{Sequence Structures}
+\subsubsection{Segment Tree}
+\begin{lstlisting}
+#define Ls(x) (x << 1)
+#define Rs(x) (x << 1 | 1)
+struct Tree {
+    int l, r, lazy;
+    LL sum, mx;
+}tree[MAXN << 2];
+int A[MAXN];
+void push_up(int x) {
+    tree[x].sum = tree[Ls(x)].sum + tree[Rs(x)].sum;
+    tree[x].mx = max(tree[Ls(x)].mx, tree[Rs(x)].mx);
+}
+void push_down(int x) {
+    if(tree[x].lazy) {
+        tree[Ls(x)].sum += tree[x].lazy * (tree[Ls(x)].r - tree[Ls(x)].l + 1);
+        tree[Rs(x)].sum += tree[x].lazy * (tree[Rs(x)].r - tree[Rs(x)].l + 1);
+        tree[Ls(x)].mx += tree[x].lazy;
+        tree[Rs(x)].mx += tree[x].lazy;
+        tree[Ls(x)].lazy += tree[x].lazy;
+        tree[Rs(x)].lazy += tree[x].lazy;
+        tree[x].lazy = 0;
+    }
+}
+void build(int x, int L, int R) {
+    tree[x].lazy = 0;
+    tree[x].l = L; tree[x].r = R;
+    if(L == R) {
+        tree[x].sum = A[L];
+        tree[x].mx = A[L];
+        return;
+    }
+    int mid = (L + R) >> 1;
+    build(Ls(x), L, mid);
+    build(Rs(x), mid + 1, R);
+    push_up(x);
+}
+void update(int x, int L, int R, LL val) {
+    if(tree[x].l >= L && tree[x].r <= R) {
+        tree[x].lazy += val;
+        tree[x].sum += val * (tree[x].r - tree[x].l + 1);
+        tree[x].mx += val;
+        return;
+    }
+    push_down(x);
+    int mid = (tree[x].l + tree[x].r) >> 1;
+    if(L <= mid) update(Ls(x), L, R, val);
+    if(R > mid) update(Rs(x), L, R, val);
+    push_up(x);
+}
+LL query(int x, int L, int R) {
+    if(tree[x].l >= L && tree[x].r <= R)
+        return tree[x].sum;
+    push_down(x);
+    int mid = (tree[x].l + tree[x].r) >> 1;
+    LL res = 0;
+    if(L <= mid) res += query(Ls(x), L, R);
+    if(R > mid) res += query(Rs(x), L, R);
+    return res;
+}
+LL query2(int x, int L, int R) {
+    if(tree[x].l >= L && tree[x].r <= R)
+        return tree[x].mx;
+    push_down(x);
+    int mid = (tree[x].l + tree[x].r) >> 1;
+    LL res = -INF;
+    if(L <= mid) res = max(res, query2(Ls(x), L, R));
+    if(R > mid) res = max(res, query2(Rs(x), L, R));
+    return res;
+}
+\end{lstlisting}
+\subsubsection{Splay Tree}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Persistent Data Structures}
+\subsubsection{Chairman Tree}
+\begin{lstlisting}
+struct Node {
+    int l, r;
+    LL sum;
+}t[MAXN * 40];
+int cnt, n;
+int rt[MAXN];
+void update(int pre, int &x, int l, int r, int v) {
+    x = ++cnt; t[x] = t[pre]; t[x].sum++;
+    if(l == r) return;
+    int mid = (l + r) >> 1;
+    if(v <= mid) update(t[pre].l, t[x].l, l, mid, v);
+    else update(t[pre].r, t[x].r, mid + 1, r, v);
+}
+int query(int x, int y, int l, int r, int v) {
+    if(l == r) return l;
+    int mid = (l + r) >> 1;
+    int sum = t[t[y].l].sum - t[t[x].l].sum;
+    if(sum >= v) return query(t[x].l, t[y].l, l, mid, v);
+    else return query(t[x].r, t[y].r, mid + 1, r, v - sum);
+}
+\end{lstlisting}
+
+
+
+
+
+\newpage
+\section{String}
+\subsection{Basics}
+\subsubsection{Hash}
+\begin{lstlisting}
+const LL p1 = 201, p2 = 301, mod1 = 1200000319, mod2 = 2147483647;
+struct Hash {
+    LL a, b;
+    void append(Hash pre, int v) {
+        a = (pre.a * p1 + v) % mod1;
+        b = (pre.b * p2 + v) % mod2;
+    }
+    void init(string S) {
+        a = b = 0;
+        for(int i = 0; i < S.size(); i++) append(*this, S[i]);
+    }
+    bool operator == (const Hash &x) const {
+        return a == x.a && b == x.b;
+    }
+    bool operator < (const Hash &x) const {
+        return a < x.a || (a == x.a && b < x.b);
+    }
+};
+\end{lstlisting}
+\subsubsection{KMP \&\& exKMP}
+\begin{lstlisting}
+namespace KMP {
+    int f[MAXN];
+    void get_fail(string A) {
+        f[0] = 0; f[1] = 0;
+        for(int i = 1; i < A.size(); i++) {
+            int j = f[i];
+            while(j && A[i] != A[j]) j = f[j];
+            f[i + 1] = A[i] == A[j] ? j + 1 : 0;
+        }
+    }
+
+    void kmp(string A, string B) {
+        get_fail(B);
+        int j = 0;
+        for(int i = 0; i < A.size(); i++) {
+            while(j && B[j] != A[i]) j = f[j];
+            if(B[j] == A[i]) j++;
+            if(j == B.size()) {
+                ans++;
+                j = f[j];
+            }
+        }
+    }
+}
+namespace exKMP {
+    int nxt[MAXN], ext[MAXN];
+    void get_nxt(string T) {
+        int j = 0, mx = 0;
+        int m = T.size();
+        nxt[0] = m;
+        for(int i = 1; i < m; i++) {
+            if(i >= mx || i + nxt[i - j] >= mx) {
+                if(i >= mx) mx = i;
+                while(mx < m && T[mx] == T[mx - i]) mx++;
+                nxt[i] = mx - i;
+                j = i;
+            }
+            else nxt[i] = nxt[i - j];
+        }
+    }
+    void exkmp(string S, string T) {
+        int j = 0, mx = 0;
+        get_nxt(T);
+        int n = S.size(), m = T.size();
+        for(int i = 0; i < n; i++) {
+            if(i >= mx || i + nxt[i - j] >= mx) {
+                if(i >= mx) mx = i;
+                while(mx < n && mx - i < m && S[mx] == T[mx - i]) mx++;
+                ext[i] = mx - i;
+                j = i;
+            }
+            else ext[i] = nxt[i - j];
+        }
+    }
+}
+\end{lstlisting}
+\subsubsection{AC Automaton}
+\begin{lstlisting}
+namespace AC {
+    int ch[MAXN][sigma_size], last[MAXN];
+    int val[MAXN], f[MAXN], sz;
+    inline void init() { sz = 1; memset(ch[0], 0, sizeof(ch[0])); }
+    inline int idx(char c) { return c - 'a'; }
+    void insert(string s, int v) {
+        int u = 0;
+        for(int i = 0; i < s.size(); i++) {
+            int c = idx(s[i]);
+            if(!ch[u][c]) {
+                memset(ch[sz], 0, sizeof(ch[sz]));
+                val[sz] = 0;
+                ch[u][c] = sz++;
+            }
+            u = ch[u][c];
+        }
+        val[u] = v;
+    }
+    void get_fail() {
+        queue<int> q;
+        f[0] = 0;
+        for(int c = 0; c < sigma_size; c++) {
+            int u = ch[0][c];
+            if(u) { f[u] = 0; q.push(u); last[u] = 0; }
+        }
+        while(!q.empty()) {
+            int r = q.front(); q.pop();
+            for(int c = 0; c < sigma_size; c++) {
+                int u = ch[r][c];
+                if(!u) { ch[r][c] = ch[f[r]][c]; continue; }
+                q.push(u);
+                int v = f[r];
+                while(v && !ch[v][c]) v = f[v];
+                f[u] = ch[v][c];
+                last[u] = val[f[u]] ? f[u] : last[f[u]];
+            }
+        }
+    }
+    inline void solve(int j) {
+        if(j) {
+            ans += val[j];
+            solve(last[j]);
+        }
+    }
+    void find(string T) {
+        int j = 0;
+        for(int i = 0; i < T.size(); i++) {
+            int c = idx(T[i]);
+            j = ch[j][c];
+            if(val[j]) solve(j);
+            else if(last[j]) solve(last[j]);
+        }
+    }
+}
+\end{lstlisting}
+\subsection{Suffix Related}
+\subsubsection{Suffix Array}
+\begin{lstlisting}
+namespace SA {
+    char s[MAXN];
+    int sa[MAXN], rank[MAXN], height[MAXN];
+    int t[MAXN], t2[MAXN], c[MAXN], n;
+    void clear() { n = 0; memset(sa, 0, sizeof(sa)); }
+    void build(int m) {
+        int *x = t, *y = t2;
+        for(int i = 0; i < m; i++) c[i] = 0;
+        for(int i = 0; i < n; i++) c[x[i] = s[i]]++;
+        for(int i = 1; i < m; i++) c[i] += c[i - 1];
+        for(int i = n - 1; i >= 0; i--) sa[--c[x[i]]] = i;
+        for(int k = 1; k <= n; k <<= 1) {
+            int p = 0;
+            for(int i = n - k; i < n; i++) y[p++] = i;
+            for(int i = 0; i < n; i++) if(sa[i] >= k) y[p++] = sa[i] - k;
+            for(int i = 0; i < m; i++) c[i] = 0;
+            for(int i = 0; i < n; i++) c[x[y[i]]]++;
+            for(int i = 1; i < m; i++) c[i] += c[i - 1];
+            for(int i = n - 1; i >= 0; i--) sa[--c[x[y[i]]]] = y[i];
+            swap(x, y);
+            p = 1; x[sa[0]] = 0;
+            for(int i = 1; i < n; i++)
+                x[sa[i]] = y[sa[i - 1]] == y[sa[i]] && y[sa[i - 1] + k] == y[sa[i] + k] ? p - 1 : p++;
+            if(p >= n) break;
+            m = p;
+        }
+    }
+    void buildHeight() {
+        int k = 0;
+        for(int i = 0; i < n; i++) rank[sa[i]] = i;
+        for(int i = 0; i < n; i++) {
+            if(k) k--;
+            int j = sa[rank[i] - 1];
+            while(s[i + k] == s[j + k]) k++;
+            height[rank[i]] = k;
+        }
+    }
+    void init() {
+        n = strlen(s) + 1;
+        build('z' + 1);
+        buildHeight();
+    }
+}
+\end{lstlisting}
+\subsubsection{Suffix Automaton}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Palindrome Related}
+\subsubsection{Manacher}
+\begin{lstlisting}
+namespace Palindrome {
+    char s1[MAXN], s2[MAXN];
+    int len1, len2, ans;
+    int p[MAXN]; //p[i] - 1
+    void init() {
+        len1 = strlen(s1);
+        s2[0] = '$';
+        s2[1] = '#';
+        for(int i = 0; i < len1; i++) {
+            s2[2 * i + 2] = s1[i];
+            s2[2 * i + 3] = '#';
+        }
+        len2 = len1 * 2 + 2;
+        s2[len2] = '&';
+    }
+    void manacher() {
+        int id = 0, mx = 0;
+        for(int i = 1; i < len2; i++) {
+            if(mx > i) p[i] = min(p[2 * id - i], mx - i);
+            else p[i] = 1;
+            while(s2[i + p[i]] == s2[i - p[i]]) p[i]++;
+            if(i + p[i] > mx) {
+                mx = i + p[i];
+                id = i;
+            }
+        }
+    }
+}
+\end{lstlisting}
+\subsubsection{Palindromic Tree}
+\begin{lstlisting}
+
+\end{lstlisting}
+
+
+
+
+
+\newpage
+\section{Math}
+\subsection{Algebra}
+\subsubsection{FFT}
+\begin{lstlisting}
+const double pi = acos(-1.0);
+const int MAXN = 300003;
+struct comp {
+    double x, y;
+    comp operator + (const comp a) const { return (comp) {x + a.x, y + a.y}; }
+    comp operator - (const comp a) const { return (comp) {x - a.x, y - a.y}; }
+    comp operator * (const comp a) const { return (comp) {x * a.x - y * a.y, x * a.y + y * a.x}; }
+};
+int rev[MAXN], T;
+comp tmp;
+void fft(comp *a, int r) {
+    if(r == -1) for(int i = 0; i < T; i++) A[i] = A[i] * A[i];
+    for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+    for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
+        comp step = (comp) {cos(pi / mid), r * sin(pi / mid)};
+        for(int j = 0; j < T; j += i) {
+            comp cur = (comp) {1, 0};
+            for(int k = j; k < j + mid; k++, cur = cur * step) {
+                tmp = a[k + mid] * cur;
+                a[k + mid] = a[k] - tmp;
+                a[k] = a[k] + tmp;
+            }
+        }
+    }
+    if(r == -1) for(int i = 0; i < T; i++) a[i].y = (int)(a[i].y / T / 2 + 0.5);
+}
+int n, m;
+comp A[MAXN];
+void init() {
+    for(T = 1; T <= n + m; T <<= 1);
+    for(int i = 1; i < T; i++) {
+        if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+        else rev[i] = rev[i >> 1] >> 1;
+    }
+}
+\end{lstlisting}
+\subsubsection{NTT}
+\begin{lstlisting}
+const int MAXN = 300005, G = 3, mod = 998244353; //or (479LL<<21) + 1
+int rev[MAXN], T;
+LL qpow(LL x, LL y) {
+    LL res = 1;
+    while(y) {
+        if(y & 1) res = res * x % mod;
+        x = x * x % mod;
+        y >>= 1;
+    }
+    return res;
+}
+void ntt(LL *a, int r) {
+    if(r == -1) for(int i = 0; i < T; i++) A[i] = A[i] * B[i] % mod;
+    for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+    for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
+        LL gn = qpow(G, (mod - 1) / i);
+        if(r == -1) gn = qpow(gn, mod - 2);
+        for(int j = 0; j < T; j += i) {
+            LL cur = 1, tmp;
+            for(int k = j; k < j + mid; k++, cur = cur * gn % mod) {
+                tmp = a[k + mid] * cur % mod;
+                a[k + mid] = ((a[k] - tmp) % mod + mod) % mod;
+                a[k] = (a[k] + tmp) % mod;
+            }
+        }
+    }
+    if(r == -1) {
+        LL inv = qpow(T, mod - 2);
+        for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
+    }
+}
+int n, m;
+LL A[MAXN], B[MAXN];
+void init() {
+    for(T = 1; T <= n + m; T <<= 1);
+    for(int i = 0; i < T; i++) {
+        if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+        else rev[i] = rev[i >> 1] >> 1;
+    }
+}
+\end{lstlisting}
+\subsection{Math Theory}
+\subsubsection{CRT \&\& exCRT}
+\begin{lstlisting}
+namespace CRT {
+    LL m[MAXN], a[MAXN]; //x_i = a[i] (mod m[i])
+    LL exgcd(LL _a, LL _b, LL &x, LL &y) {
+        if(!_b) {
+            x = 1; y = 0;
+            return _a;
+        }
+        LL d = exgcd(_b, _a % _b, y, x);
+        y -= (_a / _b) * x;
+        return d;
+    }
+    LL crt(int n) {
+        LL M = 1, tmp, res = 0, x, y;
+        for(int i = 1; i <= n; i++) M *= m[i];
+        for(int i = 1; i <= n; i++) {
+            tmp = M / m[i];
+            exgcd(tmp, m[i], x, y);
+            x = (x + m[i]) % m[i];
+            res = (a[i] * x % M * tmp % M + res) % M;
+        }
+        return res;
+    }
+}
+namespace EXCRT {
+    LL m[MAXN], a[MAXN];
+    LL exgcd(LL _a, LL _b, LL &x, LL &y) {
+        if(!_b) {
+            x = 1; y = 0;
+            return _a;
+        }
+        LL d = exgcd(_b, _a % _b, y, x);
+        y -= (_a / _b) * x;
+        return d;
+    }
+    LL excrt(int n) {
+        LL M = m[1], A = a[1], x, y, d, tmp;
+        for(int i = 2; i <= n; i++) {
+            d = exgcd(M, m[i], x, y);
+            if((A - a[i]) % d) return -1; //No solution
+            tmp = M / d; M *= m[i] / d;
+            y = (A - a[i]) / d % M * y % M;
+            y = (y + tmp) % tmp;
+            A = (m[i] % M * y % M + a[i]) % M;
+            A = (A + M) % M;
+        }
+        return A;
+    }
+}
+\end{lstlisting}
+
+
+
+
+
+\newpage
+\section{Geometry}
+\begin{lstlisting}
+
+\end{lstlisting}
+
+
+
+
+
+\newpage
+\section{Others}
+\subsection{sample}
+\subsubsection{vimrc}
+\begin{lstlisting}
+set nocompatible
+source $VIMRUNTIME/vimrc_example.vim
+source $VIMRUNTIME/mswin.vim
+nunmap <c-v>
+set cindent
+set number
+set mouse=a
+set tabstop=4
+set shiftwidth=4
+set cursorline
+set guifont=Consolas:h14
+inoremap kj <esc>
+inoremap jk <esc>
+inoremap { {}<left>
+syntax enable
+func! Compile()
+    exec "w"
+    exec "! g++ % -o %< -Wall -Wextra -Wshadow -Wconversion --std=c++14 -O2"
+    exec "! ./%<"
+endfunc
+func! Debug()
+    exec "w"
+    exec "! g++- % -o %< -g -Wall --std=c++14 && gdb %<"
+endfunc
+func! AddTitle()
+    call append(0,"// Cease to struggle and you cease to live")
+    call append(1,"#include <bits/stdc++.h>")
+    call append(2,"using namespace std;")
+    call append(4,"int main() {")
+    call append(5,"    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;")
+    call append(7,"    return 0;")
+    call append(8,"}")
+endfunc
+map <F9> :call Compile()<CR>
+map <F5> :call Debug()<CR>
+map <F8> :call AddTitle()<CR>
+\end{lstlisting}
+\subsubsection{FastIO}
+\begin{lstlisting}
+namespace IO {
+    const int MB = 1048576;
+    const int RMAX = 16 * MB;
+    const int WMAX = 16 * MB;
+    #define getchar() *(rp++)
+    #define putchar(x) (*(wp++) = (x))
+    char rb[RMAX], *rp = rb,  wb[WMAX], *wp = wb;
+    inline void init() {
+        fread(rb, sizeof(char), RMAX, stdin);
+    }
+    template <class _T> inline void read(_T &_a) {
+        _a = 0; register bool _f = 0; register int _c = getchar();
+        while (_c < '0' || _c > '9') _f |= _c == '-', _c = getchar();
+        while (_c >= '0' && _c <= '9') _a = _a * 10 + (_c ^ '0'), _c = getchar();
+        _a = _f ? -_a : _a;
+    }
+    template <class _T> inline void write(_T _a) {
+        static char buf[20], *top = buf;
+        if (_a) {
+            while (_a) {
+                register _T tm = _a / 10;
+                *(++top) = char(_a - tm * 10) | '0';
+                _a = tm;
+            }
+            while (top != buf) putchar(*(top--));
+        }
+        else putchar('0');
+    }
+    void output() {
+        fwrite(wb, sizeof(char), wp - wb, stdout);
+    }
+}
+\end{lstlisting}
+\subsection{Offline Algorithm}
+\subsubsection{CDQ Divide and Conquer}
+\begin{lstlisting}
+struct Node {
+    int x, y, z, ans;
+    Node() {}
+    Node(int _x, int _y, int _z):x(_x), y(_y), z(_z) {}
+    bool operator < (const Node &b) const {
+        if(y == b.y) {
+            if(z == b.z) return x < b.x;
+            return z < b.z;
+        }
+        return y < b.y;
+    }
+}A[MAXN], B[MAXN], C[MAXN];
+int bit[MAXN];
+void add(int k, int v) {
+    for(; k <= m; k += k & -k) bit[k] = max(bit[k], v);
+}
+void clear(int k) {
+    for(; k <= m; k += k & -k) bit[k] = 0;
+}
+int sum(int k) {
+    int res = 0;
+    for(; k; k -= k & -k) res = max(res, bit[k]);
+    return res;
+}
+void solve(int l, int r) {
+    if(l == r) {
+        B[l] = A[l];
+        return;
+    }
+    int mid = (l + r) >> 1;
+    solve(l, mid);
+    for(int i = mid + 1; i <= r; i++) B[i] = A[i];
+    //sort(B + l, B + mid + 1);
+    sort(B + mid + 1, B + r + 1);
+    int L = l;
+    for(int R = mid + 1; R <= r; R++) {
+        while(L <= mid && B[L].y < B[R].y) add(B[L].z, B[L].ans), L++;
+        A[B[R].x].ans = max(A[B[R].x].ans, sum(B[R].z - 1) + 1);
+        B[R].ans = A[B[R].x].ans;
+    }
+    for(int i = l; i <= L; i++) clear(B[i].z);
+    solve(mid + 1, r);
+    L = l;
+    int p = l, q = mid + 1;
+    while(p <= mid || q <= r) {
+        if(q > r || (p <= mid && B[p].y <= B[q].y)) C[L++] = B[p++];
+        else C[L++] = B[q++];
+    }
+    for(int i = l; i <= r; i++) B[i] = C[i];
+}
+\end{lstlisting}
+\subsubsection{Mo’s Algorithm}
+\begin{lstlisting}
+struct Node{
+    int l, r, t, id;
+    bool operator < (const Node& a) const {
+        if(l /sz == a.l / sz) {
+            if(r == a.r) return t < a.t;
+            return r < a.r;
+        }
+        return l / sz < a.l / sz;
+    }
+}q[MAXN];
+void solve() {
+    while (t < q[i].t) addTime(t++, 1);
+    while (t > q[i].t) addTime(--t, -1);
+    while(L < q[i].l) add(L++, -1);
+    while(L > q[i].l) add(--L, 1);
+    while(R < q[i].r) add(++R, 1);
+    while(R > q[i].r) add(R--, -1);
+}
+\end{lstlisting}
+\subsubsection{Mo's Algorithm On Tree}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Randomized Algorithm}
+\subsubsection{Simulated Annealing}
+\begin{lstlisting}
+void solve() {
+    while(T > eps) {
+        double alpha = ((rand() % 30001) / 15000.0) * pi;
+        double theta = ((rand() % 10001) / 10000.0) * pi;
+        tmp.x = cur.x + T * sin(theta) * cos(alpha);
+        tmp.y = cur.y + T * sin(theta) * sin(alpha);
+        tmp.z = cur.z + T * cos(theta);
+        tmp.dis = cal(tmp);
+        if(tmp.dis < cur.dis || (tmp.dis * 0.999 < cur.dis && (rand() & 7) == 7)) cur = tmp;
+        //if(exp((cur.d - tmp.d)  / T) > ((double)rand() / RAND_MAX)) cur = tmp;
+
+        T *= 0.999;
+    }
+}
+\end{lstlisting}
+}
+\end{document}
