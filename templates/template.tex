@@ -1438,9 +1438,160 @@ namespace EXCRT {
 
 
 \newpage
-\section{Geometry}
+\section{ComputationalGeometry}
 \begin{lstlisting}
+namespace CG{
+    #define Point Vector
+    const double pi=acos(-1.0);
+    const double inf=1e100;
+    const double eps=1e-9;
+    template <typename T> inline T Abs(T x){return x>0?x:-x;}
+    template <typename T> inline bool operator == (T x,T y){return Abs(x-y)<eps;}
+    int sgn(double x){
+        if (Abs(x)<eps) return 0;
+        if (x>0) return 1;
+        else return -1;
+    }
+}
+namespace CG{
+    struct Point{
+        double x,y;
+        Point(double x=0,double y=0):x(x),y(y){}
+    };
+    Vector operator + (const Vector a,const Vector b){return Vector(a.x+b.x,a.y+b.y);}
+    Vector operator - (const Vector a,const Vector b){return Vector(a.x-b.x,a.y-b.y);}
+    Vector operator * (const Vector a,const double k){return Vector(a.x*k,a.y*k);}
+    Vector operator / (const Vector a,const double k){return Vector(a.x/k,a.y/k);}
+    bool operator < (const Vector a,const Vector b) {return a.x==b.x?a.y<b.y:a.x<b.x;}
+    bool operator == (const Vector a,const Vector b) {return a.x==b.x && a.y==b.y;}
+    double Dot(const Vector a,const Vector b){return a.x*b.x+a.y*b.y;}
+    double Cross(const Vector a,const Vector b){return a.x*b.y-a.y*b.x;}    
+    double Norm(const Vector a){return sqrt(Dot(a,a));}
+    double Angle(const Vector a,const Vector b){return acos(Dot(a,b)/Norm(a)/Norm(b));}
+    Vector Rotate(const Vector a,const double theta){return Vector(a.x*cos(theta)-a.y*sin(theta),a.x*sin(theta)+a.y*cos(theta));}
+    bool ToLeftTest(const Vector a,const Vector b){return Cross(a,b)<0;}
+    double DisPP(const Vector a,const Vector b){return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));}
+}
+namespace CG{
+    struct Line{
+        Point p0,v,p1;
+        double t,theta;
+        Line(Point _p0=0,Point _v=0,double _t=1):p0(_p0),v(_v),t(_t){p1=p0+v*t; theta=atan2(v.y,v.x);}
+        // Line(Point _p0=0,Point _v=0,double _t=1):p0(_p0),p1(_v){v=(p1-p0)/t; theta=atan2(v.y,v.x);}
+    };
+    bool operator < (const Line n,const Line m) {return n.theta<m.theta;}
+    Point GetIntersection(const Line n,const Line m){return n.p0+n.v*Cross(m.v,(n.p0-m.p0))/Cross(n.v,m.v);}
+    bool OnLine(const Vector a,const Line l){return Cross(l.p0-a,l.p1-a)==0;}
+    bool OnSegment(const Point a,const Line l){return sgn(Cross(l.p0-a,l.p1-a))==0 && sgn(Dot(l.p0-a,l.p1-a))<0;}
+    double DisPL(const Point a,const Line l){return Abs(Cross(l.p1-l.p0,a-l.p0)/Norm(l.p1-l.p0));}
+    double DisPS(const Point a,const Line l){
+        if (l.p0==l.p1) return Norm(a-l.p0);
+        Vector v1=l.p1-l.p0,v2=a-l.p0,v3=a-l.p1;
+        if (sgn(Dot(v1,v2))<0) return Norm(v2);
+        if (sgn(Dot(v1,v3))>0) return Norm(v3);
+        return DisPL(a,l);
+    }
+    Point GetProjection(const Point a,const Line l){
+        Vector v=l.p1-l.p0;
+        return l.p0+v*(Dot(v,a-l.p0)/Dot(v,v));
+    }
+    bool SegmentIntersection(const Line n,const Line m,bool p){
+        double c1=Cross(n.p1-n.p0,m.p1-m.p0);
+        double c2=Cross(n.p1-n.p0,m.p1-n.p0);
+        double c3=Cross(m.p1-m.p0,n.p0-m.p0);
+        double c4=Cross(m.p1-m.p0,n.p1-m.p0);
+        if (p){
+            if (!sgn(c1) || !sgn(c2) || !sgn(c3) || !sgn(c4)){
+                return OnSegment(n.p0,m) || OnSegment(n.p1,m) || OnSegment(m.p0,n) || OnSegment(m.p0,m);
 
+            }
+        }
+        return (sgn(c1)*sgn(c2)<0 && sgn(c3)*sgn(c4)<0);
+    }
+}
+namespace CG{
+    Point p[1000010],s[1000010];
+    int ConvexHull(Point *p,int n){
+        sort(p+1,p+1+n);
+        int m=0;
+        for (int i=1;i<=n;i++){
+            for (;m>=2 && !ToLeftTest(s[m]-s[m-1],p[i]-s[m-1]);m--);
+            s[++m]=p[i];
+        }
+        int k=m;
+        for (int i=n-1;i;i--){
+            for (;m>=k+1 && !ToLeftTest(s[m]-s[m-1],p[i]-s[m-1]);m--);
+            s[++m]=p[i];
+        }
+        return m;
+    }
+    double GetArea(Point *p,int n){
+        double area=0;
+        for (int i=2;i<=n;i++) area+=0.5*Cross(p[i-1],p[i]);
+        return Abs(area);
+    }
+    double GetCircumference(Point *p,int n){
+        double Circumference=0;
+        for (int i=2;i<=n;i++) Circumference+=DisPP(p[i-1],p[i]);
+        return Circumference;
+    }
+}
+namespace CG{
+    void HalfPlane(Line l[],int n){
+        deque <Point> p;
+        sort(l+1,l+1+n);
+        deque <Line> q;
+        q.push_back(l[1]);
+        for (int i=2;i<=n;i++){
+            for (;!p.empty() && !ToLeftTest(p.back()-l[i].p0,l[i].v);q.pop_back(),p.pop_back());
+            for (;!p.empty() && !ToLeftTest(p.front()-l[i].p0,l[i].v);q.pop_front(),p.pop_front());
+            if (sgn(Cross(l[i].v,q.back().v))==0)
+                if (ToLeftTest(l[i].p0-q.back().p0),q.back().v){
+                    q.pop_back();
+                    if (!p.empty()) p.pop_back();
+                }
+            if (!q.empty()) p.push_back(GetIntersection(q.back(),l[i]));
+            q.push_back(l[i]);
+        }
+        for (;!p.empty() && !ToLeftTest(p.back()-q.front().p0,q.front().v);q.pop_back(),p.pop_back());
+        p.push_back(GetIntersection(q.back(),q.front()));
+        double area=0.5*Cross(p.back(),p.front()); Point last=p.front();
+        for (p.pop_front();!p.empty();last=p.front(),p.pop_front()) area+=0.5*Cross(last,p.front());
+        printf("%.1f",Abs(area));
+    }
+}
+namespace CG{
+    Point GetCircleCenter(const Point a,const Point b,const Point c){
+        Point p=(a+b)/2.0,q=(a+c)/2.0;
+        Vector v=Rotate(b-a,pi/2.0),w=Rotate(c-a,pi/2.0);
+        if (sgn(Norm(Cross(v,w)))==0){
+            if (sgn(Norm(a-b)+Norm(b-c)-Norm(a-c))==0) return (a+c)/2;
+            if (sgn(Norm(b-a)+Norm(a-c)-Norm(b-c))==0) return (b+c)/2;
+            if (sgn(Norm(a-c)+Norm(c-b)-Norm(a-b))==0) return (a+c)/2;
+        }
+        return GetIntersection(Line(p,v),Line(q,w));
+    }
+    void MinCircleCover(Point p[],int n){
+        random_shuffle(p+1,p+1+n);
+        Point c=p[1];
+        double r=0;
+        for (int i=2;i<=n;i++)
+            if (sgn(Norm(c-p[i])-r)>0){
+                c=p[i],r=0;
+                for (int j=1;j<i;j++)
+                    if (sgn(Norm(c-p[j])-r)>0){
+                        c=(p[i]+p[j])/2.0;
+                        r=Norm(c-p[i]);
+                        for (int k=1;k<j;k++)
+                            if (sgn(Norm(c-p[k])-r)>0){
+                                c=GetCircleCenter(p[i],p[j],p[k]);
+                                r=Norm(c-p[i]);
+                            }
+                    }
+            }
+        printf("%.10f\n%.10f %.10f",r,c.x,c.y);
+    }
+}
 \end{lstlisting}
 
 
