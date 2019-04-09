@@ -1438,7 +1438,12 @@ namespace EXCRT {
 
 
 \newpage
-\section{ComputationalGeometry}
+
+\section{Computational Geometry}
+
+\subsection{Commonly Definition and Functions}
+
+\subsubsection{Const and Functions}
 \begin{lstlisting}
 namespace CG{
     #define Point Vector
@@ -1453,6 +1458,10 @@ namespace CG{
         else return -1;
     }
 }
+\end{lstlisting}
+
+\subsubsection{Point Definition}
+\begin{lstlisting}
 namespace CG{
     struct Point{
         double x,y;
@@ -1472,6 +1481,10 @@ namespace CG{
     bool ToLeftTest(const Vector a,const Vector b){return Cross(a,b)<0;}
     double DisPP(const Vector a,const Vector b){return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));}
 }
+\end{lstlisting}
+
+\subsubsection{Line Definition}
+begin{lstlisting}
 namespace CG{
     struct Line{
         Point p0,v,p1;
@@ -1509,8 +1522,34 @@ namespace CG{
         return (sgn(c1)*sgn(c2)<0 && sgn(c3)*sgn(c4)<0);
     }
 }
+\end{lstlisting}
+
+\subsubsection{GetArea}
+\begin{lstlisting}
 namespace CG{
-    Point p[1000010],s[1000010];
+    double GetArea(Point *p,int n){
+        double area=Cross(p[n],p[1]);
+        for (int i=2;i<=n;i++) area+=0.5*Cross(p[i-1],p[i]);
+        return Abs(area);
+    }
+}
+\end{lstlisting}
+
+\subsubsection{GetCircumference}
+\begin{lstlisting}
+namespace CG{
+    double GetCircumference(Point *p,int n){
+        double Circumference=DisPP(p[n],p[1]);
+        for (int i=2;i<=n;i++) Circumference+=DisPP(p[i-1],p[i]);
+        return Circumference;
+    }
+}
+\end{lstlisting}
+
+\subsection{ConvexHull}
+\begin{lstlisting}
+namespace CG{
+    Point p[MAXN],s[MAXN];
     int ConvexHull(Point *p,int n){
         sort(p+1,p+1+n);
         int m=0;
@@ -1523,21 +1562,15 @@ namespace CG{
             for (;m>=k+1 && !ToLeftTest(s[m]-s[m-1],p[i]-s[m-1]);m--);
             s[++m]=p[i];
         }
-        return m;
-    }
-    double GetArea(Point *p,int n){
-        double area=0;
-        for (int i=2;i<=n;i++) area+=0.5*Cross(p[i-1],p[i]);
-        return Abs(area);
-    }
-    double GetCircumference(Point *p,int n){
-        double Circumference=0;
-        for (int i=2;i<=n;i++) Circumference+=DisPP(p[i-1],p[i]);
-        return Circumference;
+        return m-1;
     }
 }
+\end{lstlisting}
+
+\subsection{HalfPlaneIntersection}
+\begin{lstlisting}
 namespace CG{
-    void HalfPlane(Line l[],int n){
+    void HalfPlaneIntersection(Line l[],int n){
         deque <Point> p;
         sort(l+1,l+1+n);
         deque <Line> q;
@@ -1560,6 +1593,10 @@ namespace CG{
         printf("%.1f",Abs(area));
     }
 }
+\end{lstlisting}
+
+\subsection{MinCircleCover}
+\begin{lstlisting}
 namespace CG{
     Point GetCircleCenter(const Point a,const Point b,const Point c){
         Point p=(a+b)/2.0,q=(a+c)/2.0;
