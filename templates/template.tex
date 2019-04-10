@@ -1438,11 +1438,8 @@ namespace EXCRT {
 
 
 \newpage
-
 \section{Computational Geometry}
-
 \subsection{Commonly Definition and Functions}
-
 \subsubsection{Const and Functions}
 \begin{lstlisting}
 namespace CG{
@@ -1459,7 +1456,6 @@ namespace CG{
     }
 }
 \end{lstlisting}
-
 \subsubsection{Point Definition}
 \begin{lstlisting}
 namespace CG{
@@ -1482,9 +1478,8 @@ namespace CG{
     double DisPP(const Vector a,const Vector b){return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));}
 }
 \end{lstlisting}
-
 \subsubsection{Line Definition}
-begin{lstlisting}
+\begin{lstlisting}
 namespace CG{
     struct Line{
         Point p0,v,p1;
@@ -1524,7 +1519,7 @@ namespace CG{
 }
 \end{lstlisting}
 
-\subsubsection{GetArea}
+\subsubsection{Get Area}
 \begin{lstlisting}
 namespace CG{
     double GetArea(Point *p,int n){
@@ -1535,7 +1530,7 @@ namespace CG{
 }
 \end{lstlisting}
 
-\subsubsection{GetCircumference}
+\subsubsection{Get Circumference}
 \begin{lstlisting}
 namespace CG{
     double GetCircumference(Point *p,int n){
@@ -1546,7 +1541,7 @@ namespace CG{
 }
 \end{lstlisting}
 
-\subsection{ConvexHull}
+\subsection{Convex Hull}
 \begin{lstlisting}
 namespace CG{
     Point p[MAXN],s[MAXN];
@@ -1567,7 +1562,7 @@ namespace CG{
 }
 \end{lstlisting}
 
-\subsection{HalfPlaneIntersection}
+\subsection{Half Plane Intersection}
 \begin{lstlisting}
 namespace CG{
     void HalfPlaneIntersection(Line l[],int n){
@@ -1595,7 +1590,7 @@ namespace CG{
 }
 \end{lstlisting}
 
-\subsection{MinCircleCover}
+\subsection{Min Circle Cover}
 \begin{lstlisting}
 namespace CG{
     Point GetCircleCenter(const Point a,const Point b,const Point c){
