@@ -1681,7 +1681,7 @@ namespace CG{
 
 \newpage
 \section{Others}
-\subsection{sample}
+\subsection{Sample}
 \subsubsection{vimrc}
 \begin{lstlisting}
 set nocompatible
@@ -1754,6 +1754,32 @@ namespace IO {
     void output() {
         fwrite(wb, sizeof(char), wp - wb, stdout);
     }
+}
+\end{lstlisting}
+\subsubsection{JavaBigNum}
+\begin{lstlisting}
+import java.math.*;
+import java.util.*;
+public class Main{
+	public static void main(String []args){
+		Scanner in = new Scanner(System.in);
+		while(in.hasNext()){} //EOF
+		BigInteger zero = BigInteger.valueOf(0);
+		BigInteger a = in.nextBigInteger();
+		BigInteger b = in.nextBigInteger();
+		BigInteger c = in.nextBigInteger();
+		int d = in.nextInt();
+		a.add(b);
+		a.subtract(b);
+		a.multiply(b);
+		a.divide(b);
+		a.mod(b);
+		a.compareTo(b);
+		a.negate();
+		a.modInverse(b); //a^(-1)
+		a.modPow(b,c); //a^b%c
+		a.pow(d);
+	}
 }
 \end{lstlisting}
 \subsection{Offline Algorithm}
