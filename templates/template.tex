@@ -1,5 +1,7 @@
 \documentclass[10pt]{ctexart}
 \usepackage{listings}
+\usepackage{amsmath} 
+\usepackage{amssymb} 
 \usepackage{xcolor}
 \usepackage{xeCJK}
 \usepackage{fontspec}
@@ -8,6 +10,9 @@
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{geometry}
+\usepackage[T1]{fontenc}  
+\usepackage{textcomp}  
+\usepackage{lmodern}
 \usepackage[colorlinks,
             linkcolor=black,
             anchorcolor=black,
@@ -56,6 +61,8 @@
     basicstyle=\linespread{1}\small\fontspec{Courier New Bold}\ttfamily,
     breaklines=true,
     %xleftmargin=1em,xrightmargin=1em, aboveskip=1em,
+    % in the listings package configuration, try:  
+    literate={"}{\textquotedbl}1,  
 }
 %\setmainfont{Courier New Bold}
 %\begin{lstlisting}
@@ -651,6 +658,8 @@ namespace SCC{
     vector<int> G[MAXN];
     int dfs_clock, scc_cn, dfn[MAXN], low[MAXN], sccno[MAXN];
     stack<int> S;
+    //int sum_b; //Bridge
+    //int sum_d; //Dot
     void addEdge(int u, int v) {
         G[u].push_back(v);
     }
@@ -661,10 +670,13 @@ namespace SCC{
             if(!dfn[v]) {
                 tarjan(v);
                 low[u] = min(low[u], low[v]);
+                //if(low[v] > dfn[u]) sum_b++;
+                //if(low[v] >= dfn[u]) vis[u]++;
             }else if(!sccno[v]) {
                 low[u] = min(low[u], dfn[v]);
             }
         }
+        //if((u == rt && vis[u] > 2) || (u != rt && vis[u] > 1)) sum_d++;
         if(dfn[u] == low[u]) {
             scc_cnt++;
             for(;;) {
@@ -1899,7 +1911,54 @@ void Euler(int n) {
     }
 }
 \end{lstlisting}
-
+\subsubsection{Möbius Inversion}
+$$
+\sum_i^n \sum_j^m lcm(i,j) (mod\ p)
+$$
+\begin{lstlisting}
+int mu[MAXN], prime[MAXN], sum[MAXN], cnt;
+bool isp[MAXN];
+void getmu(int n) {
+    mu[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            mu[i] = -1;
+            prime[++cnt] = i;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                mu[i * prime[j]] = 0;
+                break;
+            }
+            mu[i * prime[j]] = -mu[i];
+        }
+    }
+}
+ll n, m, ans;
+ll query(ll x, ll y) { return (x * (x + 1) / 2 % mod) * (y * (y + 1) / 2 % mod) % mod; }
+ll F(ll x, ll y) {
+    ll res = 0, last;
+    for(ll i = 1; i <= min(x, y); i = last + 1) {
+        last = min(x / (x / i), y / (y / i));
+        res = (res + (sum[last] - sum[i - 1]) * query(x / i, y / i) % mod) % mod;
+    }
+    return res;
+}
+int main() {
+    cin>>n>>m;
+    getmu(min(n, m));
+    for(ll i = 1; i <= min(n, m); i++) sum[i] = (sum[i - 1] + (i * i * mu[i]) % mod) % mod;
+    ll last;
+    for(ll d = 1; d <= min(n, m); d = last + 1) {
+        last = min(n / (n / d), m / (m / d));
+        ans = (ans + (last - d + 1) * (d + last) / 2 % mod * F(n / d, m / d) % mod) % mod;
+    }
+    ans = (ans + mod) % mod;
+    cout<<ans<<endl;
+    return 0;
+}
+\end{lstlisting}
 
 
 \newpage
@@ -2549,5 +2608,62 @@ for(int i = 0; i < (1 << k); i++) {
     }
 }
 \end{lstlisting}
+\subsubsection{Enumerate $\lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor$}
+\begin{lstlisting}
+int cal(int n, int m) {
+    if(n > m) swap(n, m);
+    int res = 0, last;
+    for(int i = 1; i <= n; i = last + 1) {
+        last = min(n / (n / i), m / (m / i));
+        res += (n / i) * (m / i) * (sum(last) - sum(i - 1));
+    }
+    return res;
+}
+\end{lstlisting}
+\subsection{Formula}
+\subsubsection{Euler's theorem}
+$$
+a^x\equiv\left\{
+\begin{aligned}
+&a^{b\%\phi(p)} & & \gcd(a,p)=1&\\
+&a^b & &\gcd(a,p)\not=1,b<\phi(p) \\
+&a^{b\%\phi(p) + \phi(p)} & & \gcd(a,p)\not=1,b\geq \phi(p) &
+\end{aligned}
+\right\}
+(mod\ p)
+$$
+\subsubsection{Dirichlet Convolution}
+$$
+(f\times g)(N)=\sum_{d|N} f(d) * g(\frac{N}{d})
+$$
+$$
+\sum_{d|N} \phi(d) * \frac{N}{d} = \phi \times id
+$$
+$$
+n = \sum_{d|n} \phi(d)
+$$
+$$
+e(n)=\sum_{d|n} \mu(d)
+$$
+$$
+id=\phi \times 1
+$$
+$$
+e=\mu \times 1
+$$
+\subsubsection{Möbius Inversion Formula}
+$$
+id=\phi \times 1
+$$
+$$
+\phi = id \times \mu
+$$
+\\
+$$
+f=g \times 1
+$$
+$$
+g=\mu \times f
+$$
 }
 \end{document}
