@@ -1903,7 +1903,7 @@ void Euler(int n) {
 
 
 \newpage
-\section{Computational Geometry}
+\section{Geometry}
 \subsection{Commonly Definition and Functions}
 \subsubsection{Const and Functions}
 \begin{lstlisting}
@@ -2184,6 +2184,19 @@ int main() {
         printf("[%d] = %.3f\n", i + 1, s[i] - s[i + 1]);
     }
     return 0;
+}
+\end{lstlisting}
+\subsection{Simpson Integrate}
+\begin{lstlisting}
+double Simpson(double l,double r){
+    return (r-l)*(F(l)+4*F((l+r)/2)+F(r))/6;
+}
+double Integrate(double l,double r,double S){
+    double mid=(l+r)/2;
+    double A=Simpson(l,mid);
+    double B=Simpson(mid,r);
+    if(A+B-S<eps)return S;
+    return Integrate(l,mid,A)+Integrate(mid,r,B);
 }
 \end{lstlisting}
 
