@@ -8,12 +8,17 @@
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{geometry}
+\usepackage[colorlinks,
+            linkcolor=black,
+            anchorcolor=black,
+            citecolor=black]{hyperref}
 \geometry{a4paper,scale=0.8}
 \renewcommand\contentsname{Contents}
 \setmonofont[Mapping={}]{Monaco}    %英文引号之类的正常显示，相当于设置英文字体
 %\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
 %\setmainfont{Monaco} %设置英文字体
 % 定义可能使用到的颜色
+%\setmainfont[BoldFont=SimHei]{SimSun}
 \definecolor{CPPLight}  {HTML} {686868}
 \definecolor{CPPSteel}  {HTML} {888888}
 \definecolor{CPPDark}   {HTML} {262626}
@@ -723,8 +728,23 @@ void tarjan(int u, int fa) {
 \newpage
 \section{Data Structures}
 \subsection{Basic Structures}
+\subsubsection{RMQ}
 \begin{lstlisting}
-
+struct RMQ {
+    int d[MAXN][S + 3];
+    inline void init(int *a, int n) {
+        for(int i = 0; i < n; i++) d[i][0] = a[i];
+        for(int k = 1; (1 << k) < n; k++)
+            for(int i = 0; i + (1 << k) - 1 < n; i++)
+                d[i][k] = min(d[i][k - 1], d[i + (1 << (k - 1))][k - 1]);
+    }
+    inline int query(int l, int r) {
+        if(l > r) swap(l, r);
+        int k = 0;
+        while((1 << (k + 1)) <= r - l + 1) k++;
+        return min(d[l][k], d[r - (1 << k) + 1][k]);
+    }
+}rmq;
 \end{lstlisting}
 \subsection{Tree Structures}
 \subsubsection{Tree Decomposition}
@@ -1482,7 +1502,54 @@ void findfac(LL n){
 	findfac(n/p); 
 }
 \end{lstlisting}
+\subsubsection{Euler Sieve}
+\begin{lstlisting}
+int prime[MAXN], cnt, phi[MAXN], mu[MAXN];
+bool isp[MAXN];
 
+int min_pow[MAXN];   //最小质因子最高次幂
+int min_sum[MAXN];   //1+p+p^2+...+p^k
+int div_sum[MAXN];   //约数和
+
+int min_index[MAXN]; //最小质因子的指数
+int div_num[MAXN];   //约数个数
+void Euler(int n) {
+    mu[1] = phi[1] = div_num[1] = div_sum[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime[++cnt] = min_pow[i] = i;
+            phi[i] = i - 1;
+            mu[i] = -1;
+            min_index[i] = 1; div_num[i] = 2;
+            div_sum[i] = min_sum[i] = i + 1;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                phi[i * prime[j]] = phi[i] * prime[j];
+                mu[i * prime[j]] = 0;
+
+                min_index[i * prime[j]] = min_index[i] + 1;
+                div_num[i * prime[j]] = div_num[i] / (min_index[i] + 1) * (min_index[i * prime[j]] + 1);
+
+                min_sum[i * prime[j]] = min_sum[i] + min_pow[i] * prime[j];
+                div_sum[i * prime[j]] = div_sum[i] / min_sum[i] * min_sum[i * prime[j]];
+                min_pow[i * prime[j]] = min_pow[i] * prime[j];
+                break;
+            }
+            phi[i * prime[j]] = phi[i] * (prime[j] - 1);
+            mu[i * prime[j]] = -mu[i];
+
+            div_num[i * prime[j]] = div_num[i] << 1;
+            min_index[i * prime[j]] = 1;
+
+            div_sum[i * prime[j]] = div_sum[i] * (prime[j] + 1);
+            min_pow[i * prime[j]] = prime[j];
+            min_sum[i * prime[j]] = prime[j] + 1;
+        }
+    }
+}
+\end{lstlisting}
 
 
 
