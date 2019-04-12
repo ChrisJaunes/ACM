@@ -616,7 +616,33 @@ inline void pre() {
 \end{lstlisting}
 \subsubsection{Tarjan LCA}
 \begin{lstlisting}
-
+vector< pair<int,int> > G[MAXN],ask[MAXN];
+int fa[MAXN], ans[MAXN], vis[MAXN] ,dis[MAXN];
+int Find(int x){
+	return x == fa[x] ? x : fa[x] = Find(fa[x]);
+}
+void init(int n){
+	memset(ans, 0,sizeof ans);
+	memset(vis, 0,sizeof vis);
+	for(int i = 0; i <= n; i++){
+		G[i].clear();
+		ask[i].clear();
+	}
+}
+void LCA(int u){
+	int v;
+	fa[u] = u;
+	vis[u] = true;
+	for(auto it : ask[u])
+		if(vis[v = it.first])
+			ans[it.second] = dis[u] + dis[v] - 2 * dis[Find(it.first)];
+	for(auto it : G[u])
+	if(!vis[v = it.first]){
+		dis[v] = dis[u] + it.second;
+		LCA(v);
+		fa[v] = u;
+	}
+}
 \end{lstlisting}
 \subsection{Tarjan}
 \subsubsection{SCC}
