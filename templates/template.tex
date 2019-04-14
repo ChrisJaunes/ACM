@@ -2309,7 +2309,7 @@ set mouse=a
 set tabstop=4
 set shiftwidth=4
 set cursorline
-set guifont=Consolas:h14
+set guifont=Consolas:h12
 inoremap kj <esc>
 inoremap jk <esc>
 inoremap { {}<left>
@@ -2321,14 +2321,16 @@ func! Compile()
 endfunc
 func! Debug()
     exec "w"
-    exec "! g++- % -o %< -g -Wall --std=c++14 && gdb %<"
+    exec "! g++ % -o %< -g -Wall --std=c++14 && gdb %<"
 endfunc
 func! AddTitle()
     call append(0,"// Cease to struggle and you cease to live")
     call append(1,"#include <bits/stdc++.h>")
     call append(2,"using namespace std;")
+    call append(3,"")
     call append(4,"int main() {")
     call append(5,"    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;")
+    call append(6,"")
     call append(7,"    return 0;")
     call append(8,"}")
 endfunc
