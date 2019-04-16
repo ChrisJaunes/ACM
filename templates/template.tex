@@ -701,61 +701,67 @@ namespace SCC{
 \end{lstlisting}
 \subsubsection{BCC}
 \begin{lstlisting}
-struct Edge {
-    int to, nxt;
-}e[MAXE];
-struct Node {
-    int u, v;
-};
-int head[MAXN], ecnt;
-int pre[MAXN], low[MAXN], iscut[MAXN], bccno[MAXN], dfs_clock, bcc_cnt;
-vector<int> bcc[MAXN];
-stack<Node> S;
-inline void add_edge(int x, int y) {
-    e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
-    e[++ecnt] = (Edge) {x, head[y]}; head[y] = ecnt;
-}
-inline void init() {
-    memset(pre, 0, sizeof(pre));
-    memset(low, 0, sizeof(low));
-    memset(bccno, 0, sizeof(bccno));
-    memset(iscut, 0, sizeof(iscut));
-    memset(head, 0, sizeof(head)); ecnt = 0;
-    dfs_clock = bcc_cnt = 0;
-}
-void tarjan(int u, int fa) {
-    low[u] = pre[u] = ++dfs_clock;
-    int ch = 0;
-    for(int i = head[u]; i; i = e[i].nxt) {
-        int v = e[i].to;
-        if(!pre[v]) {
-            S.push((Node) {u, v});
-            ch++;
-            tarjan(v, u);
-            low[u] = min(low[u], low[v]);
-            if(low[v] >= pre[u]) {
-                iscut[u] = 1;
-                bcc[bcc_cnt++].clear();
-                for(;;) {
-                    Node x = S.top(); S.pop();
-                    if(bccno[x.u] != bcc_cnt) {
-                        bcc[bcc_cnt].push_back(x.u);
-                        bccno[x.u] = bcc_cnt;
-                    }
-                    if(bccno[x.v] != bcc_cnt) {
-                        bcc[bcc_cnt].push_back(x.v);
-                        bccno[x.v] = bcc_cnt;
-                    }
-                    if(x.u == u && x.v == v) break;
-                }
-            }
-        }
-        else if(pre[v] < pre[u] && v != fa) {
-            S.push((Node) {u, v});
-            low[u] = min(low[u], pre[v]);
-        }
-    }
-    if(u == fa && ch <= 1) iscut[u] = 0;
+namespace BCC{
+	struct Edge {
+		int to, nxt;
+	}e[MAXM << 1];
+	struct Node {
+		int u, v;
+	};
+	int ecnt, head[MAXN];
+	int dfs_clock, dfn[MAXN], low[MAXN];
+	int bcc_cnt, iscut[MAXN], bccno[MAXN];
+	vector<int> bcc[MAXN];
+	stack<Node> S;
+	inline void addEdge(int u, int v) {
+		e[++ecnt] = (Edge) {v, head[u]}; head[u] = ecnt;
+		e[++ecnt] = (Edge) {u, head[v]}; head[v] = ecnt;
+	}
+	inline void init(int n) {
+		ecnt = 1;
+		dfs_clock = bcc_cnt = 0;
+		for(int i = 1; i <= n; ++i){
+			head[i] = dfn[i] = low[i] = bccno[i] = iscut[i] = 0;	
+		}
+	}
+	//root's fa = -1;
+	void tarjan(int u, int fa) {
+		dfn[u] = low[u] = ++dfs_clock;
+		int ch = 0;
+		for(int i = head[u], v; i; i = e[i].nxt) {
+			if(!dfn[v = e[i].to]) {
+				ch++;
+				S.push((Node) {u, v});
+				tarjan(v, u);
+				low[u] = min(low[u], low[v]);
+				if(low[v] >= dfn[u]) {
+					iscut[u] = 1;
+					bcc[++bcc_cnt].clear();
+					for(Node x;;) {
+						x = S.top(); S.pop();
+						if(bccno[x.u] != bcc_cnt) {
+							bcc[bcc_cnt].push_back(x.u);
+							bccno[x.u] = bcc_cnt;
+						}
+						if(bccno[x.v] != bcc_cnt) {
+							bcc[bcc_cnt].push_back(x.v);
+							bccno[x.v] = bcc_cnt;
+						}
+						if(x.u == u && x.v == v) break;
+					}
+				}
+			}
+			else if(dfn[v] < dfn[u] && v != fa) {
+				S.push((Node) {u, v});
+				low[u] = min(low[u], dfn[v]);
+			}
+		}
+		if(fa < 0 && ch == 1) iscut[u] = 0;
+	}
+	void findBCC(int n){
+		for(int i = 1; i <= n; i++)
+			if(!dfn[i])tarjan(i, -1);
+	}
 }
 \end{lstlisting}
 
