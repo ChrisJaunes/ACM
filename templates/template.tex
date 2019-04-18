@@ -63,6 +63,7 @@
     %xleftmargin=1em,xrightmargin=1em, aboveskip=1em,
     % in the listings package configuration, try:  
     literate={"}{\textquotedbl}1,  
+    tabsize=4, keepspaces=true
 }
 %\setmainfont{Courier New Bold}
 %\begin{lstlisting}
@@ -658,8 +659,6 @@ namespace SCC{
     vector<int> G[MAXN];
     int dfs_clock, scc_cn, dfn[MAXN], low[MAXN], sccno[MAXN];
     stack<int> S;
-    //int sum_b; //Bridge
-    //int sum_d; //Dot
     void addEdge(int u, int v) {
         G[u].push_back(v);
     }
@@ -670,13 +669,10 @@ namespace SCC{
             if(!dfn[v]) {
                 tarjan(v);
                 low[u] = min(low[u], low[v]);
-                //if(low[v] > dfn[u]) sum_b++;
-                //if(low[v] >= dfn[u]) vis[u]++;
             }else if(!sccno[v]) {
                 low[u] = min(low[u], dfn[v]);
             }
         }
-        //if((u == rt && vis[u] > 2) || (u != rt && vis[u] > 1)) sum_d++;
         if(dfn[u] == low[u]) {
             scc_cnt++;
             for(;;) {
@@ -1347,6 +1343,7 @@ namespace KMP {
 }
 namespace exKMP {
     int nxt[MAXN], ext[MAXN];
+    //ext[i]表示S以i开头的后缀与T的前缀相同的长度 
     void get_nxt(string T) {
         int j = 0, mx = 0;
         int m = T.size();
