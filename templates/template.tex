@@ -751,7 +751,7 @@ namespace BCC{
                     }                                         //vertex_bcc
                 }                                             //vertex_cut
                 if(low[v] > dfn[u]){                          //bridge_cut
-                    ;                                         //bridge_cut        
+                // i && i ^ 1 is bridge                       //bridge_cut        
                 }                                             //bridge_cut
             }
             else if(dfn[v] < dfn[u] && i != edge) 
@@ -770,6 +770,13 @@ namespace BCC{
         for(int i = 1; i <= n; i++)
             if(!dfn[i])tarjan(i, -1);
     }
+    //findBridge
+    //    for(int u = 1; u <= n; u++)
+    //        for(int i = head[u], v; i; i = e[i].nxt)
+    //        if(ebccno[u] != ebccno[v = e[i].to]){
+    //            ;
+    //        }
+    //}
 }
 
 \end{lstlisting}
