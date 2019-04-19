@@ -698,67 +698,81 @@ namespace SCC{
 \subsubsection{BCC}
 \begin{lstlisting}
 namespace BCC{
-	struct Edge {
-		int to, nxt;
-	}e[MAXM << 1];
-	struct Node {
-		int u, v;
-	};
-	int ecnt, head[MAXN];
-	int dfs_clock, dfn[MAXN], low[MAXN];
-	int bcc_cnt, iscut[MAXN], bccno[MAXN];
-	vector<int> bcc[MAXN];
-	stack<Node> S;
-	inline void addEdge(int u, int v) {
-		e[++ecnt] = (Edge) {v, head[u]}; head[u] = ecnt;
-		e[++ecnt] = (Edge) {u, head[v]}; head[v] = ecnt;
-	}
-	inline void init(int n) {
-		ecnt = 1;
-		dfs_clock = bcc_cnt = 0;
-		for(int i = 1; i <= n; ++i){
-			head[i] = dfn[i] = low[i] = bccno[i] = iscut[i] = 0;	
-		}
-	}
-	//root's fa = -1;
-	void tarjan(int u, int fa) {
-		dfn[u] = low[u] = ++dfs_clock;
-		int ch = 0;
-		for(int i = head[u], v; i; i = e[i].nxt) {
-			if(!dfn[v = e[i].to]) {
-				ch++;
-				S.push((Node) {u, v});
-				tarjan(v, u);
-				low[u] = min(low[u], low[v]);
-				if(low[v] >= dfn[u]) {
-					iscut[u] = 1;
-					bcc[++bcc_cnt].clear();
-					for(Node x;;) {
-						x = S.top(); S.pop();
-						if(bccno[x.u] != bcc_cnt) {
-							bcc[bcc_cnt].push_back(x.u);
-							bccno[x.u] = bcc_cnt;
-						}
-						if(bccno[x.v] != bcc_cnt) {
-							bcc[bcc_cnt].push_back(x.v);
-							bccno[x.v] = bcc_cnt;
-						}
-						if(x.u == u && x.v == v) break;
-					}
-				}
-			}
-			else if(dfn[v] < dfn[u] && v != fa) {
-				S.push((Node) {u, v});
-				low[u] = min(low[u], dfn[v]);
-			}
-		}
-		if(fa < 0 && ch == 1) iscut[u] = 0;
-	}
-	void findBCC(int n){
-		for(int i = 1; i <= n; i++)
-			if(!dfn[i])tarjan(i, -1);
-	}
+    struct Edge {
+        int to, nxt;
+    }e[MAXM << 1];
+    int ecnt, head[MAXN];
+    int dfs_clock, dfn[MAXN], low[MAXN];
+
+    int is_vertex[MAXN], vbcc_cnt, vbccno[MAXN];                   //vertex_cut
+    vector<int> vbcc[MAXN];                                        //vertex_bcc
+    stack<int> vS;                                                 //vertex_bcc
+
+    int is_bridge[MAXM <<1], ebcc_cnt, ebccno[MAXN];               //bridge_bcc
+    stack<int> eS;                                                 //bridge_bcc
+
+    inline void addEdge(int u, int v) {
+        e[++ecnt] = (Edge) {v, head[u]}; head[u] = ecnt;
+        e[++ecnt] = (Edge) {u, head[v]}; head[v] = ecnt;
+    }
+    inline void init(int n) {
+        ecnt = 1;
+        dfs_clock = 0;
+        vbcc_cnt = 0;                                             //vertex_bcc
+        ebcc_cnt = 0;                                             //bridge_bcc
+        for(int i = 1; i <= n; ++i){
+            head[i] = dfn[i] = low[i] = 0;
+            is_vertex[i] = 0;                                     //vertex_cut
+            vbccno[i] = 0;                                        //vertex_bcc
+            ebccno[i] = 0;                                        //bridge_bcc
+        }
+        while(!vS.empty()) vS.pop();                              //vertex_bcc
+        for(int i = 1; i <= ecnt; ++i)is_bridge[i] = 0;           //bridge_cnt
+    }
+    //root's edge = -1;
+    void tarjan(int u, int edge) {
+        dfn[u] = low[u] = ++dfs_clock;
+        int ch = 0;                                               //vertex_cut
+        vS.push(u);                                               //vertex_bcc
+        eS.push(u);                                               //bridge_bcc
+        for(int i = head[u], v; i; i = e[i].nxt) {
+            if(!dfn[v = e[i].to]) {
+                tarjan(v, i ^ 1);
+                low[u] = min(low[u], low[v]);
+                if(low[v] >= dfn[u]) {                            //vertex_cut
+                    ++ch;                                         //vertex_cut
+                    if(edge > 0 || ch > 1) is_vertex[u] = 1;      //vertex_cut
+                    vbcc[++vbcc_cnt].clear();                     //vertex_bcc
+                    vbcc[vbcc_cnt].push_back(u);                  //vertex_bcc
+                    for(int x;;){                                 //vertex_bcc
+                        x = vS.top();vS.pop();                    //vertex_bcc
+                        vbcc[vbcc_cnt].push_back(x);              //vertex_bcc
+                        vbccno[x] = vbcc_cnt;                     //vertex_bcc
+                        if(x == v)break;                          //vertex_bcc
+                    }                                             //vertex_bcc
+                }                                                 //vertex_cut
+                if(low[v] > dfn[u]){                              //bridge_cut
+                    is_bridge[i] = is_bridge[i ^ 1] = 1;          //bridge_cut        
+                }                                                 //bridge_cut
+            }
+            else if(dfn[v] < dfn[u] && i != edge) 
+                low[u] = min(low[u], dfn[v]);
+        }
+        if(dfn[u] == low[u]){                                     //bridge_bcc
+            ebcc_cnt++;                                           //bridge_bcc
+            for(int v;;){                                         //bridge_bcc
+                v = eS.top(); eS.pop();                           //bridge_bcc
+                ebccno[v] = ebcc_cnt;                             //bridge_bcc
+                if(v == u) break;                                 //bridge_bcc
+            }                                                     //bridge_bcc
+        }                                                         //bridge_bcc
+    }
+    void findBCC(int n){
+        for(int i = 1; i <= n; i++)
+            if(!dfn[i])tarjan(i, -1);
+    }
 }
+
 \end{lstlisting}
 
 
