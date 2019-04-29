@@ -2,7 +2,9 @@
 
 <center> SCUT_gugugu </center>
 
-# 2019-04-21_2019SCUT_SE_SchoolContest
+<center><h2> 2019-04-21_2019SCUT_SE_SchoolContest </h2> </center>
+
+<center><h1>华南理工大学软件学院三七互娱杯ACM比赛</h1> </center>
 
  
 
@@ -41,5 +43,3 @@
 + 数论<font color="#dd0000">@hjj</font>
 + 细节<font color="#dd0000">@all</font>
 + 计算几何<font color="#dd0000">@bob</font>
-
-### 收获
