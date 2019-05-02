@@ -2640,6 +2640,23 @@ map <F9> :call Compile()<CR>
 map <F5> :call Debug()<CR>
 map <F8> :call AddTitle()<CR>
 \end{lstlisting}
+
+\subsubsection{check}
+\begin{lstlisting}
+while true; do
+	./data > a.in
+	./tmp  < a.in > a.out
+	./tmp2 < a.in > a.ans
+	if diff a.out a.ans; then 
+		printf AC
+	else
+		echo WA
+		cat tmp.out tmp2.out
+		exit 0
+	fi
+done
+\end{lstlisting}
+
 \subsubsection{FastIO}
 \begin{lstlisting}
 namespace IO {
