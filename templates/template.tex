@@ -1677,7 +1677,109 @@ namespace SA {
 \end{lstlisting}
 \subsubsection{Suffix Automaton}
 \begin{lstlisting}
-
+namespace SAM{
+	struct State{
+		int fa, ch[26];
+		int val, sc, tmpl, minl;
+		void init(int _val) {
+			fa = 0; val = _val; 
+			sc = 0;
+			tmpl = 0; minl = INF;
+			memset(ch, 0, sizeof ch);	
+		}
+		void init(int _val, State *q) {
+			fa = q->fa; val = _val;
+			sc = 0;
+			tmpl = 0; minl = INF;
+			memcpy(ch, q->ch,sizeof ch);
+		}
+	}st[MAXN << 1];
+	int scnt, root, last;
+	void init() {
+		st[root = last = scnt = 1].init(0);
+	}
+	void extend(int c) {
+		int p = last, np = ++scnt;
+		st[np].init(st[p].val + 1);
+		for(;p && st[p].ch[c] == 0; p = st[p].fa) st[p].ch[c] = np;
+		if(!p) st[np].fa = root;
+		else{
+			int q = st[p].ch[c];
+			if(st[p].val + 1 == st[q].val) st[np].fa = q;
+			else{
+				int nq = ++scnt;
+				st[nq].init(st[p].val + 1, &st[q]);
+				st[np].fa = st[q].fa = nq;
+				for(; p && st[p].ch[c] == q; p = st[p].fa) st[p].ch[c] = nq;
+			}
+		}
+		last = np;
+	}
+	int c[MAXN], rs[MAXN << 1];
+	void radix_sort(int n){
+		for(int i = 0; i <= n; i++) c[i] = 0; 
+		for(int i = 1; i <= scnt; i++) c[st[i].val]++;
+		for(int i = 1; i <= n; i++) c[i] += c[i-1];
+		for(int i = scnt; i >= 1; i--) rs[c[st[i].val]--] = i;
+	}
+	void go(){
+		scanf("%d",s);
+		int n = strlen(s);
+		for(int i = 0; i < n; ++i)
+			extend(s[i] - 'a');
+		radix_sort(n);
+		//以下sc集合意义不同 
+		//每个节点对应的位置之后有多少个不同子串
+		for(int i = scnt; i >= 1; i--) {
+			int S = 0;
+			for(int j = 0; j < 26; j++) 
+				S += st[st[rs[i]].ch[j]].sc;
+			st[rs[i]].sc = S + 1;
+		}
+		//right集合大小
+		int cur = root;
+		for(int i = 0; i < n; ++i) {
+			cur = st[cur].ch[s[i]-'a'];
+			st[cur].sc++;
+		}
+		State *v;
+		for(int i = scnt; i >= 1; --i){
+			v = &st[rs[i]];
+			st[v->fa].sc += v->sc;
+		}
+		//公共子串
+		//tmpl,当前字符串:在状态cur，与模板串的最长公共后缀
+		//minl，多个字符串:在状态cur,与模板串的最长公共后缀
+		//注意:在状态cur匹配成功时，cur的祖先状态与字符串的最长公共后缀
+		for(; ~scanf("%s",s);) {
+			int cur = root, len = 0;
+			for(int i = 0; i <= scnt; i++)
+				st[i].tmpl = 0;
+			n = strlen(s);
+			for(int i = 0, x; i < n; i++) {
+				x = s[i] - 'a';
+				if(st[cur].ch[x]) {
+					++len;
+					cur = st[cur].ch[x];
+				}else{
+					for(;cur && st[cur].ch[x] == 0; cur = st[cur].fa);
+					if(cur){
+						len = st[cur].val + 1;
+						cur = st[cur].ch[x];
+					}else{
+						cur = root; len = 0;
+					}
+				}
+				st[cur].tmpl = max(st[cur].tmpl, len);
+			}
+			for(int i = scnt; i ; --i) {
+				if( st[ st[rs[i]].fa ].tmpl < st[ rs[i] ].tmpl)
+					st[ st[rs[i]].fa ].tmpl = st[ st[rs[i]].fa ].val;
+				st[ rs[i] ].minl = min(st[ rs[i] ].minl, st[ rs[i] ].tmpl);
+			}
+		}
+	}
+}
 \end{lstlisting}
 \subsection{Palindrome Related}
 \subsubsection{Manacher}
