@@ -2226,6 +2226,63 @@ void Euler(int n) {
     }
 }
 \end{lstlisting}
+\subsubsection{DuJiao Sieve}
+$$
+\sum_{i = 1}^n \phi(i)
+$$
+\begin{lstlisting}
+vector<int> prime;
+int phi[MAXN], P[MAXN];
+bool isp[MAXN];
+unordered_map<LL, int> mp;
+void Euler(int n) {
+    phi[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime.push_back(i);
+            phi[i] = i - 1;
+        }
+        for(auto x : prime) {
+            if(i * x > n) break;
+            isp[i * x] = 1;
+            if(i % x == 0) {
+                phi[i * x] = phi[i] * x;
+                break;
+            }
+            phi[i * x] = phi[i] * (x - 1);
+        }
+    }
+    for(int i = 1; i <= n; i++) P[i] = (P[i - 1] + phi[i]) % mod;
+}
+LL cal(LL n) {
+    if(n < MAXN) return P[n];
+    if(mp.count(n)) return mp[n];
+    LL res = 0;
+    for(LL i = 2, last; i <= n; i = last + 1) {
+        last = n / (n / i);
+        res += (last - i + 1) % mod * cal(n / i) % mod;
+        res %= mod;
+    }
+    mp[n] = ((__int128)n * (n + 1) / 2 % mod + mod - res) % mod;
+    return mp[n];
+}
+\end{lstlisting}
+$$
+\sum_{i = 1}^n \mu(i)
+$$
+\begin{lstlisting}
+LL cal(LL n) {
+    if(n < MAXN) return M[n];
+    if(mp.count(n)) return mp[n];
+    LL res = 0;
+    for(LL i = 2, last; i <= n; i = last + 1) {
+        last = n / (n / i);
+        res += (last - i + 1) * cal(n / i);
+    }
+    mp[n] = 1 - res;
+    return 1 - res;
+}
+\end{lstlisting}
 \subsubsection{Möbius Inversion}
 $$
 \sum_i^n \sum_j^m lcm(i,j) (mod\ p)
@@ -2960,49 +3017,54 @@ int cal(int n, int m) {
 }
 \end{lstlisting}
 \subsection{Formula}
-\subsubsection{Euler's theorem}
-$$
-a^x\equiv\left\{
-\begin{aligned}
-&a^{b\%\phi(p)} & & \gcd(a,p)=1&\\
-&a^b & &\gcd(a,p)\not=1,b<\phi(p) \\
-&a^{b\%\phi(p) + \phi(p)} & & \gcd(a,p)\not=1,b\geq \phi(p) &
-\end{aligned}
-\right\}
-(mod\ p)
-$$
-\subsubsection{Dirichlet Convolution}
-$$
-(f\times g)(N)=\sum_{d|N} f(d) * g(\frac{N}{d})
-$$
-$$
-\sum_{d|N} \phi(d) * \frac{N}{d} = \phi \times id
-$$
-$$
-n = \sum_{d|n} \phi(d)
-$$
-$$
-e(n)=\sum_{d|n} \mu(d)
-$$
-$$
-id=\phi \times 1
-$$
-$$
-e=\mu \times 1
-$$
+\subsubsection{Euler's Theorem}
+\begin{equation*}
+    a^x\equiv\left\{
+    \begin{aligned}
+    &a^{b\%\phi(p)} & & \gcd(a,p)=1&\\
+    &a^b & &\gcd(a,p)\not=1,b<\phi(p) \\
+    &a^{b\%\phi(p) + \phi(p)} & & \gcd(a,p)\not=1,b\geq \phi(p) &
+    \end{aligned}
+    \right\}
+    (mod\ p)
+\end{equation*}
 \subsubsection{Möbius Inversion Formula}
-$$
-id=\phi \times 1
-$$
-$$
-\phi = id \times \mu
-$$
-\\
-$$
-f=g \times 1
-$$
-$$
-g=\mu \times f
-$$
+{
+Dirichlet Convolution is $(f\times g)(N)=\sum_{d|N} f(d) * g(\frac{N}{d})$
+\par
+Theorem:
+\begin{equation*}
+    \left\{
+        \begin{aligned} 
+            f &= g \times 1 \\
+            g &= f \times \mu
+        \end{aligned} 
+    \right. 
+\end{equation*}
 }
+\subsubsection{Math Theory Tips}
+\begin{equation}
+    n = \sum_{d|n} \phi(d)
+\end{equation}
+\begin{equation}
+    e(n)=\sum_{d|n} \mu(d)
+\end{equation}
+\begin{equation}
+     \sum_i^n\sum_j^mgcd(i, j)=\sum_d^{\max(n, m)}\phi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor
+\end{equation}
+\begin{equation}
+    \sum_i^n\sum_j^me(gcd(i, j))=\sum_d^{\min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor
+\end{equation}
+\begin{equation}
+    \sum_{i = 1}^n |\mu(i)|=\sum_{i = 1}^{\lfloor \sqrt{n} \rfloor}\mu(i)*\lfloor \frac{n}{i * i} \rfloor
+\end{equation}
+\begin{equation}
+    \left\{
+        \begin{aligned} 
+            sum(x, y) &= \sum_i^x\sum_j^yi*j=\frac{x*(x + 1)}{2} * \frac{y * (y + 1)}{2}\\
+            F(x, y) &= \sum_{i = 1}^{\min(x, y)} i^2 * \mu(i) * sum(\lfloor\frac{x}{i}\rfloor, \lfloor\frac{y}{i}\rfloor) \\
+            \sum_i^n\sum_j^mlcm(i, j) &= \sum_{i = 1}^{\min(n, m)} d * F(\lfloor\frac{n}{i}\rfloor, \lfloor\frac{y}{i}\rfloor)
+        \end{aligned} 
+    \right. 
+\end{equation}
 \end{document}
