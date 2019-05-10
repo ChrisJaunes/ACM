@@ -1682,13 +1682,7 @@ namespace SAM{
 	int fa[MAXN<<1], len[MAXN<<1], ch[MAXN<<1][26];
 	int sc[MAXN<<1], tmpl[MAXN<<1], minl[MAXN<<1];
 		
-	int newnode(int _len) {
-		fa[++scnt] = 0; len[scnt] = _len; 
-		sc[scnt] = 0;tmpl[scnt] = 0; minl[scnt] = INF;
-		for(int i = 0; i < 26; i++) ch[scnt][i] = 0;
-		return scnt;
-	}
-	int newnode(int _len, int q) {
+	int newnode(int _len, int q = 0) {
 		fa[++scnt] = fa[q]; len[scnt] = _len;
 		sc[scnt] = 0;tmpl[scnt] = 0; minl[scnt] = INF;
 		for(int i = 0; i < 26; i++) ch[scnt][i] = ch[q][i];
@@ -1777,8 +1771,7 @@ namespace SAM{
 			}
 		}
 	}
-}
-\end{lstlisting}
+}\end{lstlisting}
 \subsection{Palindrome Related}
 \subsubsection{Manacher}
 \begin{lstlisting}
