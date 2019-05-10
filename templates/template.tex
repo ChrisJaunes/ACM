@@ -2735,31 +2735,115 @@ namespace IO {
 \end{lstlisting}
 \subsubsection{Java BigNum}
 \begin{lstlisting}
+
+
 import java.math.*;
 import java.util.*;
+import java.lang.*;
+
 public class Main{
-	public static void main(String []args){
-		Scanner in = new Scanner(System.in);
-		while(in.hasNext()){} //EOF
-		BigInteger zero = BigInteger.valueOf(0);
-		BigInteger a = in.nextBigInteger();
-		BigInteger b = in.nextBigInteger();
-		BigInteger c = in.nextBigInteger();
-		int d = in.nextInt();
-		a.add(b);
-		a.subtract(b);
-		a.multiply(b);
-		a.divide(b);
-		a.mod(b);
-		a.compareTo(b);
-		a.negate();
-		a.modInverse(b); //a^(-1)
-		a.modPow(b,c); //a^b%c
-		a.pow(d);
-		a = cin.nextBigInteger();
-		x.isProbablePrime(4)
-	}
+	public static void main(String []args){}
 }
+//IO
+Scanner in = new Scanner(System.in);
+while(in.hasNext()){} //EOF
+//fast-IO
+public static void main(String argv[]) throws IOException{}
+StreamTokenizer cin =new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in))); 
+PrintWriter cout = new PrintWriter(new OutputStreamWriter(System.out));
+while(cin.nextToken() != StreamTokenizer.TT_EOF) ;//EOF
+cin.nextToken();int n = (int)cin.nval;String s=st.sval;
+cout.println(max);cout.flush();
+//true fast-IO
+static class InputReader {
+    public BufferedReader reader;
+    public StringTokenizer tokenizer;
+ 
+    public InputReader(InputStream stream) {
+        reader = new BufferedReader(new InputStreamReader(stream), 32768);
+        tokenizer = null;
+    }
+ 
+    public String next() {
+        while (tokenizer == null || !tokenizer.hasMoreTokens()) {
+            try {
+                tokenizer = new StringTokenizer(reader.readLine());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return tokenizer.nextToken();
+    }
+ 
+    public int nextInt() {
+        return Integer.parseInt(next());
+    }
+ 
+}
+//类 Number
+//doubleValue() 
+//intValue() 
+//longValue() 
+//shortValue() 
+//类 BigDecimal
+//ROUND_CEILING 接近正无穷大的舍入模式。
+//ROUND_FLOOR 接近负无穷大的舍入模式。
+//ROUND_DOWN 接近零的舍入模式
+//ROUND_HALF_UP 四舍五入 >=0.5向上舍入
+//ROUND_HALF_DOWN 四舍五入 >0.5向上舍入
+//BigDecimal(BigInteger val) 
+//BigDecimal(BigInteger unscaledVal, int scale) 
+//BigDecimal(char[] in, int offset, int len, MathContext mc) 
+//BigDecimal(double val, MathContext mc)不建议
+//BigDecimal(int val, MathContext mc) 
+//BigDecimal(long val, MathContext mc) 
+//BigDecimal(String val, MathContext mc) 
+//abs() 
+//add(BigDecimal augend, MathContext mc) 
+//compareTo(BigDecimal val) 
+//divide(BigDecimal divisor,MathContext mc)
+//divideToIntegralValue(BigDecimal divisor, MathContext mc)
+//max(BigDecimal val) 
+//min(BigDecimal val) 
+//multiply(BigDecimal multiplicand, MathContext mc) 
+//negate()  其值为 (-this)，其标度为 this.scale()
+//pow(int n) 
+//remainder(BigDecimal divisor) 返回其值为 (this % divisor) 的 BigDecimal
+//round(MathContext mc) 返回根据 MathContext 设置进行舍入后的 BigDecimal。
+//caleByPowerOfTen(int n) 返回其数值等于 (this * 10^n) 的 BigDecimal。
+//subtract(BigDecimal subtrahend, MathContext mc) 
+//setScale(int newScale,RoundingMode roundingMode)
+//toString() 
+//ulp()返回此 BigDecimal 的 ulp（最后一位的单位）的大小
+//String s = b.stripTrailingZeros().toPlainString();让bigdecimal不用科学计数法显示
+//类 BigInteger
+//BigInteger zero = BigInteger.valueOf(0);
+//BigInteger a = in.nextBigInteger();
+//abs() 
+//and(BigInteger val) 返回其值为 (this & val) 
+//or(BigInteger val) 返回其值为 (this | val) 
+//andNot(BigInteger val) 返回其值为 (this & ~val) 
+//compareTo(BigInteger val)
+//add(BigInteger val) 
+//divide(BigInteger val) 
+//BigInteger[]	divideAndRemainder(BigInteger val) 返回包含 (this / val) 后跟 (this % val) 的两个 BigInteger 的数组。
+//equals(Object x) 
+//gcd(BigInteger val) 
+//isProbablePrime(int certainty) e.g: a.isProbablePrime(4)
+//max(BigInteger val) min(BigInteger val) 
+//mod(BigInteger m) 
+//modInverse(BigInteger m) 返回其值为 (this^-1 mod m) 
+//modPow(BigInteger exponent, BigInteger m) 返回其值为 (thisexponent mod m) 
+//multiply(BigInteger val) 
+//not() 返回其值为 (~this)
+//shiftLeft(int n) 返回其值为 (this << n)
+//shiftRight(int n) 返回其值为 (this >> n)
+//toString() 
+//valueOf(long val) 
+//xor(BigInteger val) 返回其值为 (this ^ val)
+//other
+//Arrays.sort(array);
+
 \end{lstlisting}
 \subsection{Offline Algorithm}
 \subsubsection{CDQ Divide and Conquer}
