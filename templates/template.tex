@@ -1678,39 +1678,37 @@ namespace SA {
 \subsubsection{Suffix Automaton}
 \begin{lstlisting}
 namespace SAM{
-	struct State{
-		int fa, ch[26];
-		int val, sc, tmpl, minl;
-		void init(int _val) {
-			fa = 0; val = _val; 
-			sc = 0;
-			tmpl = 0; minl = INF;
-			memset(ch, 0, sizeof ch);	
-		}
-		void init(int _val, State *q) {
-			fa = q->fa; val = _val;
-			sc = 0;
-			tmpl = 0; minl = INF;
-			memcpy(ch, q->ch,sizeof ch);
-		}
-	}st[MAXN << 1];
 	int scnt, root, last;
+	int fa[MAXN<<1], len[MAXN<<1], ch[MAXN<<1][26];
+	int sc[MAXN<<1], tmpl[MAXN<<1], minl[MAXN<<1];
+		
+	int newnode(int _len) {
+		fa[++scnt] = 0; len[scnt] = _len; 
+		sc[scnt] = 0;tmpl[scnt] = 0; minl[scnt] = INF;
+		for(int i = 0; i < 26; i++) ch[scnt][i] = 0;
+		return scnt;
+	}
+	int newnode(int _len, int q) {
+		fa[++scnt] = fa[q]; len[scnt] = _len;
+		sc[scnt] = 0;tmpl[scnt] = 0; minl[scnt] = INF;
+		for(int i = 0; i < 26; i++) ch[scnt][i] = ch[q][i];
+		return scnt;
+	}
 	void init() {
-		st[root = last = scnt = 1].init(0);
+		scnt = 0;
+		root = last = newnode(0);
 	}
 	void extend(int c) {
-		int p = last, np = ++scnt;
-		st[np].init(st[p].val + 1);
-		for(;p && st[p].ch[c] == 0; p = st[p].fa) st[p].ch[c] = np;
-		if(!p) st[np].fa = root;
+		int p = last, np = newnode(len[p] + 1);
+		for(;p && ch[p][c] == 0; p = fa[p]) ch[p][c] = np;
+		if(!p) fa[np] = root;
 		else{
-			int q = st[p].ch[c];
-			if(st[p].val + 1 == st[q].val) st[np].fa = q;
+			int q = ch[p][c];
+			if(len[p] + 1 == len[q]) fa[np] = q;
 			else{
-				int nq = ++scnt;
-				st[nq].init(st[p].val + 1, &st[q]);
-				st[np].fa = st[q].fa = nq;
-				for(; p && st[p].ch[c] == q; p = st[p].fa) st[p].ch[c] = nq;
+				int nq = newnode(len[p] + 1, q);
+				fa[np] = fa[q] = nq;
+				for(; p && ch[p][c] == q; p = fa[p]) ch[p][c] = nq;
 			}
 		}
 		last = np;
@@ -1718,64 +1716,64 @@ namespace SAM{
 	int c[MAXN], rs[MAXN << 1];
 	void radix_sort(int n){
 		for(int i = 0; i <= n; i++) c[i] = 0; 
-		for(int i = 1; i <= scnt; i++) c[st[i].val]++;
+		for(int i = 1; i <= scnt; i++) c[len[i]]++;
 		for(int i = 1; i <= n; i++) c[i] += c[i-1];
-		for(int i = scnt; i >= 1; i--) rs[c[st[i].val]--] = i;
+		for(int i = scnt; i >= 1; i--) rs[c[len[i]]--] = i;
 	}
 	void go(){
-		scanf("%d",s);
+		scanf("%s",s);
 		int n = strlen(s);
 		for(int i = 0; i < n; ++i)
 			extend(s[i] - 'a');
 		radix_sort(n);
 		//以下sc集合意义不同 
-		//每个节点对应的位置之后有多少个不同子串
-		for(int i = scnt; i >= 1; i--) {
-			int S = 0;
-			for(int j = 0; j < 26; j++) 
-				S += st[st[rs[i]].ch[j]].sc;
-			st[rs[i]].sc = S + 1;
+		{//每个节点对应的位置之后有多少个不同子串
+			for(int i = scnt; i >= 1; i--) {
+				int S = 0;
+				for(int j = 0; j < 26; j++) 
+					S += sc[ ch[rs[i]][j] ];
+				sc[rs[i]] = S + 1;
+			}
 		}
-		//right集合大小
-		int cur = root;
-		for(int i = 0; i < n; ++i) {
-			cur = st[cur].ch[s[i]-'a'];
-			st[cur].sc++;
-		}
-		State *v;
-		for(int i = scnt; i >= 1; --i){
-			v = &st[rs[i]];
-			st[v->fa].sc += v->sc;
+		{//right集合大小
+			int cur = root;
+			for(int i = 0; i < n; ++i) {
+				cur = ch[cur][s[i]-'a'];
+				sc[cur]++;
+			}
+			for(int i = scnt; i >= 1; --i) {
+				sc[ fa[rs[i]] ] += sc[rs[i]];
+			}
 		}
 		//公共子串
 		//tmpl,当前字符串:在状态cur，与模板串的最长公共后缀
 		//minl，多个字符串:在状态cur,与模板串的最长公共后缀
 		//注意:在状态cur匹配成功时，cur的祖先状态与字符串的最长公共后缀
 		for(; ~scanf("%s",s);) {
-			int cur = root, len = 0;
+			int cur = root, Blen = 0;
 			for(int i = 0; i <= scnt; i++)
-				st[i].tmpl = 0;
+				tmpl[i] = 0;
 			n = strlen(s);
 			for(int i = 0, x; i < n; i++) {
 				x = s[i] - 'a';
-				if(st[cur].ch[x]) {
-					++len;
-					cur = st[cur].ch[x];
+				if(ch[cur][x]) {
+					++Blen;
+					cur = ch[cur][x];
 				}else{
-					for(;cur && st[cur].ch[x] == 0; cur = st[cur].fa);
-					if(cur){
-						len = st[cur].val + 1;
-						cur = st[cur].ch[x];
+					for(;cur && ch[cur][x] == 0; cur = fa[cur]);
+					if(cur) {
+						Blen = len[cur] + 1;
+						cur = ch[cur][x];
 					}else{
-						cur = root; len = 0;
+						cur = root; Blen = 0;
 					}
 				}
-				st[cur].tmpl = max(st[cur].tmpl, len);
+				tmpl[cur] = max(tmpl[cur], Blen);
 			}
 			for(int i = scnt; i ; --i) {
-				if( st[ st[rs[i]].fa ].tmpl < st[ rs[i] ].tmpl)
-					st[ st[rs[i]].fa ].tmpl = st[ st[rs[i]].fa ].val;
-				st[ rs[i] ].minl = min(st[ rs[i] ].minl, st[ rs[i] ].tmpl);
+				if( tmpl[ fa[rs[i]] ] < tmpl[ rs[i] ])
+					tmpl[ fa[rs[i]] ] = len[ fa[rs[i]] ];
+				minl[ rs[i] ] = min(minl[ rs[i] ], tmpl[ rs[i] ]);
 			}
 		}
 	}
@@ -1815,48 +1813,41 @@ namespace Palindrome {
 \end{lstlisting}
 \subsubsection{Palindromic Tree}
 \begin{lstlisting}
-struct PalindromicTree {
-    int len[MAXN]; //节点i表示的回文串的长度
-    int fail[MAXN]; //fail指针
-    int cnt[MAXN]; //节点i表示的本质不同的串的个数(调用count())
-    int num[MAXN]; //以节点i表示的最长回文串的最右端点为回文串结尾的回文串个数
-    int nxt[MAXN][sigma_size]; //编号为i的节点表示的回文串在两边添加字符c以后变成的回文串的编号
-    int S[MAXN]; //存放添加的字符(S[0]=-1(or '#'))
-    int last, p, n;
-    int newnode(int l) {
-        for(int i = 0; i < sigma_size; i++) nxt[p][i] = 0;
-        cnt[p] = 0;
-        num[p] = 0;
-        len[p] = l;
-        return p++;
-    }
-    inline void init() {
-        p = 0;
-        newnode(0);
-        newnode(-1);
-        S[0] = -1;
-        n = 0;
-        fail[0] = 1;
-    }
-    int getfail(int x) {
-        while(S[n - len[x] - 1] != S[n]) x = fail[x];
-        return x;
-    }
-    void insert(int c) {
-        S[++n] = c;
-        int cur = getfail(last);
-        if(!nxt[cur][c]) {
-            int now = newnode(len[cur] + 2);
-            fail[now] = nxt[getfail(fail[cur])][c];
-            nxt[cur][c] = now;
-            num[now] = num[fail[now]] + 1;
-        }
-        last = nxt[cur][c];
-        cnt[last]++;
-    }
-    void count() {
-        for(int i = p - 1; i >= 0; i--) cnt[fail[i]] += cnt[i];
-    }
+namespace PalindromicTree {
+	int scnt, S[MAXN];
+	int pcnt, last, len[MAXN], fail[MAXN], ch[MAXN][26];
+	int cnt[MAXN]; //节点i表示的本质不同的串的个数(调用count())
+	int num[MAXN]; //以节点i表示的最长回文串的最右端点为回文串结尾的回文串个数
+	int newnode(int _len) {
+		len[pcnt] = _len;
+		cnt[pcnt] = num[pcnt] = 0;
+		for(int i = 0; i < 26; i++) ch[pcnt][i] = 0;
+		return pcnt++;
+	}
+	inline void init() {
+		S[scnt = 0] = -1;
+		pcnt = 0;newnode(0);newnode(-1);
+		fail[0] = 1;last = 0;
+	}
+	int getfail(int x) {
+		while(S[scnt - len[x] - 1] != S[scnt]) x = fail[x];
+		return x;
+	}
+	void extend(int c) {
+		S[++scnt] = c;
+		int cur = getfail(last);
+		if(!ch[cur][c]) {
+			int now = newnode(len[cur] + 2);
+			fail[now] = ch[getfail(fail[cur])][c];
+			ch[cur][c] = now;
+			num[now] = num[fail[now]] + 1;
+		}
+		last = ch[cur][c];
+		cnt[last]++;
+	}
+	void count() {
+		for(int i = pcnt - 1; i >= 0; i--) cnt[fail[i]] += cnt[i];
+	}
 };
 \end{lstlisting}
 
