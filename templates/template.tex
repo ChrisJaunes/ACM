@@ -2682,19 +2682,15 @@ map <F5> :call Debug()<CR>
 map <F8> :call AddTitle()<CR>
 \end{lstlisting}
 
-\subsubsection{check}
+\subsubsection{Check}
 \begin{lstlisting}
 while true; do
-	./data > a.in
-	./tmp  < a.in > a.out
-	./tmp2 < a.in > a.ans
-	if diff a.out a.ans; then 
-		printf AC
-	else
-		echo WA
-		cat tmp.out tmp2.out
-		exit 0
-	fi
+	./data > in
+	./tmp < in > out
+	./std < in > ans
+	diff out ans
+	if [ $? -ne 0 ] ; then exit; fi
+    echo Passed
 done
 \end{lstlisting}
 
@@ -2843,7 +2839,6 @@ static class InputReader {
 //xor(BigInteger val) 返回其值为 (this ^ val)
 //other
 //Arrays.sort(array);
-
 \end{lstlisting}
 \subsection{Offline Algorithm}
 \subsubsection{CDQ Divide and Conquer}
