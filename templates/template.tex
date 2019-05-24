@@ -1515,11 +1515,7 @@ struct Hash {
 \subsubsection{KMP \&\& exKMP}
 \begin{lstlisting}
 namespace KMP {
-	int fa[MAXN], cnt[MAXN];
-	void init() {
-		for(int i = 0; i < 60; ++i)
-			cnt[i] = 0;
-	}
+	int fa[MAXN];
 	void get_fail(char* t, int tn) {
 		fa[0] = -1;
 		int i = 0, j = -1;
@@ -1873,34 +1869,6 @@ namespace exSAM{
 \subsection{Palindrome Related}
 \subsubsection{Manacher}
 \begin{lstlisting}
-namespace Palindrome {
-    char s1[MAXN], s2[MAXN];
-    int len1, len2, ans;
-    int p[MAXN]; //p[i] - 1
-    void init() {
-        len1 = strlen(s1);
-        s2[0] = '$';
-        s2[1] = '#';
-        for(int i = 0; i < len1; i++) {
-            s2[2 * i + 2] = s1[i];
-            s2[2 * i + 3] = '#';
-        }
-        len2 = len1 * 2 + 2;
-        s2[len2] = '&';
-    }
-    void manacher() {
-        int id = 0, mx = 0;
-        for(int i = 1; i < len2; i++) {
-            if(mx > i) p[i] = min(p[2 * id - i], mx - i);
-            else p[i] = 1;
-            while(s2[i + p[i]] == s2[i - p[i]]) p[i]++;
-            if(i + p[i] > mx) {
-                mx = i + p[i];
-                id = i;
-            }
-        }
-    }
-}
 namespace Manachar {
 	char S[MAXN << 1];
 	int scnt, ans;
