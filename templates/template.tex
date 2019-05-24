@@ -1515,60 +1515,59 @@ struct Hash {
 \subsubsection{KMP \&\& exKMP}
 \begin{lstlisting}
 namespace KMP {
-    int f[MAXN];
-    void get_fail(string A) {
-        f[0] = 0; f[1] = 0;
-        for(int i = 1; i < A.size(); i++) {
-            int j = f[i];
-            while(j && A[i] != A[j]) j = f[j];
-            f[i + 1] = A[i] == A[j] ? j + 1 : 0;
-        }
-    }
-
-    void kmp(string A, string B) {
-        get_fail(B);
-        int j = 0;
-        for(int i = 0; i < A.size(); i++) {
-            while(j && B[j] != A[i]) j = f[j];
-            if(B[j] == A[i]) j++;
-            if(j == B.size()) {
-                ans++;
-                j = f[j];
-            }
-        }
-    }
+	int fa[MAXN], cnt[MAXN];
+	void init() {
+		for(int i = 0; i < 60; ++i)
+			cnt[i] = 0;
+	}
+	void get_fail(char* t, int tn) {
+		fa[0] = -1;
+		int i = 0, j = -1;
+		while(i < tn) {
+			if (j == -1 || t[i] == t[j]) {  
+				++i; ++j;
+				fa[i] = t[i] != t[j] ? j : fa[j];  
+			}else{  
+				j = fa[j];  
+			}  
+		}
+	}
+	void kmp(char* s, int sn, char* t, int tn) {
+		int i = 0, j = 0;
+		while(i < sn) {
+			if (j == -1 || s[i] == t[j]) {
+				i++;j++;
+				if(j == tn) {
+				}
+			}else j = fa[j];
+		}
+	}
 }
 namespace exKMP {
-    int nxt[MAXN], ext[MAXN];
-    //ext[i]表示S以i开头的后缀与T的前缀相同的长度 
-    void get_nxt(string T) {
-        int j = 0, mx = 0;
-        int m = T.size();
-        nxt[0] = m;
-        for(int i = 1; i < m; i++) {
-            if(i >= mx || i + nxt[i - j] >= mx) {
-                if(i >= mx) mx = i;
-                while(mx < m && T[mx] == T[mx - i]) mx++;
-                nxt[i] = mx - i;
-                j = i;
-            }
-            else nxt[i] = nxt[i - j];
-        }
-    }
-    void exkmp(string S, string T) {
-        int j = 0, mx = 0;
-        get_nxt(T);
-        int n = S.size(), m = T.size();
-        for(int i = 0; i < n; i++) {
-            if(i >= mx || i + nxt[i - j] >= mx) {
-                if(i >= mx) mx = i;
-                while(mx < n && mx - i < m && S[mx] == T[mx - i]) mx++;
-                ext[i] = mx - i;
-                j = i;
-            }
-            else ext[i] = nxt[i - j];
-        }
-    }
+	int nxt[MAXN], ext[MAXN];
+	void get_nxt(char* t, int tn) {
+		int j = 0, mx = 0;
+		nxt[0] = tn;
+		for(int i = 1; i < tn; i++) {
+			if(i >= mx || i + nxt[i - j] >= mx) {
+				if(i > mx) mx = i;
+				while(mx < tn && t[mx] == t[mx - i]) mx++;
+				nxt[i] = mx - i;
+				j = i;
+			}else nxt[i] = nxt[i - j];
+		}
+	}
+	void exkmp(char *s, int sn, char *t, int tn) {
+		int j = 0, mx = 0;
+		for(int i = 0; i < sn; i++) {
+			if(i >= mx || i + nxt[i - j] >= mx) {
+				if(i > mx) mx = i;
+				while(mx < sn && mx - i < tn && s[mx] == t[mx - i]) mx++;
+				ext[i] = mx - i;
+				j = i;
+			}else ext[i] = nxt[i - j];
+		}
+	}
 }
 \end{lstlisting}
 \subsubsection{AC Automaton}
@@ -1626,6 +1625,55 @@ namespace AC {
             else if(last[j]) solve(last[j]);
         }
     }
+}
+namespace AC {
+	int root, tcnt;
+	int ch[MAXN][sigma_size], fa[MAXN];
+	inline int newnode() {
+		fa[++tcnt] = 0;
+		for(int i = 0; i < sigma_size; ++i) ch[tcnt][i] = 0;
+		return tcnt;
+	}
+	inline void init() { 
+		tcnt = -1;
+		root = newnode();
+	}
+	inline int idx(char c) { return c - 'a'; }
+	void extend(char *s, int sn) {
+		int cur = root;
+		for(int i = 0, c; i < sn; i++) {
+			if(!ch[cur][c = idx(s[i])])
+				ch[cur][c] = newnode();
+			cur = ch[cur][c];
+		}
+	}
+	int q[MAXN], qh, qt;
+	void get_fail() {
+		qh = 1; qt = 0;
+		fa[root] = 0;
+		for(int c = 0, now; c < sigma_size; c++)
+			if((now = ch[root][c]) != 0)
+				q[++qt] = now;
+		while(qh <= qt) {
+			int cur = q[qh++];
+			for(int c = 0, now; c < sigma_size; c++) 
+				if((now = ch[cur][c]) != 0) {
+					fa[now] = ch[fa[cur]][c];
+					q[++qt] = now;
+				}else 
+					ch[cur][c] = ch[fa[cur]][c];
+		}
+	}
+//统计模板串出现次数，每个模板串只计算一次
+//		int cur = root, ans = 0;
+//		for(int i = 0; i < sn; ++i) {
+//			cur = ch[cur][idx(s[i])];
+//			for(int j = cur; j && cnt[j] != -1; j = fa[j]) {
+//				ans += cnt[j];
+//				cnt[j] = -1;
+//			}
+//		}
+
 }
 \end{lstlisting}
 \subsection{Suffix Related}
@@ -1771,7 +1819,57 @@ namespace SAM{
 			}
 		}
 	}
-}\end{lstlisting}
+}
+namespace exSAM{
+	int scnt, root;
+	int fa[MAXN<<1], len[MAXN<<1], ch[MAXN<<1][26];
+	int sc[MAXN<<1], tmpl[MAXN<<1], minl[MAXN<<1];
+		
+	int newnode(int _len, int q = 0) {
+		fa[++scnt] = fa[q]; len[scnt] = _len;
+		sc[scnt] = 0;tmpl[scnt] = 0; minl[scnt] = INF;
+		for(int i = 0; i < 26; i++) ch[scnt][i] = ch[q][i];
+		return scnt;
+	}
+	void init() {
+		scnt = 0;
+		root = newnode(0);
+	}
+	int work(int p,int c){
+		int q = ch[p][c];
+		int nq = newnode(len[p] + 1, q);
+		fa[q] = nq;
+		for(; p && ch[p][c] == q; p = fa[p]) ch[p][c] = nq;
+		return nq;
+	}
+	int extend(int p, int c) {
+		if (ch[p][c]){
+			int q = ch[p][c];
+			if (len[p] + 1 == len[q]) return q;
+			return work(p, c);
+		}
+		int np = newnode(len[p] + 1);
+		for(;p && ch[p][c] == 0; p = fa[p]) ch[p][c] = np;
+		if (!p) fa[np] = root;
+		else{
+			int q = ch[p][c];
+			if (len[p] + 1 == len[q]) fa[np] = q; 
+			else fa[np] = work(p, c);
+		}
+		return np;
+	}
+	void solve() {
+		int n; scanf("%d",&n);
+		for(int i = 1; i <= n; i++) {
+			scanf("%s", s);
+			int sn = strlen(s);
+			int last = root;
+			for(int j = 0; j < sn; ++j)
+				last = extend(last, s[j] - 'a');
+		}
+	}
+}
+\end{lstlisting}
 \subsection{Palindrome Related}
 \subsubsection{Manacher}
 \begin{lstlisting}
@@ -1803,10 +1901,35 @@ namespace Palindrome {
         }
     }
 }
+namespace Manachar {
+	char S[MAXN << 1];
+	int scnt, ans;
+	int p[MAXN << 1]; //p[i] - 1
+	void init(char *s0, int sn0) {
+		S[0] = '$'; S[1] = '#';
+		for(int i = 0; i < sn0; i++) {
+			S[2 * i + 2] = s0[i];
+			S[2 * i + 3] = '#';
+		}
+		scnt = sn0 * 2 + 2;
+		S[scnt] = '&';
+	}
+	void manachar() {
+		int id = 0, mx = 0;
+		for(int i = 1; i < scnt; i++) {
+			p[i] = mx > i ? min(p[2 * id - i], mx - i) : 1;
+			while(S[i + p[i]] == S[i - p[i]]) p[i]++;
+			if(i + p[i] > mx) {
+				mx = i + p[i];
+				id = i;
+			}
+		}
+	}
+}
 \end{lstlisting}
-\subsubsection{Palindromic Tree}
+\subsubsection{Palindromic Automaton}
 \begin{lstlisting}
-namespace PalindromicTree {
+namespace PAM {
 	int scnt, S[MAXN];
 	int pcnt, last, len[MAXN], fail[MAXN], ch[MAXN][26];
 	int cnt[MAXN]; //节点i表示的本质不同的串的个数(调用count())

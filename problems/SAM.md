@@ -12,6 +12,11 @@
 | [HRY and Repeaters](source/2019-04-21_2019SCUT_SE_SchoolContest) | MLE(AC) | 1140 MS | 261 MB   | HJJ    |                                                              |
 | [HRY and Repeaters](source/2019-04-21_2019SCUT_SE_SchoolContest) | AC      | 1076 MS | 255 MB   | HJJ    | vetcor耗空间                                                 |
 | [USACO17DEC](<https://www.luogu.org/problemnew/show/P4081>)  | !AC     | 215MS   | 23224 KB | HJJ    | !单用SAM的做法很有意思，[题解](https://ctz45562.github.io/2019/04/27/%E6%B4%9B%E8%B0%B7-P4081-USACO17DEC-Standing-Out-from-the-Herd/) |
+| [BZOJ3998](https://www.lydsy.com/JudgeOnline/problem.php?id=3998) | AC | 5648 MS | 124828 KB | HJJ |                                                              |
+| [BZOJ3238](https://www.lydsy.com/JudgeOnline/problem.php?id=3238) | ！AC | 2036 MS | 120924 KB | HJJ |                                                              |
+|                                                              |         |         |           |        |                                                              |
+|                                                              |         |         |           |        |                                                              |
+|                                                              |         |         |           |        |                                                              |
 
 待测试：
 
@@ -19,7 +24,12 @@ BZOJ2555
 
 USACO17DEC
 
+POJ2752
 
+[M - Mediocre String Problem](https://codeforces.com/gym/101981/problem/M)
 
+BZOJ3926
 
+POJ1743
 
+[BZOJ3238](https://www.lydsy.com/JudgeOnline/problem.php?id=3238)
