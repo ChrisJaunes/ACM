@@ -1672,6 +1672,24 @@ namespace AC {
 
 }
 \end{lstlisting}
+\subsubsection{minimum string}
+\begin{lstlisting}
+namespace minstring{
+	int getmin(char *s, int sn) {
+		int i = 0, j = 1, k = 0, t;
+		while(i < sn && j < sn && k < sn) {
+			t = s[(i + k) % sn] - s[(j + k) % sn];
+			if(!t) k++;
+			else {
+				if(t > 0) i += k + 1; else j += k + 1;
+				if(i == j) j++;
+				k = 0;
+			}
+		}
+		return i < j ? i : j;
+	}
+}
+\end{lstlisting}
 \subsection{Suffix Related}
 \subsubsection{Suffix Array}
 \begin{lstlisting}
