@@ -2,9 +2,7 @@
 
 <center> SCUT_gugugu </center>
 
-# Competition name
-
- 
+<h1> <center> <a href = "https://www.jisuanke.com/contest/2625">The 2019 ICPC China Xian National Invitational Programming Contest</a> </center> </h1> 
 
 ### 比赛情况
 
@@ -18,12 +16,17 @@
 3. B:数论
 4. C:计算几何
 5. D:预处理物品+背包+bitset优化
-6. 
-7. J:XOR相消性质+分类讨论+map;
-8. L:打表找规律
-9. M:签到，二分答案+dfs
-10. 做题策略
-11. [题解](http://baidu.com)
+6. E:没读(树链剖分?
+7. F:没开
+8. G:没读
+9. H:没读
+10. I:没读
+11. J:XOR相消性质+分类讨论+map;
+12. K:没读
+13. L:打表找规律
+14. M:签到，二分答案+dfs
+15. 做题策略
+16. [题解](http://baidu.com)
 
 ### 查缺补漏
 
@@ -37,3 +40,5 @@
 ### 收获
 
 利用相同XOR值XOR等于0；
+
+E是个树链剖分（口胡一下）应该能打的出来
