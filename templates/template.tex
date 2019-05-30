@@ -2586,6 +2586,7 @@ namespace CG{
 }
 \end{lstlisting}
 \subsubsection{Point in Convex Hull}{
+\begin{lstlisting}
 namespace CG{
     bool PointInConvexHull(Point A){
         int l=1,r=tot-2,mid;
@@ -2603,6 +2604,7 @@ namespace CG{
         return false;
     }
 }
+\end{lstlisting}
 \subsection{Minkowski Sum}
 \begin{lstlisting}
 namespace CG{
@@ -2942,8 +2944,6 @@ namespace IO {
 \end{lstlisting}
 \subsubsection{Java BigNum}
 \begin{lstlisting}
-
-
 import java.math.*;
 import java.util.*;
 import java.lang.*;
@@ -2956,11 +2956,17 @@ Scanner in = new Scanner(System.in);
 while(in.hasNext()){} //EOF
 //fast-IO
 public static void main(String argv[]) throws IOException{}
-StreamTokenizer cin =new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in))); 
+StreamTokenizer cin = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in))); 
 PrintWriter cout = new PrintWriter(new OutputStreamWriter(System.out));
 while(cin.nextToken() != StreamTokenizer.TT_EOF) ;//EOF
-cin.nextToken();int n = (int)cin.nval;String s=st.sval;
-cout.println(max);cout.flush();
+cin.nextToken();int n = (int)cin.nval;String s = cin.sval;
+cout.println( Type );cout.flush();
+cin.ordinaryChar('/');
+
+BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+br.ready()//EOF
+while ((valueString=bf.readLine())!=null);
+br.close();
 //true fast-IO
 static class InputReader {
     public BufferedReader reader;
@@ -3024,6 +3030,7 @@ static class InputReader {
 //ulp()返回此 BigDecimal 的 ulp（最后一位的单位）的大小
 //String s = b.stripTrailingZeros().toPlainString();让bigdecimal不用科学计数法显示
 //类 BigInteger
+//parseInt
 //BigInteger zero = BigInteger.valueOf(0);
 //BigInteger a = in.nextBigInteger();
 //abs() 
