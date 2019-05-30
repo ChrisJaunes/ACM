@@ -1672,7 +1672,7 @@ namespace AC {
 
 }
 \end{lstlisting}
-\subsubsection{minimum string}
+\subsubsection{Minimum String}
 \begin{lstlisting}
 namespace minstring{
 	int getmin(char *s, int sn) {
@@ -1973,7 +1973,7 @@ struct comp {
 int rev[MAXN], T;
 comp tmp;
 void fft(comp *a, int r) {
-    if(r == -1) for(int i = 0; i < T; i++) A[i] = A[i] * A[i];
+    if(r == -1) for(int i = 0; i < T; i++) a[i] = a[i] * a[i];
     for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
     for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
         comp step = (comp) {cos(pi / mid), r * sin(pi / mid)};
@@ -2548,7 +2548,7 @@ namespace CG{
     }
 }
 \end{lstlisting}
-subsubsection{Anticlockwise Sort}
+\subsubsection{Anticlockwise Sort}
 \begin{lstlisting}
 namespace CG{
     \\p为一个凸包,只是不知其点集是否为逆时针
