@@ -2041,6 +2041,38 @@ void init() {
     }
 }
 \end{lstlisting}
+\subsubsection{FWT}
+\begin{lstlisting}
+void FWT(LL *a,int n) {
+    for(int i = 2;i <= n; i <<= 1) {
+        for(int j = 0; j < n; j += i) {
+            for(int d = 0, w = i >> 1; d < w; d++){
+                LL u = a[j + d], v = a[j + d + w];
+                //xor: a[j + d] = u + v, a[j + d + w] = u - v;
+                //and: a[j + d] = u + v;
+                //or : a[j + d + w] = u + v;
+            }
+        }
+    }
+}
+void UFWT(LL *a, int n) {
+    for(int i = 2; i <= n; i <<= 1) {
+        for(int j = 0; j < n; j += i) {
+            for(int d = 0, w = i >> 1; d < w; d++) {
+                LL u = a[j + d], v = a[j + d + w];
+                //xor: a[j + d] = (u + v) / 2, a[j + d + w] = (u - v) / 2;
+                //and: a[j + d] = u - v;
+                //or : a[j + d + w] = v - u;
+            }
+        }
+    }
+}
+void solve(int n) {
+    FWT(a, n); FWT(b, n);
+    for(int i = 0; i < n; i++) a[i] = a[i] * b[i];
+    UFWT(a, n);
+}
+\end{lstlisting}
 \subsubsection{Linear Basis}
 \begin{lstlisting}
 int Gauss(int n, int m) {
