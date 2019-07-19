@@ -2075,6 +2075,27 @@ void solve(int n) {
 \end{lstlisting}
 \subsubsection{Linear Basis}
 \begin{lstlisting}
+//dynamic
+const int D = 60;
+struct Basis {
+    vector<int> ind;
+    vector<LL> base;
+    Basis() {
+        ind.resize(D, -1);
+        base.resize(D);
+    }
+    bool update(LL x, int id) {
+        for(int i = 0; i < D; i++) if(~ind[i] && x >> i & 1) {
+            x ^= base[i];
+        }
+        if(!x) return 1;
+        int pos = __builtin_ctzll(x);
+        ind[pos] = id;
+        base[pos] = x;
+        return 0;
+    }
+};
+//array
 int Gauss(int n, int m) {
     int num = 1;
     for(int x = 1; x <= n && x <= m; x++) {
