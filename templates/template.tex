@@ -968,7 +968,7 @@ int main() {
 \subsubsection{RMQ}
 \begin{lstlisting}
 struct RMQ {
-    int d[MAXN][S + 3];
+    int d[MAXN][S + 2];
     inline void init(int *a, int n) {
         for(int i = 0; i < n; i++) d[i][0] = a[i];
         for(int k = 1; (1 << k) < n; k++)
@@ -980,6 +980,43 @@ struct RMQ {
         int k = 0;
         while((1 << (k + 1)) <= r - l + 1) k++;
         return min(d[l][k], d[r - (1 << k) + 1][k]);
+    }
+}rmq;
+struct RMQ {
+    LL a[MAXN];
+    LL d[MAXM][S + 2];
+    LL pre[MAXM][S + 2], aft[MAXM][S + 2];
+    inline void init(int n) {
+        for(int i = 1; i <= sz; i++) {
+            pre[i][0] = aft[i][S + 1] = INF;
+        }
+        for(int i = 1; i <= n; i++) {
+            pre[belong(i)][pos(i)] = min(pre[belong(i)][pos(i) - 1], a[i]);
+        }
+        for(int i = n; i >= 1; i--) {
+            aft[belong(i)][pos(i)] = min(aft[belong(i)][pos(i) + 1], a[i]);
+        }
+        for(int i = 1; i <= sz; i++) {
+            d[i][0] = aft[i][1];
+        }
+        for(int k = 1; k <= S; k++)
+            for(int i = 1; i + (1 << k) <= sz; i++)
+                d[i][k] = min(d[i][k - 1], d[i + (1 << (k - 1))][k - 1]);
+    }
+    inline LL ask(int l, int r) {
+        assert(l <= r);
+        LL res = INF;
+        if(belong(l) == belong(r)) {
+            for(int i = l; i <= r; i++) res = min(res, a[i]);
+            return res;
+        }
+        res = min(aft[belong(l)][pos(l)], pre[belong(r)][pos(r)]);
+        int k = Log[belong(r) - belong(l) - 1];
+        if(~k) {
+            res = min(res, d[belong(l) + 1][k]);
+            res = min(res, d[belong(r) - (1 << k)][k]);
+        }
+        return res;
     }
 }rmq;
 \end{lstlisting}
@@ -2326,7 +2363,7 @@ void findfac(LL n){
 	findfac(n/p); 
 }
 \end{lstlisting}
-\subsubsection{$\Phi(n)$}
+\subsubsection{$\varphi(n)$}
 \begin{lstlisting}
 int phi(int x) {
     int res = x;
@@ -2908,44 +2945,14 @@ double Integrate(double l,double r,double S){
 \subsection{Sample}
 \subsubsection{vimrc}
 \begin{lstlisting}
-set nocompatible
-source $VIMRUNTIME/vimrc_example.vim
-source $VIMRUNTIME/mswin.vim
-nunmap <c-v>
 set cindent
 set number
 set mouse=a
 set tabstop=4
 set shiftwidth=4
-set cursorline
-set guifont=Consolas:h12
-inoremap kj <esc>
-inoremap jk <esc>
+syntax on
 inoremap { {}<left>
-syntax enable
-func! Compile()
-    exec "w"
-    exec "! g++ % -o %< -Wall -Wextra -Wshadow -Wconversion --std=c++14 -O2"
-    exec "! ./%<"
-endfunc
-func! Debug()
-    exec "w"
-    exec "! g++ % -o %< -g -Wall --std=c++14 && gdb %<"
-endfunc
-func! AddTitle()
-    call append(0,"// Cease to struggle and you cease to live")
-    call append(1,"#include <bits/stdc++.h>")
-    call append(2,"using namespace std;")
-    call append(3,"")
-    call append(4,"int main() {")
-    call append(5,"    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;")
-    call append(6,"")
-    call append(7,"    return 0;")
-    call append(8,"}")
-endfunc
-map <F9> :call Compile()<CR>
-map <F5> :call Debug()<CR>
-map <F8> :call AddTitle()<CR>
+map <F9> :w<CR> :! g++-8 % -o %< -Wall --std=c++14 -g && ./%< <CR>
 \end{lstlisting}
 
 \subsubsection{Check}
@@ -3369,11 +3376,11 @@ int cal(int n, int m) {
 \subsection{Formula}
 \subsubsection{Euler's Theorem}
 \begin{equation*}
-    a^x\equiv\left\{
+    a^b\equiv\left\{
     \begin{aligned}
-    &a^{b\%\phi(p)} & & \gcd(a,p)=1&\\
-    &a^b & &\gcd(a,p)\not=1,b<\phi(p) \\
-    &a^{b\%\phi(p) + \phi(p)} & & \gcd(a,p)\not=1,b\geq \phi(p) &
+    &a^{b\%\varphi(p)} & & \gcd(a,p)=1&\\
+    &a^b & &\gcd(a,p)\not=1,b<\varphi(p) \\
+    &a^{b\%\varphi(p) + \varphi(p)} & & \gcd(a,p)\not=1,b\geq \varphi(p) &
     \end{aligned}
     \right\}
     (mod\ p)
@@ -3394,19 +3401,21 @@ Theorem:
 }
 \subsubsection{Math Theory Tips}
 \begin{equation}
-    n = \sum_{d|n} \phi(d)
+    \left\{
+        \begin{aligned}
+            id(n) &= \sum_{d|n} \varphi(d) \\
+            e(n) &= \sum_{d|n} \mu(d) \\
+        \end{aligned} 
+    \right.
 \end{equation}
 \begin{equation}
-    e(n)=\sum_{d|n} \mu(d)
-\end{equation}
-\begin{equation}
-     \sum_i^n\sum_j^mgcd(i, j)=\sum_d^{\max(n, m)}\phi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor
-\end{equation}
-\begin{equation}
-    \sum_i^n\sum_j^me(gcd(i, j))=\sum_d^{\min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor
-\end{equation}
-\begin{equation}
-    \sum_{i = 1}^n |\mu(i)|=\sum_{i = 1}^{\lfloor \sqrt{n} \rfloor}\mu(i)*\lfloor \frac{n}{i * i} \rfloor
+    \left\{
+        \begin{aligned}
+            \sum_i^n\sum_j^mgcd(i, j)&=\sum_d^{\max(n, m)}\varphi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
+            \sum_i^n\sum_j^me(gcd(i, j))&=\sum_d^{\min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
+            \sum_{i = 1}^n |\mu(i)|&=\sum_{i = 1}^{\lfloor \sqrt{n} \rfloor}\mu(i)*\lfloor \frac{n}{i * i} \rfloor
+        \end{aligned} 
+    \right.
 \end{equation}
 \begin{equation}
     \left\{
@@ -3416,5 +3425,34 @@ Theorem:
             \sum_i^n\sum_j^mlcm(i, j) &= \sum_{i = 1}^{\min(n, m)} d * F(\lfloor\frac{n}{i}\rfloor, \lfloor\frac{y}{i}\rfloor)
         \end{aligned} 
     \right. 
+\end{equation}
+\subsubsection{Sieve Tips}
+\begin{equation}
+\varphi(n) = \sum_{i=1}^n[(n,i)=1]\cdot i=\frac{n* \varphi(n)+[n=1]}{2}
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        id &= \varphi \times 1 \\
+        \frac{n \cdot (n + 1)}{2} &= \sum_{i=1}^n i = \sum_{i=1}^n \sum_{d|i} \cdot \varphi(d) = \sum_{\frac{i}{d} = 1}^n \sum_{d=1}^{\lfloor\frac{n}{\frac{i}{d}}\rfloor} \varphi(d) = \sum_{i=1}^n \phi(\lfloor\frac{n}{i}\rfloor) 
+    \end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        e &= \mu \times 1 \\
+        1 &= \sum_{i=1}^n [i=1] = \sum_{i=1}^n \sum_{d|i} \mu(d) = \sum_{i=1}^n\sum_{d=1}^{\lfloor\frac{n}{i}\rfloor} \mu(d) = \sum_{i=1}^n M(\lfloor\frac{n}{i}\rfloor)
+    \end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        id^2 &= (id \cdot \varphi) \times id \\
+        \phi ^\prime (n) &= \sum_{i=1}^n i \cdot \varphi(i) \\
+        \frac{n \cdot (n + 1) \cdot (2n + 1)}{6} &= \sum_{i=1}^n i^2 = \sum_{i=1}^n \sum_{d|i} d \cdot \varphi(d) \cdot \frac {i}{d} = \sum_{\frac{i}{d}=1}^{\lfloor{\frac{n}{\frac{i}{d}}}\rfloor} d \cdot \varphi(d) = \sum_{i=1}^n i \cdot \phi ^\prime (\lfloor\frac{n}{i}\rfloor)
+    \end{aligned}
+\right.
 \end{equation}
 \end{document}
