@@ -2235,9 +2235,12 @@ LL lucas(LL a, LL b) {
 }
 \end{lstlisting}
 \subsubsection{CRT \&\& exCRT}
+$$
+x \equiv a_i \pmod{m_i}
+$$
 \begin{lstlisting}
 namespace CRT {
-    LL m[MAXN], a[MAXN]; //x_i = a[i] (mod m[i])
+    LL m[MAXN], a[MAXN];
     LL exgcd(LL _a, LL _b, LL &x, LL &y) {
         if(!_b) {
             x = 1; y = 0;
