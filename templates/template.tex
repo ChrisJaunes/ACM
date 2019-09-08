@@ -2348,6 +2348,26 @@ namespace EXCRT {
         }
         return A;
     }
+        LL inv(LL _a, LL _b) {
+        LL x, y;
+        exgcd(_a, _b, x, y);
+        return (x % _b + _b) % _b;
+    }
+    LL excrt(int n) {
+        LL M = m[1], A = a[1], x, y, d, c, tmp;
+        for(int i = 2; i <= n; i++) {
+            d = exgcd(M, m[i], x, y);
+            c = a[i] - A;
+            if(c % d) return -1;
+            c = (c % m[i] + m[i]) % m[i];
+            M /= d; m[i] /= d;
+            c = c / d * inv(M % m[i], m[i]) % m[i];
+            tmp = M;
+            M *= m[i] * d;
+            A = (c * tmp % M * d % M + A) % M;
+        }
+        return A;
+    }
 }
 \end{lstlisting}
 \subsubsection{BSGS}
