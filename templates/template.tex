@@ -2110,6 +2110,76 @@ void solve(int n) {
     UFWT(a, n);
 }
 \end{lstlisting}
+\subsubsection{FFT Divide and Conquer}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+const int MAXN = 300005, G = 3, mod = 998244353;
+namespace NTT {
+    int rev[MAXN], T;
+    LL qpow(LL x, LL y) {
+        LL res = 1;
+        while(y) {
+            if(y & 1) res = res * x % mod;
+            x = x * x % mod;
+            y >>= 1;
+        }
+        return res;
+    }
+    void ntt(LL *a, int r) {
+        for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+        for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
+            LL gn = qpow(G, (mod - 1) / i);
+            if(r == -1) gn = qpow(gn, mod - 2);
+            for(int j = 0; j < T; j += i) {
+                LL cur = 1, tmp;
+                for(int k = j; k < j + mid; k++, cur = cur * gn % mod) {
+                    tmp = a[k + mid] * cur % mod;
+                    a[k + mid] = ((a[k] - tmp) % mod + mod) % mod;
+                    a[k] = (a[k] + tmp) % mod;
+                }
+            }
+        }
+        if(r == -1) {
+            LL inv = qpow(T, mod - 2);
+            for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
+        }
+    }
+    void init(int n) {
+        for(T = 1; T <= n; T <<= 1);
+        for(int i = 0; i < T; i++) {
+            if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+            else rev[i] = rev[i >> 1] >> 1;
+        }
+    }
+}
+LL f[MAXN], g[MAXN], A[MAXN], B[MAXN];
+using namespace NTT;
+void solve(int l, int r) {
+    if(l == r) return;
+    int mid = (l + r) >> 1;
+    solve(l, mid);
+    init(r - l);
+    for(int i = 0; i < T; i++) A[i] = B[i] = 0;
+    for(int i = 0; i <= mid - l; i++) A[i] = f[i + l];
+    for(int i = 0; i <= r - l; i++) B[i] = g[i];
+    ntt(A, 1); ntt(B, 1);
+    for(int i = 0; i < T; i++) A[i] = A[i] * B[i] % mod;
+    ntt(A, -1);
+    for(int i = mid + 1; i <= r; i++) f[i] =(f[i] + A[i - l]) % mod;
+    solve(mid + 1, r);
+}
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i < n; i++) scanf("%lld", g + i); 
+    f[0] = 1;
+    solve(0, n - 1);
+    for(int i = 0; i < n; i++) printf("%lld%c", f[i], i == n - 1 ? '\n' : ' ');
+    return 0;
+}
+\end{lstlisting}
 \subsubsection{Linear Basis}
 \begin{lstlisting}
 //dynamic
