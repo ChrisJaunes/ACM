@@ -1999,13 +1999,14 @@ namespace PAM {
 \subsection{Algebra}
 \subsubsection{FFT}
 \begin{lstlisting}
+//不预处理精度
 const double pi = acos(-1.0);
 const int MAXN = 300003;
 struct comp {
     double x, y;
-    comp operator + (const comp a) const { return (comp) {x + a.x, y + a.y}; }
-    comp operator - (const comp a) const { return (comp) {x - a.x, y - a.y}; }
-    comp operator * (const comp a) const { return (comp) {x * a.x - y * a.y, x * a.y + y * a.x}; }
+    comp operator + (const comp& a) const { return (comp) {x + a.x, y + a.y}; }
+    comp operator - (const comp& a) const { return (comp) {x - a.x, y - a.y}; }
+    comp operator * (const comp& a) const { return (comp) {x * a.x - y * a.y, x * a.y + y * a.x}; }
 };
 int rev[MAXN], T;
 comp tmp;
@@ -2025,17 +2026,60 @@ void fft(comp *a, int r) {
     }
     if(r == -1) for(int i = 0; i < T; i++) a[i].y = (int)(a[i].y / T / 2 + 0.5);
 }
-int n, m;
 comp A[MAXN];
-void init() {
-    for(T = 1; T <= n + m; T <<= 1);
+void init(int n) {
+    for(T = 1; T <= n; T <<= 1);
     for(int i = 1; i < T; i++) {
         if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
         else rev[i] = rev[i >> 1] >> 1;
+        //A[i] = (comp) {0, 0};
     }
+}
+//预处理精度
+int rev[MAXN], T;
+comp Sin[MAXN], tmp;
+void fft(comp *a, int r) {
+    if(r == -1) {
+        for(int i = 0; i < (T >> 1); i++) Sin[i].y = -Sin[i].y;
+        for(int i = 0; i < T; i++) a[i] = a[i] * a[i];
+    }
+    for(int i = 1; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+    for(int i = 2, mid = 1, s = (T >> 1); i <= T; mid = i, i <<= 1, s >>= 1) {
+        for(int j = 0; j < T; j += i) {
+            for(int k = j, cur = 0; k < j + mid; k++, cur += s) {
+                tmp = a[k + mid] * Sin[cur];
+                a[k + mid] = a[k] - tmp;
+                a[k] = a[k] + tmp;
+            }
+        }
+    }
+    if(r == -1) for(int i = 0; i < T; i++) a[i].y = (int)(a[i].y / T / 2 + 0.5);
+}
+comp A[MAXN];
+void init(int n) {
+    for(T = 1; T <= n; T <<= 1);
+    for(int i = 0; i < T; i++) {
+        if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+        else rev[i] = rev[i >> 1] >> 1;
+        //A[i] = (comp) {0, 0};
+    }
+    for(int i = 0; i < (T >> 1); i++) {
+        Sin[i] = (comp) {cos(2 * pi * i / T), sin(2 * pi * i / T)};
+    }
+}
+int main() {
+    scanf("%d%d", &n, &m);
+    init(n + m);
+    for(int i = 0; i <= n; i++) scanf("%lf", &A[i].x);
+    for(int i = 0; i <= m; i++) scanf("%lf", &A[i].y);
+    fft(A, 1);
+    fft(A, -1);
+    for(int i = 0; i <= n + m; i++) printf("%d%c", (int)(A[i].y), i == n + m ? '\n' : ' ');
+    return 0;
 }
 \end{lstlisting}
 \subsubsection{NTT}
+\includegraphics[width=0.2\textwidth]{./NTT.png}\par
 \begin{lstlisting}
 const int MAXN = 300005, G = 3, mod = 998244353; //or (479LL<<21) + 1
 int rev[MAXN], T;
@@ -2048,6 +2092,7 @@ LL qpow(LL x, LL y) {
     }
     return res;
 }
+LL A[MAXN], B[MAXN];
 void ntt(LL *a, int r) {
     if(r == -1) for(int i = 0; i < T; i++) A[i] = A[i] * B[i] % mod;
     for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
@@ -2068,10 +2113,8 @@ void ntt(LL *a, int r) {
         for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
     }
 }
-int n, m;
-LL A[MAXN], B[MAXN];
-void init() {
-    for(T = 1; T <= n + m; T <<= 1);
+void init(int n) {
+    for(T = 1; T <= n; T <<= 1);
     for(int i = 0; i < T; i++) {
         if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
         else rev[i] = rev[i >> 1] >> 1;
@@ -2111,6 +2154,9 @@ void solve(int n) {
 }
 \end{lstlisting}
 \subsubsection{FFT Divide and Conquer}
+$$
+f_i = \sum_{j=1}^{i-1} f_j \cdot g_{i-j}
+$$
 \begin{lstlisting}
 #include <bits/stdc++.h>
 using namespace std;
@@ -2118,6 +2164,7 @@ using namespace std;
 typedef long long LL;
 const int MAXN = 300005, G = 3, mod = 998244353;
 namespace NTT {
+    LL A[MAXN], B[MAXN]
     int rev[MAXN], T;
     LL qpow(LL x, LL y) {
         LL res = 1;
@@ -2155,7 +2202,7 @@ namespace NTT {
         }
     }
 }
-LL f[MAXN], g[MAXN], A[MAXN], B[MAXN];
+LL f[MAXN], g[MAXN];
 using namespace NTT;
 void solve(int l, int r) {
     if(l == r) return;
@@ -2236,6 +2283,9 @@ int Gauss() {
 }
 \end{lstlisting}
 \subsubsection{Lagrange Polynomial}
+$$
+L(x) = \sum_{i=0}^n y_i\prod_{j=0,j \neq i}^n \frac{x - x_j}{x_i - x_j}
+$$
 \begin{lstlisting}
 #include <bits/stdc++.h>
 using namespace std;
@@ -3527,6 +3577,15 @@ int cal(int n, int m) {
     }
     return res;
 }
+\end{lstlisting}
+\subsubsection{Find Primitive Root Modulo N}
+\begin{lstlisting}
+for i in range(1,mod):
+    if 3 ** i % mod == 1:
+        if i == mod - 1:
+            print("yes")
+            break
+        print("no")
 \end{lstlisting}
 \subsection{Formula}
 \subsubsection{Euler's Theorem}
