@@ -19,8 +19,8 @@
             citecolor=black]{hyperref}
 \geometry{a4paper,scale=0.8}
 \renewcommand\contentsname{Contents}
-\setmonofont[Mapping={}]{Monaco}    %英文引号之类的正常显示，相当于设置英文字体
-%\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
+\setmonofont[Mapping={}]{Consolas}    %英文引号之类的正常显示，相当于设置英文字体
+\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
 %\setmainfont{Monaco} %设置英文字体
 % 定义可能使用到的颜色
 %\setmainfont[BoldFont=SimHei]{SimSun}
@@ -3791,4 +3791,35 @@ Theorem:
     \end{aligned}
 \right.
 \end{equation}
+\subsection{The Number of Ingeter Point on a Circle}
+Set $r = const$ is the radius of the circle.
+$$r^2 = {p_1}^{a_1} + {p_2}^{a_2} + \cdots + {p_m}^{a_m} = \sum_{i = 1}^{m} {p_i}^{a_i}$$
+\par 
+Define
+\[
+    \chi(n)=
+    \begin{cases}
+        1 & {n \% 4 = 1} \\
+        -1 & {n \% 4 = 3} \\
+        0 & {n \% 2 = 0}
+    \end{cases}
+\]
+\par
+By the way, $\chi(n)$ is a multiplicative function. 
+\par
+Define
+\[
+    \Gamma(p_i,a_i)=\sum_{j = 0}^{a_i}\chi(p_i^j)=
+    \begin{cases}
+        1 & {p_i = 2 \quad || \quad (p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 0)} \\
+        0 & {p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 1} \\
+        a_i + 1 & {p_i \% 4 = 1}
+    \end{cases}
+\]
+\par
+Define cnt is the number of integer point on circle
+$$cnt(r) = 4 \prod_{i = 1}^{m} \sum_{j = 0}^{a_i} \chi(p_i^j) = 4 \prod_{i = 1}^{m} \Gamma(p_i,a_i) = 4 \sum_{k | r^2}\chi(k)$$
+\par
+Define CNT is the number of integer point in circle
+$$CNT(r) = 1 + \sum_{i = 1}^{r^2}cnt(i) = 1 + \sum_{i = 1}^{r^2} \lfloor \frac{r^2}{i} \rfloor \chi(i)$$
 \end{document}
