@@ -433,6 +433,25 @@ namespace NWF{
 }
 \end{lstlisting}
 \subsection{Tree Related}
+\subsubsection{Union Set}
+\begin{lstlisting}
+int fa[MAXN], rnk[MAXN];
+int Find(int x) { return x == fa[x] ? x : fa[x] = Find(fa[x]); }
+bool same(int x, int y){ return Find(x) == Find(y); }
+void unite(int x, int y)
+{
+    x = Find(x);
+    y = Find(y);
+    if(x == y) return;
+    if(rnk[x] < rnk[y]) {
+        fa[x] = y;
+    }
+    else {
+        fa[y] = x;
+        if(rnk[x] == rnk[y]) rnk[x]++;
+    }
+}
+\end{lstlisting}
 \subsubsection{Kruskal}
 \begin{lstlisting}
 namespace MST{
@@ -970,9 +989,9 @@ int main() {
 struct RMQ {
     int d[MAXN][S + 2];
     inline void init(int *a, int n) {
-        for(int i = 0; i < n; i++) d[i][0] = a[i];
-        for(int k = 1; (1 << k) < n; k++)
-            for(int i = 0; i + (1 << k) - 1 < n; i++)
+        for(int i = 1; i <= n; i++) d[i][0] = a[i];
+        for(int k = 1; (1 << k) <= n; k++)
+            for(int i = 1; i + (1 << k) - 1 <= n; i++)
                 d[i][k] = min(d[i][k - 1], d[i + (1 << (k - 1))][k - 1]);
     }
     inline int query(int l, int r) {
@@ -982,42 +1001,49 @@ struct RMQ {
         return min(d[l][k], d[r - (1 << k) + 1][k]);
     }
 }rmq;
+const int MAXM = 2e5 + 5, MAXN = 3e6 + 5, S = 22;
+const LL INF = 1e18;
+#define belong(x) (x / S + 1)
+#define pos(x) (x % S + 1)
+int Log[MAXN], sz;
 struct RMQ {
-    LL a[MAXN];
-    LL d[MAXM][S + 2];
-    LL pre[MAXM][S + 2], aft[MAXM][S + 2];
-    inline void init(int n) {
-        for(int i = 1; i <= sz; i++) {
-            pre[i][0] = aft[i][S + 1] = INF;
-        }
-        for(int i = 1; i <= n; i++) {
-            pre[belong(i)][pos(i)] = min(pre[belong(i)][pos(i) - 1], a[i]);
-        }
-        for(int i = n; i >= 1; i--) {
-            aft[belong(i)][pos(i)] = min(aft[belong(i)][pos(i) + 1], a[i]);
-        }
-        for(int i = 1; i <= sz; i++) {
-            d[i][0] = aft[i][1];
-        }
-        for(int k = 1; k <= S; k++)
-            for(int i = 1; i + (1 << k) <= sz; i++)
-                d[i][k] = min(d[i][k - 1], d[i + (1 << (k - 1))][k - 1]);
-    }
-    inline LL ask(int l, int r) {
-        assert(l <= r);
-        LL res = INF;
-        if(belong(l) == belong(r)) {
-            for(int i = l; i <= r; i++) res = min(res, a[i]);
-            return res;
-        }
-        res = min(aft[belong(l)][pos(l)], pre[belong(r)][pos(r)]);
-        int k = Log[belong(r) - belong(l) - 1];
-        if(~k) {
-            res = min(res, d[belong(l) + 1][k]);
-            res = min(res, d[belong(r) - (1 << k)][k]);
-        }
-        return res;
-    }
+	LL a[MAXN];
+	LL d[MAXM][S + 2];
+	LL pre[MAXM][S + 2], aft[MAXM][S + 2];
+	inline void init(int n) {
+		sz = n / S + 1;
+		Log[0] = -1; for(int i = 1; i <= n; i++) Log[i] = Log[i / 2] + 1;
+		for(int i = 1; i <= sz; i++) {
+			pre[i][0] = aft[i][S + 1] = INF;
+		}
+		for(int i = 1; i <= n; i++) {
+			pre[belong(i)][pos(i)] = min(pre[belong(i)][pos(i) - 1], a[i]);
+		}
+		for(int i = n; i >= 1; i--) {
+			aft[belong(i)][pos(i)] = min(aft[belong(i)][pos(i) + 1], a[i]);
+		}
+		for(int i = 1; i <= sz; i++) {
+			d[i][0] = aft[i][1];
+		}
+		for(int k = 1; k <= S; k++)
+			for(int i = 1; i + (1 << k) <= sz; i++)
+				d[i][k] = min(d[i][k - 1], d[i + (1 << (k - 1))][k - 1]);
+	}
+	inline LL ask(int l, int r) {
+		assert(l <= r);
+		LL res = INF;
+		if(belong(l) == belong(r)) {
+			for(int i = l; i <= r; i++) res = min(res, a[i]);
+			return res;
+		}
+		res = min(aft[belong(l)][pos(l)], pre[belong(r)][pos(r)]);
+		int k = Log[belong(r) - belong(l) - 1];
+		if(~k) {
+			res = min(res, d[belong(l) + 1][k]);
+			res = min(res, d[belong(r) - (1 << k)][k]);
+		}
+		return res;
+	}
 }rmq;
 \end{lstlisting}
 \subsubsection{Divide Blocks}
