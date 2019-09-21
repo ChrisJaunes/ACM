@@ -1087,8 +1087,11 @@ struct CartesianTree{
 		if(rs[x]) {dfs(rs[x]); cnt[x] += cnt[rs[x]];}
 	} 
 	LL getAns(LL *a, int n) {
-		//dfs(rt);
-		//---------
+		dfs(rt);
+		LL res = 0;
+		for(int i = 1; i <= n; i++) {
+			res = max(res, a[i] * cnt[i]);
+		}
 		return res;
 	}
 }T;
