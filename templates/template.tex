@@ -3887,6 +3887,21 @@ Theorem:
     \end{aligned}
 \right.
 \end{equation}
+\subsection{Convolution Tips}
+\subsubsection{FWT Tips}
+\begin{equation*}
+\left\{
+    \begin{aligned}
+        C_k&=\sum_{i\oplus j=k}A_i*B_j \\
+        DWT(A)_i&=\sum_j^nA_j*f_{i,j} \\
+        DWT(C)_i&=DWT(A)_i*DWT(B)_i\\
+        f_{i,j} \cdot f_{i,k} &=f_{i,j\oplus k}\\
+        f_{i,j} &= [i \ and \ j == i] \  &(and)\\
+        f_{i,j} &= [i \  and \  j == j] \ &(or)\\
+        f_{i,j} &= (-1)^{| i \  and \  j |} \ &(xor)
+    \end{aligned}
+\right.
+\end{equation*}
 \subsection{The Number of Ingeter Point on a Circle}
 Set $r = const$ is the radius of the circle.
 $$r^2 = {p_1}^{a_1} + {p_2}^{a_2} + \cdots + {p_m}^{a_m} = \sum_{i = 1}^{m} {p_i}^{a_i}$$
