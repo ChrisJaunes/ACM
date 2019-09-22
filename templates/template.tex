@@ -3805,7 +3805,7 @@ Theorem:
 \left\{
     \begin{aligned}
         id &= \varphi \times 1 \\
-        \frac{n \cdot (n + 1)}{2} &= \sum_{i=1}^n i = \sum_{i=1}^n \sum_{d|i} \cdot \varphi(d) = \sum_{\frac{i}{d} = 1}^n \sum_{d=1}^{\lfloor\frac{n}{\frac{i}{d}}\rfloor} \varphi(d) = \sum_{i=1}^n \phi(\lfloor\frac{n}{i}\rfloor) 
+        \frac{n \cdot (n + 1)}{2} &= \sum_{i=1}^n i = \sum_{i=1}^n \sum_{d|i}\varphi(d) = \sum_{\frac{i}{d} = 1}^n \sum_{d=1}^{\lfloor\frac{n}{\frac{i}{d}}\rfloor} \varphi(d) = \sum_{i=1}^n \phi(\lfloor\frac{n}{i}\rfloor) 
     \end{aligned}
 \right.
 \end{equation}
@@ -3822,7 +3822,7 @@ Theorem:
     \begin{aligned}
         id^2 &= (id \cdot \varphi) \times id \\
         \phi ^\prime (n) &= \sum_{i=1}^n i \cdot \varphi(i) \\
-        \frac{n \cdot (n + 1) \cdot (2n + 1)}{6} &= \sum_{i=1}^n i^2 = \sum_{i=1}^n \sum_{d|i} d \cdot \varphi(d) \cdot \frac {i}{d} = \sum_{\frac{i}{d}=1}^{\lfloor{\frac{n}{\frac{i}{d}}}\rfloor} d \cdot \varphi(d) = \sum_{i=1}^n i \cdot \phi ^\prime (\lfloor\frac{n}{i}\rfloor)
+        \frac{n \cdot (n + 1) \cdot (2n + 1)}{6} &= \sum_{i=1}^n i^2 = \sum_{i=1}^n \sum_{d|i} d \cdot \varphi(d) \cdot \frac {i}{d} = \sum_{\frac{i}{d}=1}^{n} \frac{i}{d} \sum_{d=1}^{\lfloor{\frac{n}{\frac{i}{d}}}\rfloor} d \cdot \varphi(d) = \sum_{i=1}^n i \cdot \phi ^\prime (\lfloor\frac{n}{i}\rfloor)
     \end{aligned}
 \right.
 \end{equation}
