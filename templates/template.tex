@@ -19,9 +19,11 @@
             citecolor=black]{hyperref}
 \geometry{a4paper,scale=0.8}
 \renewcommand\contentsname{Contents}
-\setmonofont[Mapping={}]{Consolas}    %英文引号之类的正常显示，相当于设置英文字体
-\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
+\setmonofont[Mapping={}]{Monaco} 
+%\setmonofont[Mapping={}]{Consolas}    %英文引号之类的正常显示，相当于设置英文字体
+%\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
 %\setmainfont{Monaco} %设置英文字体
+%\setmainfont{Helvetica Neue} %设置英文字体
 % 定义可能使用到的颜色
 %\setmainfont[BoldFont=SimHei]{SimSun}
 \definecolor{CPPLight}  {HTML} {686868}
@@ -1063,7 +1065,7 @@ void build(int n) {
     }
 }
 \end{lstlisting}
-\subsection{stack Structures}
+\subsection{Stack Structures}
 \subsubsection{Cartesian Tree}
 \begin{lstlisting}
 struct CartesianTree{
@@ -3766,6 +3768,9 @@ Theorem:
 \end{equation*}
 }
 \subsubsection{Math Theory Tips}
+\begin{equation}
+    \varphi(nm) = \varphi(n) \cdot \varphi(m) \cdot \frac{gcd(n,m)}{\varphi(gcd(n,m))}
+\end{equation}
 \begin{equation}
     \left\{
         \begin{aligned}
