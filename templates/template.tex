@@ -1177,6 +1177,7 @@ namespace LiT{
 	const int MLIMIT = 40000;
 	typedef double LD;
 	struct line{LD k,b;int l,r,id;} T[MAXN << 2];
+	//inline LD calc(line &a,int pos) {return a.k*vac[pos]+a.b;}
 	inline LD calc(line &a,int pos) {return a.k*pos+a.b;}
 	inline double cross(line &a,line &b) {
 		if(b.k == a.k) return -1e9;
@@ -1199,6 +1200,7 @@ namespace LiT{
 			else if(fl - gl > eps || fr - gr > eps) {
 				int mid = (l+r)>>1;
 				if(calc(k, mid) - calc(T[v], mid) > eps) swap(k, T[v]);
+				//if(vec[mid] - cross(k, T[v]) > eps) 
 				if(mid - cross(k, T[v]) > eps) 
 					ins(v<<1, l, mid, k);else ins(v<<1|1, mid+1, r, k);
 			}
@@ -1220,6 +1222,7 @@ namespace LiT{
 		if(x <= mid) que(v<<1,l,mid,x);else que(v<<1|1,mid+1,r,x);
     }
 };
+//左闭右闭
 \end{lstlisting}
 \subsubsection{Splay Tree}
 \begin{lstlisting}
