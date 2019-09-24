@@ -137,8 +137,6 @@ void dijkstra(int st, int n) {
         }
     }
 }
-
-
 \end{lstlisting}
 \subsubsection{SPFA}
 \begin{lstlisting}
@@ -173,6 +171,17 @@ void SPFA(int st) {
             }
         }
     }
+}
+\end{lstlisting}
+\subsection{Johnson}
+\begin{lstlisting}
+void johnson() {
+    //建图中,Edge需要from,w1,w2,去掉w;
+    spfa(1);
+    for(int u = 1; u <= n; u++) 
+        for(int i = head[u]; i; i = e[i].nxt)
+            e[i].w2 = e[i].w1 + d[e[i].from] - d[e[i].to]; 
+    dijkstra(s,n);
 }
 \end{lstlisting}
 \subsection{Network Flow}
