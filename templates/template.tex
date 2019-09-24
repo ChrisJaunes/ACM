@@ -105,7 +105,11 @@
 \subsection{Shortest Path}
 \subsubsection{Dijkstra}
 \begin{lstlisting}
-typedef pair<int, int> P;
+typedef long long LL;
+const int MAXN = ;
+const int MAXM = ;
+const LL DINF = ;
+typedef pair<LL, int> P;
 struct Edge {
     int to, nxt;
     LL w;
@@ -116,13 +120,14 @@ priority_queue<P, vector<P>, greater<P> > q;
 inline void addEdge(int x, int y, LL w) {
     e[++ecnt] = (Edge) {y, head[x], w}; head[x] = ecnt;
 }
-void dijkstra(int st) {
-    memset(d, 0x3f, sizeof(d));
+void dijkstra(int st, int n) {
+    for(int i = 0; i <= n; i++) d[i] = DINF;
     d[st] = 0;
     q.push(make_pair(0, st));
     while(!q.empty()) {
         P x = q.top(); q.pop();
         int u = x.second;
+        if(d[u] != x.first) continue; 
         for(int i = head[u], v; i; i = e[i].nxt) {
             v = e[i].to;
             if(d[v] > d[u] + e[i].w) {
@@ -132,6 +137,8 @@ void dijkstra(int st) {
         }
     }
 }
+
+
 \end{lstlisting}
 \subsubsection{SPFA}
 \begin{lstlisting}
