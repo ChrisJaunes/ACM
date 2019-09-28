@@ -3551,6 +3551,41 @@ double Integrate(double l,double r,double S){
 \newpage
 \section{Conclusion}
 \subsection{Game theory}
+\subsubsection{Nim’s Game / Anti-Nim's Game}
+Nim’s Game（尼姆博弈）\\
+有n堆石子，游戏双方依次从中拿取, 满足:\\
+1.规定每次只能从一堆中取若干根， 可将一堆全取走，但不可不取.\\
+最后取完者为胜。\\
+结论:\\
+T态:所有火柴数异或和为0\\
+S态:所有火柴数异或和不为0\\
+必胜态:S\\
+\par
+有n堆石子,游戏双方依次从中拿取,满足:\\
+1.规定每次只能从一堆中取若干根， 可将一堆全取走，但不可不取.\\
+最后取完者为败。\\
+结论:\\
+S0态:即仅有奇数个孤单堆\\
+T0态:即仅有偶数个孤单堆\\
+S1态:异或和大于0,且有1个充裕堆\\
+T1态:不存在\\
+S2态:异或和大于0,且有多个充裕堆\\
+T2态:异或和等于0,且有多个充裕堆\\
+必胜态:T0,S1,S2\\
+必败态:S0,T2\\
+\subsubsection{Bash's Game}
+Bash's Game巴什博弈\\
+有一堆个数为n的石子，游戏双方依次从中拿取，满足:\\
+1.每次至少取1个，最多取m个.\\
+最后取光者得胜。\\
+结论: n = t(m+1) + r, 必败态:r = 0;\\
+\subsubsection{Wythoff’s Game}
+Wythoff’s Game（威佐夫博弈）\\
+有两堆分别为(an, bn)的石子,游戏双方依次从中拿取，满足:\\
+1.从任意一堆中取任意个 > 1。 
+2.从两堆中取同样多个。
+最后取完者胜.\\
+结论: 对于任意的局势(a, b)(a < b),必败点为 (b-a)*(sqrt(5)+1)/2=a. \\
 \subsubsection{Fibonacci’s Game / Zeckendorf's theory}
 Fibonacci’s Game（斐波那契博弈）\\
 有一堆个数为 n 的石子，游戏双方轮流取石子，满足：\\
@@ -3558,7 +3593,7 @@ Fibonacci’s Game（斐波那契博弈）\\
 2. 之后每次可以取的石子数介于1到对手刚取的石子数的2倍之间（包含1和对手刚取的石子数的2倍）。\\
 结论:必败点是斐波那契数\\
 \par
-齐肯多夫定理:任何正整数可以表示为若干个不连续的Fibonacci数之和
+齐肯多夫定理:任何正整数可以表示为若干个不连续的Fibonacci数之和\\
 
 \newpage
 \section{Others}
