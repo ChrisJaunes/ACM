@@ -2315,16 +2315,16 @@ void mtt(int *x, int *y) {
         db = (a[i] - conj(a[j])) * (comp){0, -0.5};
         dc = (b[i] + conj(b[j])) * (comp){0.5, 0};
         dd = (b[i] - conj(b[j])) * (comp){0, -0.5};
-        dfta[i] = da * dc;
-        dftb[i] = da * dd;
-        dftc[i] = db * dc;
-        dftd[i] = db * dd;
+        dfta[j] = da * dc;
+        dftb[j] = da * dd;
+        dftc[j] = db * dc;
+        dftd[j] = db * dd;
     }
     for(int i = 0; i < T; i++) {
         a[i] = dfta[i] + dftb[i] * (comp) {0, 1};
         b[i] = dftc[i] + dftd[i] * (comp) {0, 1};
     }
-    for(int i = 0; i < (T >> 1); i++) Sin[i].y = -Sin[i].y;
+    //for(int i = 0; i < (T >> 1); i++) Sin[i].y = -Sin[i].y;
     fft(a, -1); fft(b, -1);
     for(int i = 0; i < T; i++) {
         static int da, db, dc, dd;
