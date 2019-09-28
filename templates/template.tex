@@ -20,6 +20,7 @@
 \geometry{a4paper,scale=0.8}
 \renewcommand\contentsname{Contents}
 \setmonofont[Mapping={}]{Monaco} 
+\setlength{\parindent}{0pt}
 %\setmonofont[Mapping={}]{Consolas}    %英文引号之类的正常显示，相当于设置英文字体
 %\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
 %\setmainfont{Monaco} %设置英文字体
@@ -2259,6 +2260,92 @@ void init(int n) {
     }
 }
 \end{lstlisting}
+\subsubsection{MTT}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const double pi = acos(-1.0);
+const int MAXN = 300003;
+struct comp {
+    double x, y;
+    comp operator + (const comp& a) const { return (comp) {x + a.x, y + a.y}; }
+    comp operator - (const comp& a) const { return (comp) {x - a.x, y - a.y}; }
+    comp operator * (const comp& a) const { return (comp) {x * a.x - y * a.y, x * a.y + y * a.x}; }
+};
+#define conj(a) ((comp){a.x, -a.y})
+int rev[MAXN], T;
+comp Sin[MAXN], tmp;
+void fft(comp *a, int r) {
+    for(int i = 1; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+    for(int i = 2, mid = 1, s = (T >> 1); i <= T; mid = i, i <<= 1, s >>= 1) {
+        for(int j = 0; j < T; j += i) {
+            for(int k = j, cur = 0; k < j + mid; k++, cur += s) {
+                tmp = a[k + mid] * Sin[cur];
+                a[k + mid] = a[k] - tmp;
+                a[k] = a[k] + tmp;
+            }
+        }
+    }
+}
+void init(int n) {
+    for(T = 1; T <= n; T <<= 1);
+    for(int i = 0; i < T; i++) {
+        if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+        else rev[i] = rev[i >> 1] >> 1;
+    }
+    for(int i = 0; i < (T >> 1); i++) {
+        Sin[i] = (comp) {cos(2 * pi * i / T), sin(2 * pi * i / T)};
+    }
+}
+int n, m, mod;
+void mtt(int *x, int *y) {
+    for(int i = 0; i < T; i++) (x[i] += mod) %= mod, (y[i] += mod) %= mod;
+    static comp a[MAXN], b[MAXN];
+    static comp dfta[MAXN], dftb[MAXN], dftc[MAXN], dftd[MAXN];
+    for(int i = 0; i < T; i++) {
+        a[i] = {x[i] & 0x7fff, x[i] >> 15};
+        b[i] = {y[i] & 0x7fff, y[i] >> 15};
+    }
+    fft(a, 1); fft(b, 1);
+    for(int i = 0; i < T; i++) {
+        int j = (T - i) & (T - 1);
+        static comp da, db, dc, dd;
+        da = (a[i] + conj(a[j])) * (comp){0.5, 0};
+        db = (a[i] - conj(a[j])) * (comp){0, -0.5};
+        dc = (b[i] + conj(b[j])) * (comp){0.5, 0};
+        dd = (b[i] - conj(b[j])) * (comp){0, -0.5};
+        dfta[i] = da * dc;
+        dftb[i] = da * dd;
+        dftc[i] = db * dc;
+        dftd[i] = db * dd;
+    }
+    for(int i = 0; i < T; i++) {
+        a[i] = dfta[i] + dftb[i] * (comp) {0, 1};
+        b[i] = dftc[i] + dftd[i] * (comp) {0, 1};
+    }
+    for(int i = 0; i < (T >> 1); i++) Sin[i].y = -Sin[i].y;
+    fft(a, -1); fft(b, -1);
+    for(int i = 0; i < T; i++) {
+        static int da, db, dc, dd;
+        da = (LL)(a[i].x / T + 0.5) % mod;
+        db = (LL)(a[i].y / T + 0.5) % mod;
+        dc = (LL)(b[i].x / T + 0.5) % mod;
+        dd = (LL)(b[i].y / T + 0.5) % mod;
+        x[i] = ((da + ((LL)(db + dc) << 15) + ((LL)dd << 30)) % mod + mod) % mod;
+    }
+}
+int main() {
+    static int a[MAXN], b[MAXN];
+    scanf("%d%d%d", &n, &m, &mod);
+    for(int i = 0; i <= n; i++) scanf("%d", a + i);
+    for(int i = 0; i <= m; i++) scanf("%d", b + i);
+    init(n + m);
+    mtt(a, b);
+    for(int i = 0; i <= n + m; i++) printf("%d%c", a[i], i == n + m ? '\n' : ' ');
+    return 0;
+}
+\end{lstlisting}
 \subsubsection{FWT}
 \begin{lstlisting}
 void FWT(LL *a,int n) {
@@ -3380,15 +3467,13 @@ double Integrate(double l,double r,double S){
 \section{Conclusion}
 \subsection{Game theory}
 \subsubsection{Fibonacci’s Game / Zeckendorf's theory}
-\begin{lstlisting}
-Fibonacci’s Game（斐波那契博弈）
-有一堆个数为 n 的石子，游戏双方轮流取石子，满足：
-1. 先手不能在第一次把所有的石子取完；
-2. 之后每次可以取的石子数介于1到对手刚取的石子数的2倍之间（包含1和对手刚取的石子数的2倍）。
-结论:必败点是斐波那契数
-
+Fibonacci’s Game（斐波那契博弈）\\
+有一堆个数为 n 的石子，游戏双方轮流取石子，满足：\\
+1. 先手不能在第一次把所有的石子取完；\\
+2. 之后每次可以取的石子数介于1到对手刚取的石子数的2倍之间（包含1和对手刚取的石子数的2倍）。\\
+结论:必败点是斐波那契数\\
+\par
 齐肯多夫定理:任何正整数可以表示为若干个不连续的Fibonacci数之和
-\end{lstlisting}
 
 \newpage
 \section{Others}
