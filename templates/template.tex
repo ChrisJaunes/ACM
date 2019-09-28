@@ -3070,7 +3070,7 @@ LL S(LL x, int y) {
 int main() {
     ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
     cin >> n; 
-    sz = sqrt(n) + 1;
+    sz = sqrt(n);
     Euler(sz);
     for(LL i = 1, last, t; i <= n; i = last + 1) {
         last = n / (n / i);
