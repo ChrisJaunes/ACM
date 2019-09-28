@@ -1193,7 +1193,7 @@ namespace LiT{
 	const int MLIMIT = 40000;
 	typedef double LD;
 	struct line{LD k,b;int l,r,id;} T[MAXN << 2];
-	//inline LD calc(line &a,int pos) {return a.k*vac[pos]+a.b;}
+	//inline LD calc(line &a,int pos) {return a.k*vec[pos]+a.b;}
 	inline LD calc(line &a,int pos) {return a.k*pos+a.b;}
 	inline double cross(line &a,line &b) {
 		if(b.k == a.k) return -1e9;
@@ -3376,8 +3376,19 @@ double Integrate(double l,double r,double S){
 }
 \end{lstlisting}
 
+\newpage
+\section{Conclusion}
+\subsection{Game theory}
+\subsubsection{Fibonacci’s Game / Zeckendorf's theory}
+\begin{lstlisting}
+Fibonacci’s Game（斐波那契博弈）
+有一堆个数为 n 的石子，游戏双方轮流取石子，满足：
+1. 先手不能在第一次把所有的石子取完；
+2. 之后每次可以取的石子数介于1到对手刚取的石子数的2倍之间（包含1和对手刚取的石子数的2倍）。
+结论:必败点是斐波那契数
 
-
+齐肯多夫定理:任何正整数可以表示为若干个不连续的Fibonacci数之和
+\end{lstlisting}
 
 \newpage
 \section{Others}
