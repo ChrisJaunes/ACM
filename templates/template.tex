@@ -3550,7 +3550,7 @@ double Integrate(double l,double r,double S){
 
 \newpage
 \section{Conclusion}
-\subsection{Game theory}
+\subsection{Game Theory}
 \subsubsection{Nim’s Game / Anti-Nim's Game}
 Nim’s Game（尼姆博弈）\\
 有n堆石子，游戏双方依次从中拿取, 满足:\\
@@ -3595,184 +3595,147 @@ Fibonacci’s Game（斐波那契博弈）\\
 \par
 齐肯多夫定理:任何正整数可以表示为若干个不连续的Fibonacci数之和\\
 
+
+
+\subsection{Math Theory}
+\subsubsection{Euler's Theorem}
+\begin{equation*}
+    a^b\equiv\left\{
+    \begin{aligned}
+    &a^{b\%\varphi(p)} & & \gcd(a,p)=1&\\
+    &a^b & &\gcd(a,p)\not=1,b<\varphi(p) \\
+    &a^{b\%\varphi(p) + \varphi(p)} & & \gcd(a,p)\not=1,b\geq \varphi(p) &
+    \end{aligned}
+    \right\}
+    (mod\ p)
+\end{equation*}
+\subsubsection{Möbius Inversion}
+{
+Dirichlet Convolution is $(f\times g)(N)=\sum_{d|N} f(d) * g(\frac{N}{d})$
+\par
+Theorem:
+\begin{equation*}
+    \left\{
+        \begin{aligned} 
+            f &= g \times 1 \\
+            g &= f \times \mu
+        \end{aligned} 
+    \right. 
+\end{equation*}
+}
+
+\begin{equation}
+    \left\{
+        \begin{aligned}
+            id(n) &= \sum_{d|n} \varphi(d) \\
+            e(n) &= \sum_{d|n} \mu(d) \\
+        \end{aligned} 
+    \right.
+\end{equation}
+\begin{equation}
+    \left\{
+        \begin{aligned}
+            \sum_i^n\sum_j^mgcd(i, j)&=\sum_d^{\max(n, m)}\varphi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
+            \sum_i^n\sum_j^me(gcd(i, j))&=\sum_d^{\min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
+            \sum_{i = 1}^n |\mu(i)|&=\sum_{i = 1}^{\lfloor \sqrt{n} \rfloor}\mu(i)*\lfloor \frac{n}{i * i} \rfloor
+        \end{aligned} 
+    \right.
+\end{equation}
+\begin{equation}
+    \left\{
+        \begin{aligned} 
+            sum(x, y) &= \sum_i^x\sum_j^yi*j=\frac{x*(x + 1)}{2} * \frac{y * (y + 1)}{2}\\
+            F(x, y) &= \sum_{i = 1}^{\min(x, y)} i^2 * \mu(i) * sum(\lfloor\frac{x}{i}\rfloor, \lfloor\frac{y}{i}\rfloor) \\
+            \sum_i^n\sum_j^mlcm(i, j) &= \sum_{i = 1}^{\min(n, m)} d * F(\lfloor\frac{n}{i}\rfloor, \lfloor\frac{y}{i}\rfloor)
+        \end{aligned} 
+    \right. 
+\end{equation}
+\subsubsection{Sieve Tips}
+\begin{equation}
+    \varphi(nm) = \varphi(n) \cdot \varphi(m) \cdot \frac{gcd(n,m)}{\varphi(gcd(n,m))}
+\end{equation}
+\begin{equation}
+\varphi(n) = \sum_{i=1}^n[(n,i)=1]\cdot i=\frac{n* \varphi(n)+[n=1]}{2}
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        id &= \varphi \times 1 \\
+        \frac{n \cdot (n + 1)}{2} &= \sum_{i=1}^n i = \sum_{i=1}^n \sum_{d|i}\varphi(d) = \sum_{\frac{i}{d} = 1}^n \sum_{d=1}^{\lfloor\frac{n}{\frac{i}{d}}\rfloor} \varphi(d) = \sum_{i=1}^n \phi(\lfloor\frac{n}{i}\rfloor) 
+    \end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        e &= \mu \times 1 \\
+        1 &= \sum_{i=1}^n [i=1] = \sum_{i=1}^n \sum_{d|i} \mu(d) = \sum_{i=1}^n\sum_{d=1}^{\lfloor\frac{n}{i}\rfloor} \mu(d) = \sum_{i=1}^n M(\lfloor\frac{n}{i}\rfloor)
+    \end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        id^2 &= (id \cdot \varphi) \times id \\
+        \phi ^\prime (n) &= \sum_{i=1}^n i \cdot \varphi(i) \\
+        \frac{n \cdot (n + 1) \cdot (2n + 1)}{6} &= \sum_{i=1}^n i^2 = \sum_{i=1}^n \sum_{d|i} d \cdot \varphi(d) \cdot \frac {i}{d} = \sum_{\frac{i}{d}=1}^{n} \frac{i}{d} \sum_{d=1}^{\lfloor{\frac{n}{\frac{i}{d}}}\rfloor} d \cdot \varphi(d) = \sum_{i=1}^n i \cdot \phi ^\prime (\lfloor\frac{n}{i}\rfloor)
+    \end{aligned}
+\right.
+\end{equation}
+\subsection{Convolution}
+\subsubsection{FWT}
+\begin{equation*}
+\left\{
+    \begin{aligned}
+        C_k&=\sum_{i\oplus j=k}A_i*B_j \\
+        DWT(A)_i&=\sum_j^nA_j*f_{i,j} \\
+        DWT(C)_i&=DWT(A)_i*DWT(B)_i\\
+        f_{i,j} \cdot f_{i,k} &=f_{i,j\oplus k}\\
+        f_{i,j} &= [i \ and \ j == i] \  &(and)\\
+        f_{i,j} &= [i \  and \  j == j] \ &(or)\\
+        f_{i,j} &= (-1)^{| i \  and \  j |} \ &(xor)
+    \end{aligned}
+\right.
+\end{equation*}
+\subsection{Geometry}
+\subsubsection{The Number of Ingeter Point on a Circle}
+Set $r = const$ is the radius of the circle.
+$$r^2 = {p_1}^{a_1} + {p_2}^{a_2} + \cdots + {p_m}^{a_m} = \sum_{i = 1}^{m} {p_i}^{a_i}$$
+\par 
+Define
+\[
+    \chi(n)=
+    \begin{cases}
+        1 & {n \% 4 = 1} \\
+        -1 & {n \% 4 = 3} \\
+        0 & {n \% 2 = 0}
+    \end{cases}
+\]
+\par
+By the way, $\chi(n)$ is a multiplicative function. 
+\par
+Define
+\[
+    \Gamma(p_i,a_i)=\sum_{j = 0}^{a_i}\chi(p_i^j)=
+    \begin{cases}
+        1 & {p_i = 2 \quad || \quad (p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 0)} \\
+        0 & {p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 1} \\
+        a_i + 1 & {p_i \% 4 = 1}
+    \end{cases}
+\]
+\par
+Define cnt is the number of integer point on circle
+$$cnt(r) = 4 \prod_{i = 1}^{m} \sum_{j = 0}^{a_i} \chi(p_i^j) = 4 \prod_{i = 1}^{m} \Gamma(p_i,a_i) = 4 \sum_{k | r^2}\chi(k)$$
+\par
+Define CNT is the number of integer point in circle
+$$CNT(r) = 1 + \sum_{i = 1}^{r^2}cnt(i) = 1 + \sum_{i = 1}^{r^2} \lfloor \frac{r^2}{i} \rfloor \chi(i)$$
+
+
+
+
+
 \newpage
 \section{Others}
-\subsection{Sample}
-\subsubsection{vimrc}
-\begin{lstlisting}
-set cindent
-set number
-set mouse=a
-set tabstop=4
-set shiftwidth=4
-syntax on
-inoremap { {}<left>
-map <F9> :w<CR> :! g++ % -o %< -Wall --std=c++14 -g && ./%< <CR>
-\end{lstlisting}
-
-\subsubsection{Check}
-\begin{lstlisting}
-while true; do
-	./data > in
-	./tmp < in > out
-	./std < in > ans
-	diff out ans
-	if [ $? -ne 0 ] ; then exit; fi
-    echo Passed
-done
-\end{lstlisting}
-
-\subsubsection{FastIO}
-\begin{lstlisting}
-namespace IO {
-    const int MB = 1048576;
-    const int RMAX = 16 * MB;
-    const int WMAX = 16 * MB;
-    #define getchar() *(rp++)
-    #define putchar(x) (*(wp++) = (x))
-    char rb[RMAX], *rp = rb,  wb[WMAX], *wp = wb;
-    inline void init() {
-        fread(rb, sizeof(char), RMAX, stdin);
-    }
-    template <class _T> inline void read(_T &_a) {
-        _a = 0; register bool _f = 0; register int _c = getchar();
-        while (_c < '0' || _c > '9') _f |= _c == '-', _c = getchar();
-        while (_c >= '0' && _c <= '9') _a = _a * 10 + (_c ^ '0'), _c = getchar();
-        _a = _f ? -_a : _a;
-    }
-    template <class _T> inline void write(_T _a) {
-        static char buf[20], *top = buf;
-        if (_a) {
-            while (_a) {
-                register _T tm = _a / 10;
-                *(++top) = char(_a - tm * 10) | '0';
-                _a = tm;
-            }
-            while (top != buf) putchar(*(top--));
-        }
-        else putchar('0');
-    }
-    void output() {
-        fwrite(wb, sizeof(char), wp - wb, stdout);
-    }
-}
-\end{lstlisting}
-\subsubsection{Java BigNum}
-\begin{lstlisting}
-import java.math.*;
-import java.util.*;
-import java.lang.*;
-
-public class Main{
-	public static void main(String []args){}
-}
-//IO
-Scanner in = new Scanner(System.in);
-while(in.hasNext()){} //EOF
-//fast-IO
-public static void main(String argv[]) throws IOException{}
-StreamTokenizer cin = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in))); 
-PrintWriter cout = new PrintWriter(new OutputStreamWriter(System.out));
-while(cin.nextToken() != StreamTokenizer.TT_EOF) ;//EOF
-cin.nextToken();int n = (int)cin.nval;String s = cin.sval;
-cout.println( Type );cout.flush();
-cin.ordinaryChar('/');
-
-BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-br.ready()//EOF
-while ((valueString=bf.readLine())!=null);
-br.close();
-//true fast-IO
-static class InputReader {
-    public BufferedReader reader;
-    public StringTokenizer tokenizer;
- 
-    public InputReader(InputStream stream) {
-        reader = new BufferedReader(new InputStreamReader(stream), 32768);
-        tokenizer = null;
-    }
- 
-    public String next() {
-        while (tokenizer == null || !tokenizer.hasMoreTokens()) {
-            try {
-                tokenizer = new StringTokenizer(reader.readLine());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return tokenizer.nextToken();
-    }
- 
-    public int nextInt() {
-        return Integer.parseInt(next());
-    }
- 
-}
-//类 Number
-//doubleValue() 
-//intValue() 
-//longValue() 
-//shortValue() 
-//类 BigDecimal
-//ROUND_CEILING 接近正无穷大的舍入模式。
-//ROUND_FLOOR 接近负无穷大的舍入模式。
-//ROUND_DOWN 接近零的舍入模式
-//ROUND_HALF_UP 四舍五入 >=0.5向上舍入
-//ROUND_HALF_DOWN 四舍五入 >0.5向上舍入
-//BigDecimal(BigInteger val) 
-//BigDecimal(BigInteger unscaledVal, int scale) 
-//BigDecimal(char[] in, int offset, int len, MathContext mc) 
-//BigDecimal(double val, MathContext mc)不建议
-//BigDecimal(int val, MathContext mc) 
-//BigDecimal(long val, MathContext mc) 
-//BigDecimal(String val, MathContext mc) 
-//abs() 
-//add(BigDecimal augend, MathContext mc) 
-//compareTo(BigDecimal val) 
-//divide(BigDecimal divisor,MathContext mc)
-//divideToIntegralValue(BigDecimal divisor, MathContext mc)
-//max(BigDecimal val) 
-//min(BigDecimal val) 
-//multiply(BigDecimal multiplicand, MathContext mc) 
-//negate()  其值为 (-this)，其标度为 this.scale()
-//pow(int n) 
-//remainder(BigDecimal divisor) 返回其值为 (this % divisor) 的 BigDecimal
-//round(MathContext mc) 返回根据 MathContext 设置进行舍入后的 BigDecimal。
-//caleByPowerOfTen(int n) 返回其数值等于 (this * 10^n) 的 BigDecimal。
-//subtract(BigDecimal subtrahend, MathContext mc) 
-//setScale(int newScale,RoundingMode roundingMode)
-//toString() 
-//ulp()返回此 BigDecimal 的 ulp（最后一位的单位）的大小
-//String s = b.stripTrailingZeros().toPlainString();让bigdecimal不用科学计数法显示
-//类 BigInteger
-//parseInt
-//BigInteger zero = BigInteger.valueOf(0);
-//BigInteger a = in.nextBigInteger();
-//abs() 
-//and(BigInteger val) 返回其值为 (this & val) 
-//or(BigInteger val) 返回其值为 (this | val) 
-//andNot(BigInteger val) 返回其值为 (this & ~val) 
-//compareTo(BigInteger val)
-//add(BigInteger val) 
-//divide(BigInteger val) 
-//BigInteger[]	divideAndRemainder(BigInteger val) 返回包含 (this / val) 后跟 (this % val) 的两个 BigInteger 的数组。
-//equals(Object x) 
-//gcd(BigInteger val) 
-//isProbablePrime(int certainty) e.g: a.isProbablePrime(4)
-//max(BigInteger val) min(BigInteger val) 
-//mod(BigInteger m) 
-//modInverse(BigInteger m) 返回其值为 (this^-1 mod m) 
-//modPow(BigInteger exponent, BigInteger m) 返回其值为 (thisexponent mod m) 
-//multiply(BigInteger val) 
-//not() 返回其值为 (~this)
-//shiftLeft(int n) 返回其值为 (this << n)
-//shiftRight(int n) 返回其值为 (this >> n)
-//toString() 
-//valueOf(long val) 
-//xor(BigInteger val) 返回其值为 (this ^ val)
-//other
-//Arrays.sort(array);
-\end{lstlisting}
 \subsection{Offline Algorithm}
 \subsubsection{CDQ Divide and Conquer}
 \begin{lstlisting}
@@ -4037,135 +4000,190 @@ for i in range(1,mod):
             break
         print("no")
 \end{lstlisting}
-\subsection{Formula}
-\subsubsection{Euler's Theorem}
-\begin{equation*}
-    a^b\equiv\left\{
-    \begin{aligned}
-    &a^{b\%\varphi(p)} & & \gcd(a,p)=1&\\
-    &a^b & &\gcd(a,p)\not=1,b<\varphi(p) \\
-    &a^{b\%\varphi(p) + \varphi(p)} & & \gcd(a,p)\not=1,b\geq \varphi(p) &
-    \end{aligned}
-    \right\}
-    (mod\ p)
-\end{equation*}
-\subsubsection{Möbius Inversion Formula}
-{
-Dirichlet Convolution is $(f\times g)(N)=\sum_{d|N} f(d) * g(\frac{N}{d})$
-\par
-Theorem:
-\begin{equation*}
-    \left\{
-        \begin{aligned} 
-            f &= g \times 1 \\
-            g &= f \times \mu
-        \end{aligned} 
-    \right. 
-\end{equation*}
+
+
+
+
+
+
+\newpage
+\section{Samples}
+\subsection{vimrc}
+\begin{lstlisting}
+set cindent
+set number
+set mouse=a
+set tabstop=4
+set shiftwidth=4
+syntax on
+inoremap { {}<left>
+map <F9> :w<CR> :! g++ % -o %< -Wall --std=c++14 -g && ./%< <CR>
+"ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+\end{lstlisting}
+
+\subsection{Check}
+\begin{lstlisting}
+while true; do
+    ./data > in
+    ./tmp < in > out
+    ./std < in > ans
+    diff out ans
+    if [ $? -ne 0 ] ; then exit; fi
+    echo Passed
+done
+\end{lstlisting}
+
+\subsection{FastIO}
+\begin{lstlisting}
+namespace IO {
+    const int MB = 1048576;
+    const int RMAX = 16 * MB;
+    const int WMAX = 16 * MB;
+    #define getchar() *(rp++)
+    #define putchar(x) (*(wp++) = (x))
+    char rb[RMAX], *rp = rb,  wb[WMAX], *wp = wb;
+    inline void init() {
+        fread(rb, sizeof(char), RMAX, stdin);
+    }
+    template <class _T> inline void read(_T &_a) {
+        _a = 0; register bool _f = 0; register int _c = getchar();
+        while (_c < '0' || _c > '9') _f |= _c == '-', _c = getchar();
+        while (_c >= '0' && _c <= '9') _a = _a * 10 + (_c ^ '0'), _c = getchar();
+        _a = _f ? -_a : _a;
+    }
+    template <class _T> inline void write(_T _a) {
+        static char buf[20], *top = buf;
+        if (_a) {
+            while (_a) {
+                register _T tm = _a / 10;
+                *(++top) = char(_a - tm * 10) | '0';
+                _a = tm;
+            }
+            while (top != buf) putchar(*(top--));
+        }
+        else putchar('0');
+    }
+    void output() {
+        fwrite(wb, sizeof(char), wp - wb, stdout);
+    }
 }
-\subsubsection{Math Theory Tips}
-\begin{equation}
-    \varphi(nm) = \varphi(n) \cdot \varphi(m) \cdot \frac{gcd(n,m)}{\varphi(gcd(n,m))}
-\end{equation}
-\begin{equation}
-    \left\{
-        \begin{aligned}
-            id(n) &= \sum_{d|n} \varphi(d) \\
-            e(n) &= \sum_{d|n} \mu(d) \\
-        \end{aligned} 
-    \right.
-\end{equation}
-\begin{equation}
-    \left\{
-        \begin{aligned}
-            \sum_i^n\sum_j^mgcd(i, j)&=\sum_d^{\max(n, m)}\varphi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
-            \sum_i^n\sum_j^me(gcd(i, j))&=\sum_d^{\min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
-            \sum_{i = 1}^n |\mu(i)|&=\sum_{i = 1}^{\lfloor \sqrt{n} \rfloor}\mu(i)*\lfloor \frac{n}{i * i} \rfloor
-        \end{aligned} 
-    \right.
-\end{equation}
-\begin{equation}
-    \left\{
-        \begin{aligned} 
-            sum(x, y) &= \sum_i^x\sum_j^yi*j=\frac{x*(x + 1)}{2} * \frac{y * (y + 1)}{2}\\
-            F(x, y) &= \sum_{i = 1}^{\min(x, y)} i^2 * \mu(i) * sum(\lfloor\frac{x}{i}\rfloor, \lfloor\frac{y}{i}\rfloor) \\
-            \sum_i^n\sum_j^mlcm(i, j) &= \sum_{i = 1}^{\min(n, m)} d * F(\lfloor\frac{n}{i}\rfloor, \lfloor\frac{y}{i}\rfloor)
-        \end{aligned} 
-    \right. 
-\end{equation}
-\subsubsection{Sieve Tips}
-\begin{equation}
-\varphi(n) = \sum_{i=1}^n[(n,i)=1]\cdot i=\frac{n* \varphi(n)+[n=1]}{2}
-\end{equation}
-\begin{equation}
-\left\{
-    \begin{aligned}
-        id &= \varphi \times 1 \\
-        \frac{n \cdot (n + 1)}{2} &= \sum_{i=1}^n i = \sum_{i=1}^n \sum_{d|i}\varphi(d) = \sum_{\frac{i}{d} = 1}^n \sum_{d=1}^{\lfloor\frac{n}{\frac{i}{d}}\rfloor} \varphi(d) = \sum_{i=1}^n \phi(\lfloor\frac{n}{i}\rfloor) 
-    \end{aligned}
-\right.
-\end{equation}
-\begin{equation}
-\left\{
-    \begin{aligned}
-        e &= \mu \times 1 \\
-        1 &= \sum_{i=1}^n [i=1] = \sum_{i=1}^n \sum_{d|i} \mu(d) = \sum_{i=1}^n\sum_{d=1}^{\lfloor\frac{n}{i}\rfloor} \mu(d) = \sum_{i=1}^n M(\lfloor\frac{n}{i}\rfloor)
-    \end{aligned}
-\right.
-\end{equation}
-\begin{equation}
-\left\{
-    \begin{aligned}
-        id^2 &= (id \cdot \varphi) \times id \\
-        \phi ^\prime (n) &= \sum_{i=1}^n i \cdot \varphi(i) \\
-        \frac{n \cdot (n + 1) \cdot (2n + 1)}{6} &= \sum_{i=1}^n i^2 = \sum_{i=1}^n \sum_{d|i} d \cdot \varphi(d) \cdot \frac {i}{d} = \sum_{\frac{i}{d}=1}^{n} \frac{i}{d} \sum_{d=1}^{\lfloor{\frac{n}{\frac{i}{d}}}\rfloor} d \cdot \varphi(d) = \sum_{i=1}^n i \cdot \phi ^\prime (\lfloor\frac{n}{i}\rfloor)
-    \end{aligned}
-\right.
-\end{equation}
-\subsection{Convolution Tips}
-\subsubsection{FWT Tips}
-\begin{equation*}
-\left\{
-    \begin{aligned}
-        C_k&=\sum_{i\oplus j=k}A_i*B_j \\
-        DWT(A)_i&=\sum_j^nA_j*f_{i,j} \\
-        DWT(C)_i&=DWT(A)_i*DWT(B)_i\\
-        f_{i,j} \cdot f_{i,k} &=f_{i,j\oplus k}\\
-        f_{i,j} &= [i \ and \ j == i] \  &(and)\\
-        f_{i,j} &= [i \  and \  j == j] \ &(or)\\
-        f_{i,j} &= (-1)^{| i \  and \  j |} \ &(xor)
-    \end{aligned}
-\right.
-\end{equation*}
-\subsection{The Number of Ingeter Point on a Circle}
-Set $r = const$ is the radius of the circle.
-$$r^2 = {p_1}^{a_1} + {p_2}^{a_2} + \cdots + {p_m}^{a_m} = \sum_{i = 1}^{m} {p_i}^{a_i}$$
-\par 
-Define
-\[
-    \chi(n)=
-    \begin{cases}
-        1 & {n \% 4 = 1} \\
-        -1 & {n \% 4 = 3} \\
-        0 & {n \% 2 = 0}
-    \end{cases}
-\]
-\par
-By the way, $\chi(n)$ is a multiplicative function. 
-\par
-Define
-\[
-    \Gamma(p_i,a_i)=\sum_{j = 0}^{a_i}\chi(p_i^j)=
-    \begin{cases}
-        1 & {p_i = 2 \quad || \quad (p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 0)} \\
-        0 & {p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 1} \\
-        a_i + 1 & {p_i \% 4 = 1}
-    \end{cases}
-\]
-\par
-Define cnt is the number of integer point on circle
-$$cnt(r) = 4 \prod_{i = 1}^{m} \sum_{j = 0}^{a_i} \chi(p_i^j) = 4 \prod_{i = 1}^{m} \Gamma(p_i,a_i) = 4 \sum_{k | r^2}\chi(k)$$
-\par
-Define CNT is the number of integer point in circle
-$$CNT(r) = 1 + \sum_{i = 1}^{r^2}cnt(i) = 1 + \sum_{i = 1}^{r^2} \lfloor \frac{r^2}{i} \rfloor \chi(i)$$
+\end{lstlisting}
+\subsection{Java BigNum}
+\begin{lstlisting}
+import java.math.*;
+import java.util.*;
+import java.lang.*;
+
+public class Main{
+    public static void main(String []args){}
+}
+//IO
+Scanner in = new Scanner(System.in);
+while(in.hasNext()){} //EOF
+//fast-IO
+public static void main(String argv[]) throws IOException{}
+StreamTokenizer cin = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in))); 
+PrintWriter cout = new PrintWriter(new OutputStreamWriter(System.out));
+while(cin.nextToken() != StreamTokenizer.TT_EOF) ;//EOF
+cin.nextToken();int n = (int)cin.nval;String s = cin.sval;
+cout.println( Type );cout.flush();
+cin.ordinaryChar('/');
+
+BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+br.ready()//EOF
+while ((valueString=bf.readLine())!=null);
+br.close();
+//true fast-IO
+static class InputReader {
+    public BufferedReader reader;
+    public StringTokenizer tokenizer;
+ 
+    public InputReader(InputStream stream) {
+        reader = new BufferedReader(new InputStreamReader(stream), 32768);
+        tokenizer = null;
+    }
+ 
+    public String next() {
+        while (tokenizer == null || !tokenizer.hasMoreTokens()) {
+            try {
+                tokenizer = new StringTokenizer(reader.readLine());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return tokenizer.nextToken();
+    }
+ 
+    public int nextInt() {
+        return Integer.parseInt(next());
+    }
+ 
+}
+//类 Number
+//doubleValue() 
+//intValue() 
+//longValue() 
+//shortValue() 
+//类 BigDecimal
+//ROUND_CEILING 接近正无穷大的舍入模式。
+//ROUND_FLOOR 接近负无穷大的舍入模式。
+//ROUND_DOWN 接近零的舍入模式
+//ROUND_HALF_UP 四舍五入 >=0.5向上舍入
+//ROUND_HALF_DOWN 四舍五入 >0.5向上舍入
+//BigDecimal(BigInteger val) 
+//BigDecimal(BigInteger unscaledVal, int scale) 
+//BigDecimal(char[] in, int offset, int len, MathContext mc) 
+//BigDecimal(double val, MathContext mc)不建议
+//BigDecimal(int val, MathContext mc) 
+//BigDecimal(long val, MathContext mc) 
+//BigDecimal(String val, MathContext mc) 
+//abs() 
+//add(BigDecimal augend, MathContext mc) 
+//compareTo(BigDecimal val) 
+//divide(BigDecimal divisor,MathContext mc)
+//divideToIntegralValue(BigDecimal divisor, MathContext mc)
+//max(BigDecimal val) 
+//min(BigDecimal val) 
+//multiply(BigDecimal multiplicand, MathContext mc) 
+//negate()  其值为 (-this)，其标度为 this.scale()
+//pow(int n) 
+//remainder(BigDecimal divisor) 返回其值为 (this % divisor) 的 BigDecimal
+//round(MathContext mc) 返回根据 MathContext 设置进行舍入后的 BigDecimal。
+//caleByPowerOfTen(int n) 返回其数值等于 (this * 10^n) 的 BigDecimal。
+//subtract(BigDecimal subtrahend, MathContext mc) 
+//setScale(int newScale,RoundingMode roundingMode)
+//toString() 
+//ulp()返回此 BigDecimal 的 ulp（最后一位的单位）的大小
+//String s = b.stripTrailingZeros().toPlainString();让bigdecimal不用科学计数法显示
+//类 BigInteger
+//parseInt
+//BigInteger zero = BigInteger.valueOf(0);
+//BigInteger a = in.nextBigInteger();
+//abs() 
+//and(BigInteger val) 返回其值为 (this & val) 
+//or(BigInteger val) 返回其值为 (this | val) 
+//andNot(BigInteger val) 返回其值为 (this & ~val) 
+//compareTo(BigInteger val)
+//add(BigInteger val) 
+//divide(BigInteger val) 
+//BigInteger[]  divideAndRemainder(BigInteger val) 返回包含 (this / val) 后跟 (this % val) 的两个 BigInteger 的数组。
+//equals(Object x) 
+//gcd(BigInteger val) 
+//isProbablePrime(int certainty) e.g: a.isProbablePrime(4)
+//max(BigInteger val) min(BigInteger val) 
+//mod(BigInteger m) 
+//modInverse(BigInteger m) 返回其值为 (this^-1 mod m) 
+//modPow(BigInteger exponent, BigInteger m) 返回其值为 (thisexponent mod m) 
+//multiply(BigInteger val) 
+//not() 返回其值为 (~this)
+//shiftLeft(int n) 返回其值为 (this << n)
+//shiftRight(int n) 返回其值为 (this >> n)
+//toString() 
+//valueOf(long val) 
+//xor(BigInteger val) 返回其值为 (this ^ val)
+//other
+//Arrays.sort(array);
+\end{lstlisting}
+\subsection{pb\_ds}
+
 \end{document}
