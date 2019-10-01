@@ -3551,8 +3551,10 @@ double Integrate(double l,double r,double S){
 \newpage
 \section{Conclusion}
 \subsection{Game Theory}
-\subsubsection{Nim’s Game / Anti-Nim's Game}
+\subsubsection{Nim’s Game / Anti-Nim's Game / K-Nim's Game}
 Nim’s Game（尼姆博弈）\\
+石子的个数可以等价成某个游戏的SG函数。\\
+\par
 有n堆石子，游戏双方依次从中拿取, 满足:\\
 1.规定每次只能从一堆中取若干根， 可将一堆全取走，但不可不取.\\
 最后取完者为胜。\\
@@ -3573,6 +3575,21 @@ S2态:异或和大于0,且有多个充裕堆\\
 T2态:异或和等于0,且有多个充裕堆\\
 必胜态:T0,S1,S2\\
 必败态:S0,T2\\
+\par
+有n堆石子，游戏双方依次从中拿取, 满足:\\
+1.规定每次只能至多k堆中取若干根， 可将k堆全取走，但不可不取.\\
+最后取完者为胜。\\
+结论:\\
+对于每一堆，把它石子的个数用二进制表示\\
+必败态:对所有的石子堆，如果在任何一个二进制位上1的个数总是k+1的整数倍\\
+\par
+有n堆石子，游戏双方依次从中拿取, 满足:\\
+1.规定每次只能至多k堆中取若干根， 可将k堆全取走，但不可不取\\
+最后取完者为败。\\
+结论:\\
+1.对于每一堆，把它石子的个数用二进制表示\\
+2.所有的堆（非零堆，下同）全是1,此时如果1堆个数模k+1的结果是1则必败，否则必胜(我们可以通过 拿走0到k个堆来随意调整当前状态模的结果，然后再将所有大于1的堆降到1就行了)\\
+3.有多于k个堆的个数大于1。必胜\\
 \subsubsection{Bash's Game}
 Bash's Game巴什博弈\\
 有一堆个数为n的石子，游戏双方依次从中拿取，满足:\\
@@ -3594,8 +3611,30 @@ Fibonacci’s Game（斐波那契博弈）\\
 结论:必败点是斐波那契数\\
 \par
 齐肯多夫定理:任何正整数可以表示为若干个不连续的Fibonacci数之和\\
-
-
+\subsubsection{chonp's theory?}
+取一个无关紧要的位置,如果对方必胜,则学习其策略,我方必胜.
+\subsubsection{other's theory?}
+有n堆石子，游戏双方依次从中拿取, 满足:\\
+1.规定每次能从任意多堆中取1根,不可不取.\\
+最后取完者为胜。\\
+结论:如果全是偶数,先手必败,否者先手必胜\\
+\subsubsection{SG Theory}
+\begin{lstlisting}
+for (int i = 1; i < maxN;++i) {
+    memset(mex, 0, sizeof mex);
+    for (int j = 1; j <= n;++j) {
+        if (a[j] <= i)
+            mex[SG[i - a[j]]] = 1;
+            for (int k = 1; i - k - a[j] > 0;++k)
+                mex[SG[k] ^ SG[i - k - a[j]]] = 1;
+    }
+    for (int j = 0;; ++j)
+        if (!mex[j]){
+            SG[i] = j;
+            break;
+        }
+}
+\end{lstlisting}
 
 \subsection{Math Theory}
 \subsubsection{Euler's Theorem}
