@@ -1459,42 +1459,81 @@ namespace fhp_treap{
 		val[tcnt] = v;
 		return tcnt;
 	}
-	void push_up(int v) {
+	void pushup(int v) {
 		sz[v] = sz[tr[v][0]] + sz[tr[v][1]] + 1;
 	}
-	void push_down(int v) {
+	void pushdown(int v) {
 		if(!v || !rev[v]) return;
-		swap(tr[v][0], tr[v][1]);
-
-		rev[tr[v][0]]^=1;rev[tr[v][1]]^=1;
-		rev[v]=0;
+		//swap(tr[v][0], tr[v][1]);
+		//rev[tr[v][0]]^=1;rev[tr[v][1]]^=1;
+		//rev[v]=0;
 	}
 	void split(int v,int k,int &x,int &y) {
 		if(!v) {x=y=0;return;}
-		push_down(v);
-		//if(val[now]<=k) {
-		if(k > sz[tr[v][0]]) {
+		pushdown(v);
+		/*if(k > sz[tr[v][0]]) {
 			x = v;
 			split(tr[v][1], k-sz[tr[v][0]]-1, tr[v][1], y);
 		}else{
 			y = v;
 			split(tr[v][0], k , x ,tr[v][0]);
+		}*/
+		if(val[v] <= k) {
+			x = v;
+			split(tr[v][1], k, tr[v][1], y);
+		}else{
+			y = v;
+			split(tr[v][0], k, x, tr[v][0]);
 		}
-		push_up(v);
+		pushup(v);
 	}
-	//x堆所有值均小于y堆
-	int merge(int x,int y) {
+	int merge(int x,int y) {//x堆所有值均小于y堆
 		if(!x || !y) return x|y;
-		push_down(x); push_down(y);
+		pushdown(x); pushdown(y);
 		if(rnd[x]<rnd[y]){
 			tr[x][1] = merge(tr[x][1],y);
-			push_up(x);
+			pushup(x);
 			return x;
 		}else{
 			tr[y][0] = merge(x,tr[y][0]);
-			push_up(y);
+			pushup(y);
 			return y;
 		}
+	}
+	void insert(int k) {
+		int x,y;
+		split(root,k,x,y);
+		root = merge(merge(x,newnode(k)),y);
+	}
+	void erase(int k) {
+		int x,y,z;
+		split(root,k,x,y);
+		split(x,k-1,x,z);
+		z = merge(tr[z][0],tr[z][1]);
+		root = merge(x,merge(z,y));
+	}
+	void krank(int k) {
+		int x,y;
+		split(root,k-1,x,y);
+		printf("%d\n",sz[x]+1);
+		root = merge(x,y);
+	}
+	int find(int v,int k) {
+		if(sz[tr[v][0]]==k-1) return val[v];
+		if(sz[tr[v][0]]>=k) return find(tr[v][0],k);
+		return find(tr[v][1],k-sz[tr[v][0]]-1);
+	}
+	void pre(int k) {
+		int x,y;
+		split(root,k-1,x,y);
+		printf("%d\n",find(x,sz[x]));
+		root=merge(x,y);
+	}
+	void nxt(int k){
+		int x,y;
+		split(root,k,x,y);
+		printf("%d\n",find(y,1));
+		root=merge(x,y);
 	}
 	void reverse(int l,int r){
 		int a,b,c,d;
@@ -1505,7 +1544,7 @@ namespace fhp_treap{
 	}
 	void display(int v) {
 		if(!v) return;
-		push_down(v);
+		pushdown(v);
 		display(tr[v][0]);
 		printf("%d ",val[v]);
 		display(tr[v][1]);
