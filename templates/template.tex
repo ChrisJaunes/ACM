@@ -1460,13 +1460,15 @@ namespace fhp_treap{
 		return tcnt;
 	}
 	void pushup(int v) {
-		sz[v] = sz[tr[v][0]] + sz[tr[v][1]] + 1;
+		int l = tr[v][0], r = tr[v][1];
+		sz[v] = sz[l] + 1 + sz[r];
 	}
 	void pushdown(int v) {
-		if(!v || !rev[v]) return;
-		//swap(tr[v][0], tr[v][1]);
-		//rev[tr[v][0]]^=1;rev[tr[v][1]]^=1;
-		//rev[v]=0;
+		if(!v) return;
+		int l = tr[v][0], r = tr[v][1];
+		//if(l) ;
+		//if(r) ;
+
 	}
 	void split(int v,int k,int &x,int &y) {
 		if(!v) {x=y=0;return;}
