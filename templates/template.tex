@@ -1541,7 +1541,7 @@ namespace fhp_treap{
 		int a,b,c,d;
 		split(root, r, a, b);
 		split(a, l-1, c, d);
-		rev[d] ^= 1;//
+		//rev[d] ^= 1;标记对本身无效
 		root = merge(merge(c,d),b);
 	}
 	void display(int v) {
