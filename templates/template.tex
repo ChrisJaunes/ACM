@@ -1357,16 +1357,14 @@ namespace splay{
 	int tcnt, root;
 	int sz[MAXN];
 	int tr[MAXN][2], fa[MAXN];
-	int val[MAXN], rev[MAXN];
-	
+	int val[MAXN];
+	//newnode 清空tr,fa,sz, val
 	void push_up(int v) {
 		sz[v] = sz[tr[v][0]] + sz[tr[v][1]] + 1;
 	}
 	void push_down(int v) {
-		if(!v || !rev[v]) return;
+		if(!v) return;
 		swap(tr[v][0], tr[v][1]);
-		rev[tr[v][0]]^=1; rev[tr[v][1]]^=1;
-		rev[v]=0;
 	}
 	int build(int l, int r) {
 		if(l > r) return 0;
@@ -1391,6 +1389,7 @@ namespace splay{
 	}
 	void rotate(int x) {
 		int y = fa[x], z = fa[y];
+		push_down(y);push_down(x);
 		int lr = tr[y][1] == x;
 		if(z) tr[z][tr[z][1]==y] = x; 
 		fa[x] = z;
@@ -1409,7 +1408,6 @@ namespace splay{
 	}
 	int find(int x, int rank) {
 		push_down(x);
-
 		int l = tr[x][0], r = tr[x][1];
 		if(sz[l] + 1 == rank) return x;
 		if(sz[l] >= rank) return find(l, rank);
@@ -1419,13 +1417,17 @@ namespace splay{
 		int x = find(root, l), y = find(root, r + 2);
 		splay(x, 0); splay(y, x);
 		int z = tr[y][0];
+		if(!z) return;
 		//val[z] += v; tag[z] += v;
+		splay(z,0);
 	}
 	void reverse(int l, int r) {
 		int x = find(root, l), y = find(root, r + 2);
 		splay(x, 0); splay(y, x);
 		int z = tr[y][0];
-		rev[z] ^= 1;
+		if(!z) return;
+		//标记对本身无效,处理时将z点重新计算
+		splay(z,0);
 	}
 	void query(int l, int r) {
 		int x = find(root, l), y = find(root, r + 2);
