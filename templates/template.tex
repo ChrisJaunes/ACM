@@ -3651,9 +3651,15 @@ namespace CG{
         }
         for (;!p.empty() && !ToLeftTest(p.back()-q.front().p0,q.front().v);q.pop_back(),p.pop_back());
         p.push_back(GetIntersection(q.back(),q.front()));
-        double area=0.5*Cross(p.back(),p.front()); Point last=p.front();
-        for (p.pop_front();!p.empty();last=p.front(),p.pop_front()) area+=0.5*Cross(last,p.front());
-        printf("%.1f",Abs(area));
+        if (p.size() < 3) printf("0\n");
+        else{
+            cerr << "!" << endl;
+            double area = 0.5 * Cross(p.back(), p.front());
+            Point last = p.front();
+            for (p.pop_front(); !p.empty(); last = p.front(), p.pop_front())
+                area += 0.5 * Cross(last, p.front());
+            printf("%.8lf\n", fabs(area));
+        }
     }
 }
 \end{lstlisting}
