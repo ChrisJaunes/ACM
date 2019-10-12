@@ -1354,11 +1354,18 @@ namespace splay{
     }
 }
 namespace splay{
+	//内存回收池见fhq_treap
 	int tcnt, root;
 	int sz[MAXN];
 	int tr[MAXN][2], fa[MAXN];
 	int val[MAXN];
-	//newnode 清空tr,fa,sz, val
+	int newnode(int w) {
+		++tcnt;
+		sz[tcnt] = 1;
+		fa[tcnt] = tr[tcnt][0] = tr[tcnt][1] = 0;
+		//val[tcnt] = w;
+		return tcnt;
+	}
 	void push_up(int v) {
 		sz[v] = sz[tr[v][0]] + sz[tr[v][1]] + 1;
 	}
@@ -1366,26 +1373,11 @@ namespace splay{
 		if(!v) return;
 		swap(tr[v][0], tr[v][1]);
 	}
-	int build(int l, int r) {
-		if(l > r) return 0;
-		if(l == r) {
-			sz[l] = 1;
-			return l;
-		}
-		int mid = (l + r) >> 1;
-		tr[mid][0] = build(l, mid-1);
-		tr[mid][1] = build(mid+1, r);
-		if(tr[mid][0]) fa[tr[mid][0]] = mid;
-		if(tr[mid][1]) fa[tr[mid][1]] = mid;
-		push_up(mid);
-		return mid;
-	}
-	void init(int n) {
-		tcnt = n+2;
-		val[1] = val[n+2] = 0;
-		for(int i = 1; i <= n + 2; i++) fa[i] = tr[i][0] = tr[i][1] = 0;
-		for(int i = 2; i <= n + 1; i++) val[i] = i-1;
-		root = build(1, n + 2);
+	void init() {
+		tcnt = 2;
+		tr[root = fa[1] = 2][0] = 1;
+		sz[1] = 1; sz[2] = 2;
+		//1,2为哨兵节点,根据题意也可设置为n+1,n+2
 	}
 	void rotate(int x) {
 		int y = fa[x], z = fa[y];
@@ -1413,27 +1405,39 @@ namespace splay{
 		if(sz[l] >= rank) return find(l, rank);
 		return find(r, rank - sz[l] - 1);
 	}
-	void update(int l, int r, int v) {
-		int x = find(root, l), y = find(root, r + 2);
+	int build(int l, int r) {
+		if(l > r) return 0;
+		if(l == r) {
+			int num;scanf("%d", &num);
+			return newnode(num);
+		}
+		int mid = (l + r) >> 1;
+		int ls = build(l, mid-1);
+		int num; scanf("%d", &num);
+		int v = newnode(num);
+		int rs = build(mid+1, r);
+		if(ls) fa[ls] = v; 
+		tr[v][0] = ls;
+		if(rs) fa[rs] = v; 
+		tr[v][1] = rs;
+		push_up(v);
+		return v;
+	}
+	void insert(int pos, ...) {
+		int x = find(root, pos+1), y = find(root, pos+2);
 		splay(x, 0); splay(y, x);
-		int z = tr[y][0];
-		if(!z) return;
-		//val[z] += v; tag[z] += v;
+		//int z = newnode(w);//插入一个节点
+		//int z = build(1, n);//插入n个节点
+		fa[tr[y][0] = z] = y;
 		splay(z,0);
 	}
-	void reverse(int l, int r) {
+	void modifyOrQuery(int l, int r, int v) {
 		int x = find(root, l), y = find(root, r + 2);
 		splay(x, 0); splay(y, x);
 		int z = tr[y][0];
 		if(!z) return;
 		//标记对本身无效,处理时将z点重新计算
 		splay(z,0);
-	}
-	void query(int l, int r) {
-		int x = find(root, l), y = find(root, r + 2);
-		splay(x, 0); splay(y, x);
-		int z = tr[y][0];
-		//printf("%d\n", s[z]);
 	}
 	void display(int v) {
 		if(!v) return;
