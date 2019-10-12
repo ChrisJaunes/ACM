@@ -1367,17 +1367,19 @@ namespace splay{
 		return tcnt;
 	}
 	void push_up(int v) {
-		sz[v] = sz[tr[v][0]] + sz[tr[v][1]] + 1;
+		int l = tr[v][0], r = tr[v][1];
+		sz[v] = sz[l] + 1 + sz[r];
 	}
 	void push_down(int v) {
 		if(!v) return;
-		swap(tr[v][0], tr[v][1]);
 	}
 	void init() {
 		tcnt = 2;
 		tr[root = fa[1] = 2][0] = 1;
 		sz[1] = 1; sz[2] = 2;
-		//1,2为哨兵节点,根据题意也可设置为n+1,n+2
+		//val[1] = -INF; val[2] = INF;//权值平衡树
+		//val[1] = val[2] = 0;//位置平衡树
+		//1,2为哨兵节点,根据题意也可设置为n+1,n+2或1,n+1
 	}
 	void rotate(int x) {
 		int y = fa[x], z = fa[y];
@@ -1439,6 +1441,17 @@ namespace splay{
 		//标记对本身无效,处理时将z点重新计算
 		splay(z,0);
 	}
+	/*int findValue(int v) {
+		int res = root;
+		for(int cur = root;cur; res = cur, cur = tr[cur][val[cur] <= v]);
+		return res;
+	}
+	void insert(int w) {
+		int y = findValue(w);
+		int z = newnode(w);
+		fa[tr[y][val[y] <= w] = z] = y;
+		splay(z,0);
+	}*/
 	void display(int v) {
 		if(!v) return;
 		push_down(v);
