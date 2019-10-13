@@ -1528,6 +1528,7 @@ namespace fhq_treap{
 		int l = tr[v][0], r = tr[v][1];
 		//if(l) ;
 		//if(r) ;
+		//swap时候注意交换tr[v][0]和tr[v][1],而不是l和r;
 
 	}
 	void split(int v,int k,int &x,int &y) {
@@ -4028,16 +4029,16 @@ Colon Principle:对于树上的某一个点，ta的分支可以转化成以这�
 Fusion Principle:环上的点可以融合，且不改变图的SG值,我们可以把一个带有奇数边的环等价成只有一个端点的一条边 而偶数边的环等价于一个点\\
 \subsubsection{SG Theory}
 \begin{lstlisting}
+memset(mex, 0, sizeof mex);
 for (int i = 1; i < maxN;++i) {
-    memset(mex, 0, sizeof mex);
     for (int j = 1; j <= n;++j) {
         if (a[j] <= i)
-            mex[SG[i - a[j]]] = 1;
+            mex[SG[i - a[j]]] = i;
             for (int k = 1; i - k - a[j] > 0;++k)
                 mex[SG[k] ^ SG[i - k - a[j]]] = 1;
     }
     for (int j = 0;; ++j)
-        if (!mex[j]){
+        if (mex[j]!=i){
             SG[i] = j;
             break;
         }
