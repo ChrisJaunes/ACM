@@ -1113,6 +1113,17 @@ struct CartesianTree{
 }T;
 \end{lstlisting}
 \subsection{Sequence Structures}
+\subsubsection{TreeArray}
+\begin{lstlisting}
+//树状数组上二分
+int BS(int x) {
+	int res = 0;
+	for (int i = 1 << 18; i; i >>= 1)
+		if ((res | i) <= Tn && T[res | i] <= x) 
+			x -= T[res |= i]; 
+	return res;
+}
+\end{lstlisting}
 \subsubsection{Segment Tree}
 \begin{lstlisting}
 #define Ls(x) (x << 1)
@@ -1493,6 +1504,7 @@ namespace splay{
 namespace fhq_treap{
 	int Tsz; queue<int> q; //内存回收池
 	int tcnt, root;
+	//int rt[MAXN]; //可持久化时使用rt,维护版本号(int &root), 空间开大
 	int sz[MAXN], rnd[MAXN];
 	int tr[MAXN][2];
 	//int fa[MAXN];//维护fa时除了在pushup更新v节点左右孩子父节点信息还要在split和merge结束时维护root的fa信息,fa[root]=0;
@@ -1529,8 +1541,23 @@ namespace fhq_treap{
 		//if(l) ;
 		//if(r) ;
 		//swap时候注意交换tr[v][0]和tr[v][1],而不是l和r;
-
 	}
+	/* //可持久化在push_down是要新建节点,否者历史版本有可能被多次下传,以rev为例
+	void push_down(int v) {
+		if(!v || !rev[v]) return;
+		int &l = tr[v][0], &r = tr[v][1];
+		if(l) {
+			l = copynode(l);
+			rev[l]^=1;
+			swap(tr[l][0],tr[l][1]);
+		};
+		if(r) {
+			r = copynode(r);
+			rev[r]^=1;
+			swap(tr[r][0],tr[r][1]);
+		};
+		rev[v] = 0;
+	}*/
 	void split(int v,int k,int &x,int &y) {
 		if(!v) {x=y=0;return;}
 		push_down(v);
@@ -1555,12 +1582,12 @@ namespace fhq_treap{
 		if(!x || !y) return x|y;
 		push_down(x); push_down(y);
 		if(rnd[x]<rnd[y]){
-			//x = copynode(x);//可持久化时复制节点
+			//x = copynode(x);//可持久化时复制节点,可不写
 			tr[x][1] = merge(tr[x][1],y);
 			push_up(x);
 			return x;
 		}else{
-			//y = copynode(y);//可持久化时复制节点
+			//y = copynode(y);//可持久化时复制节点,可不写
 			tr[y][0] = merge(x,tr[y][0]);
 			push_up(y);
 			return y;
@@ -1627,11 +1654,11 @@ namespace fhq_treap{
 		display(tr[v][1]);
 	}
 }
+//一种可持久化平衡树的替代(非强制在线),由历史版本向当前版本连边,在dfs遍历中利用权值树状数组,普通平衡树等获取答案
 \end{lstlisting}
 \subsection{Persistent Data Structures}
 \subsubsection{Chairman Tree}
 \begin{lstlisting}
-
 struct Node {
     int l, r;
 
@@ -4641,5 +4668,19 @@ static class InputReader {
 //Arrays.sort(array);
 \end{lstlisting}
 \subsection{pb\_ds}
-
+\begin{lstlisting}
+//可持久化平衡树,不过时间和空间都不太行
+#include <ext/rope>
+using namespace __gnu_cxx;
+int a[1000];
+rope<int> x;
+rope<int> x(a,a + n);
+rope<int> a(x);
+x->at(10);x[10];
+x->push_back(x)     // 在末尾添加x
+x->insert(pos,x)    // 在pos插入x
+x->erase(pos,x)     // 从pos开始删除x个
+x->replace(pos,x)   // 从pos开始换成x
+x->substr(pos,x)    // 提取pos开始x个
+\end{lstlisting}
 \end{document}
