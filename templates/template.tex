@@ -1441,6 +1441,13 @@ namespace splay{
 		//标记对本身无效,处理时将z点重新计算
 		splay(z,0);
 	}
+	void display(int v) {
+		if(!v) return;
+		push_down(v);
+		display(tr[v][0]);
+		if(val[v]) printf("%d ", val[v]);
+		display(tr[v][1]);
+	}
 	/*int findValue(int v) {
 		int res = root;
 		for(int cur = root;cur; res = cur, cur = tr[cur][val[cur] <= v]);
@@ -1452,13 +1459,33 @@ namespace splay{
 		fa[tr[y][val[y] <= w] = z] = y;
 		splay(z,0);
 	}*/
-	void display(int v) {
-		if(!v) return;
-		push_down(v);
-		display(tr[v][0]);
-		if(val[v]) printf("%d ", val[v]);
-		display(tr[v][1]);
-	}
+	/*void split(int v) {//splay维护区间[l,r],区间分裂为[l,k-1],[k,k],[k+1,r];
+		//ump查看标号是否出现,mp维护子区间左端点
+		if(ump.find(v) == ump.end()) {
+			auto it = mp.upper_bound(v); --it;
+			int z = it->second;
+			splay(z, 0);
+			int pos = sz[tr[z][0]];
+		  	int x = find(root,pos), y = find(root,pos+rc[z]-lc[z]+2);
+			splay(x, 0); splay(y, x);
+			z = tr[y][0];
+			if(lc[z] != v) {
+				tr[z][0] = newnode(lc[z],v-1);
+				fa[tr[z][0]] = z;
+				mp[lc[z]] = tr[z][0];
+			}
+			if(rc[z] != v) {
+				tr[z][1] = newnode(v+1,rc[z]);
+				fa[tr[z][1]] = z;
+				mp[v+1] = tr[z][1];
+			}
+			lc[z] = rc[z] = v;
+			splay(z,0);
+			mp[v] = z;
+			ump[v] = z;
+		}
+	}*/
+
 }
 \end{lstlisting}
 \subsubsection{FHQ TREAP Tree}
@@ -1468,6 +1495,7 @@ namespace fhq_treap{
 	int tcnt, root;
 	int sz[MAXN], rnd[MAXN];
 	int tr[MAXN][2];
+	//int fa[MAXN];//维护fa时除了在pushup更新v节点左右孩子父节点信息还要在split和merge结束时维护root的fa信息,fa[root]=0;
 	int val[MAXN], rev[MAXN];
 	void init() {
 		srand(time(0));
@@ -1572,6 +1600,12 @@ namespace fhq_treap{
 		//rev[z] ^= 1;标记对本身无效,处理时将z点重新计算
 		root = merge(merge(x,z),y);
 	}
+	/*int getRank(int S) {
+		int res = sz[tr[S][0]]+1;
+		for(;fa[S];S = fa[S]) 
+			if(tr[fa[S]][1] == S) res += sz[tr[fa[S]][0]] + 1; 
+	   return res;	
+	}*/
 	void display(int v) {
 		if(!v) return;
 		push_down(v);
