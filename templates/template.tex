@@ -1510,6 +1510,15 @@ namespace fhq_treap{
 		//val[tcnt] = v;
 		return tcnt;
 	}
+	/*int copynode(int id) {
+		//++tcnt;//获取一个新的节点编号
+		sz[tcnt] = sz[id];
+		rnd[tcnt] = rnd[id];
+		tr[tcnt][0] = tr[id][0];
+		tr[tcnt][1] = tr[id][1];
+		//val[tcnt] = val[id];
+		return tcnt;
+	}*/
 	void push_up(int v) {
 		int l = tr[v][0], r = tr[v][1];
 		sz[v] = sz[l] + 1 + sz[r];
@@ -1524,6 +1533,7 @@ namespace fhq_treap{
 	void split(int v,int k,int &x,int &y) {
 		if(!v) {x=y=0;return;}
 		push_down(v);
+		//v = copynode(v);//可持久化时复制节点
 		/*if(k > sz[tr[v][0]]) {
 			x = v;
 			split(tr[v][1], k-sz[tr[v][0]]-1, tr[v][1], y);
@@ -1544,10 +1554,12 @@ namespace fhq_treap{
 		if(!x || !y) return x|y;
 		push_down(x); push_down(y);
 		if(rnd[x]<rnd[y]){
+			//x = copynode(x);//可持久化时复制节点
 			tr[x][1] = merge(tr[x][1],y);
 			push_up(x);
 			return x;
 		}else{
+			//y = copynode(y);//可持久化时复制节点
 			tr[y][0] = merge(x,tr[y][0]);
 			push_up(y);
 			return y;
