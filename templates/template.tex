@@ -1499,7 +1499,7 @@ namespace splay{
 
 }
 \end{lstlisting}
-\subsubsection{FHQ TREAP Tree}
+\subsubsection{FHQ Treap}
 \begin{lstlisting}
 namespace fhq_treap{
 	int Tsz; queue<int> q; //内存回收池
@@ -1661,7 +1661,6 @@ namespace fhq_treap{
 \begin{lstlisting}
 struct Node {
     int l, r;
-
     LL sum;
 }t[MAXN * 40];
 int cnt, n;
@@ -1679,6 +1678,134 @@ int query(int x, int y, int l, int r, int v) {
     int sum = t[t[y].l].sum - t[t[x].l].sum;
     if(sum >= v) return query(t[x].l, t[y].l, l, mid, v);
     else return query(t[x].r, t[y].r, mid + 1, r, v - sum);
+}
+\end{lstlisting}
+\subsubsection{Unite Chairman Tree}
+\begin{lstlisting}
+//Q x到y路径第k大
+//L link(x, y)
+#include <bits/stdc++.h>
+using namespace std;
+typedef int LL;
+const int MAXN = 8e4 + 5;
+const int S = 18;
+struct Node {
+    int l, r;
+    LL sum;
+}t[MAXN * 800]; //2 * log^2(n)
+int n, m, Q;
+int cnt;
+int rt[MAXN], sz[MAXN];
+void update(int pre, int &x, int l, int r, int v) {
+    x = ++cnt; t[x] = t[pre]; t[x].sum++;
+    if(l == r) return;
+    int mid = (l + r) >> 1;
+    if(v <= mid) update(t[pre].l, t[x].l, l, mid, v);
+    else update(t[pre].r, t[x].r, mid + 1, r, v);
+}
+int query(int x, int y, int z, int w, int l, int r, int v) {
+    if(l == r) return l;
+    int mid = (l + r) >> 1;
+    int sum = t[t[x].l].sum + t[t[y].l].sum - t[t[z].l].sum - t[t[w].l].sum;
+    if(sum >= v) return query(t[x].l, t[y].l, t[z].l, t[w].l, l, mid, v);
+    return query(t[x].r, t[y].r, t[z].r, t[w].r, mid + 1, r, v - sum);
+}
+int fa[MAXN][S + 3], dep[MAXN];
+int val[MAXN];
+vector<int> G[MAXN];
+inline void addEdge(int x, int y) {
+    G[x].push_back(y);
+    G[y].push_back(x);
+}
+inline void upd(int x) {
+    update(rt[fa[x][0]], rt[x], 1, n, val[x]);
+    for(int i = 1; i <= S; i++) fa[x][i] = fa[fa[x][i - 1]][i - 1];
+}
+inline void Go(int &x, int step) {
+    for(int i = S; i >= 0; i--) if(step >> i & 1) x = fa[x][i];
+}
+int lca(int x, int y) {
+    if(dep[x] < dep[y]) swap(x, y);
+    Go(x, dep[x] - dep[y]);
+    if(x == y) return x;
+    for(int i = S; i >= 0; i--) if(fa[x][i] != fa[y][i]) {
+        x = fa[x][i], y = fa[y][i];
+    }
+    return fa[x][0];
+}
+int get_rt(int x) {
+    for(int i = S; i >= 0; i--) if(fa[x][i]) x = fa[x][i];
+    return x;
+}
+void dfs(int x, int f) {
+    fa[x][0] = f;
+    dep[x] = dep[f] + 1;
+    upd(x);
+    for(auto y : G[x]) {
+        if(y == f) continue;
+        dfs(y, x);
+    }
+}
+void unite(int x, int y) {
+    int rx = get_rt(x), ry = get_rt(y);
+    if(sz[rx] > sz[ry]) swap(x, y), swap(rx, ry);
+    addEdge(x, y);
+    dfs(x, y);
+    sz[ry] += cnt - rt[x] + 1;
+}
+void init() {
+    cnt = 0;
+    for(int i = 1; i <= n; i++) {
+        rt[i] = sz[i] = 0;
+        G[i].clear();
+        dep[i] = 0;
+    }
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    int T; cin >> T;
+    while(T--) {
+        cin >> n >> m >> Q;
+        init();
+        vector<int> b;
+        map<int, int> mp;
+        for(int i = 1; i <= n; i++) {
+            cin >> val[i];
+            b.push_back(val[i]);
+        }
+        sort(b.begin(), b.end());
+        b.erase(unique(b.begin(), b.end()), b.end());
+        for(int i = 1, tmp; i <= n; i++) {
+            tmp = val[i];
+            val[i] = lower_bound(b.begin(), b.end(), val[i]) - b.begin() + 1;
+            mp[val[i]] = tmp;
+        }
+        for(int i = 1, u, v; i <= m; i++) {
+            cin >> u >> v;
+            addEdge(u, v);
+        }
+        for(int i = 1; i <= n; i++) if(!dep[i]) {
+            dep[i] = 1;
+            dfs(i, 0);
+            sz[i] = cnt - rt[i] + 1;
+        }
+        char s[3]; int x, y, z, k, ans = 0;
+        while(Q--) {
+            cin >> s >> x >> y;
+            x ^= ans; y ^= ans;
+            if(s[0] == 'Q') {
+                cin >> k; k ^= ans;
+                z = lca(x, y);
+                ans = query(rt[x], rt[y], rt[z], rt[fa[z][0]], 1, n, k);
+                ans = mp[ans];
+                cout << ans << endl;
+            }
+            else {
+                unite(x, y);
+            }
+        }
+    }
+    return 0;
 }
 \end{lstlisting}
 \subsubsection{Persistent Trie}
@@ -4041,9 +4168,9 @@ Every-SG游戏与普通SG游戏最大的不同就是它多了一维时间\\
 Colon Principle:对于树上的某一个点，ta的分支可以转化成以这个点为根的一根竹子，这个竹子的长度就是ta各个分支的边的数量的异或和\\
 叶子节点的SG值为0；中间节点的SG值为它的所有子节点的SG值加1后的异或和。\\
 
-\subsubsection{chomp's theory?}
+\subsubsection{Chomp's theory?}
 取一个无关紧要的位置,如果对方必胜,则学习其策略,我方必胜.
-\subsubsection{other's theory?}
+\subsubsection{Other's theory?}
 有n堆石子，游戏双方依次从中拿取, 满足:\\
 1.规定每次能从任意多堆中取1根,不可不取.\\
 最后取完者为胜。\\
