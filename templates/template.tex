@@ -1499,6 +1499,128 @@ namespace splay{
 
 }
 \end{lstlisting}
+\subsubsection{Scapegoat Tree}
+\begin{lstlisting}
+struct ScapegoatTree{
+	int Tsn; queue<int> q;
+	int val[MAXM], ext[MAXM];
+	int sz[MAXM], tsz[MAXM];
+	int fa[MAXM], tr[MAXM][2];
+	int root;
+	double alp;
+	void init() {
+		root = 0;
+		alp = 0.7;
+	}
+	int newnode(int x) {
+		if(q.empty()) q.push(++Tsn);
+		int tcnt = q.front(); q.pop();
+		val[tcnt] = x; ext[tcnt] = 1;
+		fa[tcnt] = tr[tcnt][0] = tr[tcnt][1] = 0;
+		sz[tcnt] = tsz[tcnt] = 0;
+		return tcnt;
+	}
+	void push_up(int v) {
+		sz[v] = ext[v];tsz[v] = 1;
+		if(tr[v][0]) {
+			sz[v] += sz[tr[v][0]];
+			tsz[v] += tsz[tr[v][0]];
+		}
+		if(tr[v][1]) {
+			sz[v] += sz[tr[v][1]];
+			tsz[v] += tsz[tr[v][1]];
+		}
+	}
+	bool isBad(int v) {
+		return (double(tsz[ tr[v][0] ]) > double(tsz[v]) * alp) || 
+			(double(tsz[ tr[v][1] ]) > double(tsz[v]) * alp) ||
+			(sz[v] * 2 < tsz[v]);
+	}
+	vector<int> vec;
+	void rRecycle(int v) {
+		if(tr[v][0]) rRecycle(tr[v][0]);
+		if(ext[v]) vec.push_back(v); else q.push(v);
+		if(tr[v][1]) rRecycle(tr[v][1]);
+	}
+	int rBuild(int l, int r) {
+		int mid = (l + r) >> 1, v = vec[mid];
+		tr[v][0] = (l <= mid-1) ? rBuild(l, mid - 1) : 0;
+		if(tr[v][0]) fa[tr[v][0]] = v;
+		tr[v][1] = (mid+1 <= r) ? rBuild(mid + 1, r) : 0;
+		if(tr[v][1]) fa[tr[v][1]] = v;
+		push_up(v);
+		return v;
+	}
+	void rebuild(int x) {
+		int v = 0;
+		for(;x; x= fa[x]) {
+			push_up(x);
+			if(isBad(x)) v = x;
+		}
+		if(v && isBad(v)){
+			vec.clear();
+			int u = fa[v], lr = tr[u][1] == v;
+			rRecycle(v);
+			if(vec.size()) v = rBuild(0, vec.size() - 1); else v = 0;
+			if(u == 0) fa[root = v] = 0; 
+			else{
+				tr[u][lr] = v;
+				if(v) fa[v] = u;
+			}
+		}
+	}
+	void ins(int x) {
+		int p = root, q = root;
+		for(;p && val[p] != x; q = p, p = tr[p][ val[p] < x]) ;
+		if(!q) {
+			p = root = newnode(x);
+		}else if(p) {
+			ext[p]++;
+		}else{
+			fa[p = tr[q][val[q] < x] = newnode(x) ] = q;
+		}
+		rebuild(p);
+	}
+	void del(int x) {
+		int p = root;
+		for(;p && val[p] != x; p = tr[p][ val[p] < x]);
+		if(p && ext[p]){
+			--ext[p];
+			rebuild(p);
+		}
+	}
+	int get_rank(int x) {
+		int ret = 0;
+		for(int p = root;p;) {
+			if(val[p] < x) {
+				ret += sz[tr[p][0]] + ext[p];
+				p = tr[p][1];
+			}else p = tr[p][0];
+		}
+		return ret + 1;
+	}
+	int get_Kth(int p, int k) {
+		if(sz[tr[p][0]] >= k) return get_Kth(tr[p][0] ,k);
+		k -= sz[tr[p][0]];
+		if(ext[p] >= k) return val[p];
+		k -= ext[p];
+		return get_Kth(tr[p][1], k);
+	}
+	int pre(int x) {
+		int id = get_rank(x);
+		return get_Kth(root, id - 1);
+	}
+	int nxt(int x) {
+		int id = get_rank(x + 1);
+		return get_Kth(root ,id);
+	}
+	void display(int v) {
+		if(tr[v][0]) display(tr[v][0]);
+		cerr<<val[v]<<" ";
+		if(tr[v][1]) display(tr[v][1]);
+	}
+}T;
+\end{lstlisting}
 \subsubsection{FHQ Treap}
 \begin{lstlisting}
 namespace fhq_treap{
