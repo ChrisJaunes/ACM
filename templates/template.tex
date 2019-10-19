@@ -1973,6 +1973,182 @@ int query(int lt,int rt,int x){
     return ans;
 }
 \end{lstlisting}
+\subsubsection{SGT in BBST}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 1e5;
+const int MAXM = 2e7;
+const int LM = 0;
+const int RM = 70005;
+namespace T{
+	int Tsz; queue<int> q;
+	int ls[MAXM], rs[MAXM], val[MAXM];
+	int Tan, Ta[105], Tbn, Tb[105];
+	int newnode() {
+		if(q.empty()) q.push(++Tsz);
+		int x = q.front(); q.pop();
+		ls[x] = rs[x] = val[x] = 0;
+		return x;
+	}
+	void insert(int &x, int l, int r, int k, int f) {
+		if(!x) x = newnode();
+		val[x] += f;
+		if(l == r) return;
+		int mid = (l + r) >> 1;
+		if(k <= mid) {
+			insert(ls[x], l, mid, k,f);
+		}else{
+			insert(rs[x], mid+1, r, k,f);
+		}
+	}
+	int query(int l, int r, int y) {
+		if(l == r) return l;
+		int mid = (l + r) >> 1;
+		int sum = 0;
+		for(int i = 0; i <= Tan; i++) sum -= val[ls[Ta[i]]];
+		for(int i = 0; i <= Tbn; i++) sum += val[ls[Tb[i]]];
+
+		if(y <= sum) {
+			for(int i = 0; i <= Tan; i++) Ta[i] = ls[Ta[i]];
+			for(int i = 0; i <= Tbn; i++) Tb[i] = ls[Tb[i]];
+			return query(l, mid, y);
+		}
+		for(int i = 0; i <= Tan; i++) Ta[i] = rs[Ta[i]];
+		for(int i = 0; i <= Tbn; i++) Tb[i] = rs[Tb[i]];
+		return query(mid+1, r, y - sum);
+	}
+	void recycle(int v) {
+		if(!v) return;
+		q.push(v);
+		recycle(ls[v]);
+		recycle(rs[v]);
+	}
+};
+namespace TT{
+	int Tsn;
+	int val[MAXN], Trt[MAXN]; 
+	int sz[MAXN];
+	int fa[MAXN], tr[MAXN][2];
+	
+	int root;
+	double alp;
+	
+	int newnode(int x) {
+		int tcnt = ++Tsn;
+		val[tcnt] = x; Trt[tcnt] = 0;
+		fa[tcnt] = tr[tcnt][0] = tr[tcnt][1] = 0;
+		sz[tcnt] = 0;
+		return tcnt;
+	}
+	bool isBad(int v) {
+		return (double(sz[ tr[v][0] ]) > double(sz[v]) * alp) || 
+			(double(sz[ tr[v][1] ]) > double(sz[v]) * alp);
+	}
+	vector<int> vec;
+	void rRecycle(int v) {
+		if(tr[v][0]) rRecycle(tr[v][0]);
+		vec.push_back(v);
+		T::recycle(Trt[v]);
+		if(tr[v][1]) rRecycle(tr[v][1]);
+	}
+	int rBuild(int l, int r) {
+		int mid = (l + r) >> 1, v = vec[mid];
+		Trt[v] = 0; sz[v] = r - l + 1;
+		for(int i = l; i <= mid; i++) {
+			T::insert(Trt[v], LM, RM, val[vec[i]], 1);
+		}
+		tr[v][0] = (l <= mid-1) ? rBuild(l, mid - 1) : 0;
+		if(tr[v][0]) fa[tr[v][0]] = v;
+		tr[v][1] = (mid+1 <= r) ? rBuild(mid + 1, r) : 0;
+		if(tr[v][1]) fa[tr[v][1]] = v;
+		return v;
+	}
+	void rebuild(int v) {
+		if(isBad(v)) {
+			vec.clear();
+			int u = fa[v], lr = tr[u][1] == v;
+			rRecycle(v);
+			if(vec.size()) v = rBuild(0, vec.size() - 1); else v = 0;
+			if(u == 0) fa[root = v] = 0; 
+			else{
+				tr[u][lr] = v;
+				if(v) fa[v] = u;
+			}
+		}
+	}
+	int find(int x, int k) {
+		int l = tr[x][0], r = tr[x][1];
+		if(sz[l] + 1 == k) return x;
+		if(sz[l] >= k) return find(l, k);
+		return find(r, k - sz[l] - 1);
+	}
+	void ins(int x, int y) {
+		int v = find(root, x);
+		int p = tr[v][1], q = v;
+		if(p) {
+			for(;p; q = p, p = tr[p][0]);
+			fa[p = tr[q][0] = newnode(y)] = q;
+		}else {
+			fa[p = tr[q][1] = newnode(y)] = q;
+		}
+		int fg = 0;
+		T::insert(Trt[p], LM, RM, y, 1);
+		sz[p] = 1;
+		for(;fa[p]; p = fa[p]) {
+			if(tr[fa[p]][0] == p) 
+				T::insert(Trt[fa[p]], LM, RM, y, 1);
+			sz[fa[p]]++;
+			if(isBad(fa[p])) fg = fa[p];
+		}
+		rebuild(fg);
+	}
+	void upd(int x, int y) {
+		int p = find(root, x+1);
+		int ty = val[p]; val[p] = y;
+		T::insert(Trt[p], LM, RM, ty, -1);
+		T::insert(Trt[p], LM, RM, y, 1);
+		for(;fa[p]; p = fa[p]) {
+			if(tr[fa[p]][0] == p) {
+				T::insert(Trt[fa[p]], LM, RM, ty, -1);
+				T::insert(Trt[fa[p]], LM, RM, y, 1);
+			}
+		}
+	}
+	int que(int x, int y,int z) {
+		x = find(root, x);
+		T::Ta[T::Tan = 0] = Trt[x];
+		for(;fa[x]; x = fa[x]) 
+			if(tr[fa[x]][1] == x) {
+				T::Ta[++T::Tan] = Trt[fa[x]];
+			}
+		y = find(root, y+1);
+		T::Tb[T::Tbn = 0] = Trt[y];
+		for(;fa[y]; y = fa[y]) {
+			if(tr[fa[y]][1] == y) {
+				T::Tb[++T::Tbn] = Trt[fa[y]];
+			}
+ 		}
+		return T::query(LM, RM, z);
+	}
+	void init(int n) {
+		alp = 0.7;
+		vec.clear();
+		vec.push_back(newnode(RM));
+		for(int i = 1, a; i <= n; i++) {
+			scanf("%d", &a);
+			vec.push_back(newnode(a));
+		}
+		root = rBuild(0,vec.size() - 1);
+		fa[root] = 0;
+	}
+	void display(int v) {
+		if(tr[v][0]) display(tr[v][0]);
+		cerr<<val[v]<<" ";
+		if(tr[v][1]) display(tr[v][1]);
+	}
+};
+\end{lstlisting}
 \subsection{Tree Structures}
 \subsubsection{dsu on tree}
 \begin{lstlisting}
