@@ -2268,7 +2268,7 @@ namespace VituralTree{
 		for(int i = 1; i <= hn; i++) {
 			int rem = getLca(st[top], h[i]);
 			if(rem == st[top]) { 
-				cl[++cln] = st[++top] = h[i]; 
+				if(rem != st[top]) cl[++cln] = st[++top] = h[i]; 
 				continue; 
 			}
 			while(top > 1 && dep[st[top - 1]] >= dep[rem]) {
