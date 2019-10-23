@@ -1082,7 +1082,7 @@ void build(int n) {
     }
 }
 \end{lstlisting}
-\subsection{Stack Structures}
+\subsection{Sequence Structures}
 \subsubsection{Cartesian Tree}
 \begin{lstlisting}
 struct CartesianTree{
@@ -1112,7 +1112,6 @@ struct CartesianTree{
 	}
 }T;
 \end{lstlisting}
-\subsection{Sequence Structures}
 \subsubsection{TreeArray}
 \begin{lstlisting}
 //树状数组上二分
@@ -2196,6 +2195,103 @@ void dfs2(int u, int fa, int keep) {
 		maxx = 0;
 		for(int i = bt[u]; i <= et[u]; i++)
 			fg[col[st[i]]] = 0;
+	}
+}
+\end{lstlisting}
+\subsubsection{Vitural Tree}
+\begin{lstlisting}
+const int MAXN = ;
+const int MAXM = ;
+const LL INF = ;
+const int S = 19;
+int ecnt, head[MAXN];
+struct Edge{int to, nxt; LL w;} e[MAXM], ve[MAXM];
+inline void addEdgeT(int x, int y, LL w) {
+	e[++ecnt] = (Edge) {y, head[x], w}; head[x] = ecnt;
+}
+int dep[MAXN], dfn_time, dfn[MAXN], fa[MAXN][S+1];
+LL dis[MAXN][S+1];
+void dfs(int v,int _fa) {
+	dfn[v] = ++dfn_time;
+	dep[v] = dep[_fa] + 1;
+	fa[v][0] = _fa;
+	for(int i = 1; i <= S; i++) {
+		fa[v][i] = fa[fa[v][i-1]][i-1];
+		dis[v][i] = min(dis[v][i-1], dis[fa[v][i-1]][i-1]);
+	}
+	for(int i = head[v], u; i; i = e[i].nxt) 
+	if((u = e[i].to) != _fa) {
+		dis[u][0] = e[i].w;
+		dfs(u, v);
+	}
+}
+int getLca(int u, int v) {
+	if(dep[u] < dep[v]) swap(u, v);
+	for(int i = S; i >= 0; i--) 
+		if(dep[fa[u][i]] >= dep[v]) u = fa[u][i];
+	if(u == v) return u;
+	for(int i = S; i >= 0; i--) 
+		if(fa[u][i] != fa[v][i])
+			u = fa[u][i], v = fa[v][i];
+	return fa[u][0];
+}
+LL getDis(int u, int v) {
+	if(dep[u] < dep[v]) swap(u, v);
+	LL res = INF;
+	for(int i = S; i >= 0; i--) 
+		if(dep[fa[u][i]] >= dep[v]) {
+			res = min(res, dis[u][i]);
+			u = fa[u][i];
+		}
+	return res;	
+}
+namespace VituralTree{
+	int hn, h[MAXN];
+	int vecnt, vhead[MAXN];
+	Edge ve[MAXM];
+	int top, st[MAXN], cln, cl[MAXN];
+	int fgn, fg[MAXN];//利用fg[i]==fgn判断是否为当前有效点
+	void addEdgeVT(int x, int y, LL w) {
+		ve[++vecnt] = (Edge) {y, vhead[x], w}; vhead[x] = vecnt;
+	}
+	inline void link(int u, int v) {
+		LL w = getDis(u, v);
+		addEdgeVT(u, v, w);
+		addEdgeVT(v, u, w);
+	}
+	inline bool cmp(int a, int b) {return dfn[a] < dfn[b];}
+	void build() {
+		++fgn;
+		for(int i = 1; i <= hn; i++) fg[h[i]] = fgn;
+		sort(h + 1, h + hn + 1, cmp);
+		cl[cln = 1] = st[top = 1] = 1;
+		for(int i = 1; i <= hn; i++) {
+			int rem = getLca(st[top], h[i]);
+			if(rem == st[top]) { 
+				cl[++cln] = st[++top] = h[i]; 
+				continue; 
+			}
+			while(top > 1 && dep[st[top - 1]] >= dep[rem]) {
+				link(st[top - 1], st[top]); top--; 
+			}
+			if(dep[st[top]] > dep[rem]) {
+				link(rem, st[top]), top --;
+			}
+			if(rem != st[top]) cl[++cln] = st[++top] = rem; 
+			if(h[i] != st[top]) cl[++cln] = st[++ top] = h[i];
+		}
+		while(top > 1) {
+			link(st[top - 1], st[top]), top --;
+		}
+	}
+	void clear() {
+		vecnt = 0;
+		for(;cln; --cln) vhead[cl[cln]] = 0;
+	}
+	void sol() {
+		build();
+		//
+		clear();
 	}
 }
 \end{lstlisting}
