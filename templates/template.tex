@@ -1082,6 +1082,46 @@ void build(int n) {
     }
 }
 \end{lstlisting}
+\subsection{Heap Structures}
+\subsubsection{Leftist Tree}
+\begin{lstlisting}
+const int MAXN = ;
+namespace LeftistTree{
+	int ls[MAXN], rs[MAXN];
+	int sz[MAXN], dis[MAXN];
+	int fg[MAXN], sfa[MAXN];
+	int val[MAXN];
+
+	void push_down(int x) {};
+	void push_up(int x) {
+		if(dis[ls[x]] < dis[rs[x]]) swap(ls[x], rs[x]);
+		dis[x] = dis[rs[x]] + 1;
+	}
+	int merge(int x, int y) {
+		if(!x || !y) return x^y;
+		if(val[x] > val[y] || (val[x] == val[y] && x > y)) swap(x, y);
+		push_down(x);
+		rs[x]  = merge(rs[x], y);
+		push_up(x);
+		return x;
+	}
+	int getSfa(int x) {return sfa[x] == x ? x : sfa[x] = getSfa(sfa[x]);}
+	void uni(int x, int y) {
+		if(fg[x] || fg[y]) return;
+		x = getSfa(x); y = getSfa(y);
+		if(x == y) return;
+		int z = merge(x, y);
+		sfa[x] = sfa[y] = z;
+	}
+	int pop(int x) {
+		if(fg[x]) return -1;
+		x = getSfa(x); fg[x] = 1;
+		int y = merge(ls[x], rs[x]);
+		sfa[x] = sfa[y] = y;
+		return val[x];
+	}
+}
+\end{lstlisting}
 \subsection{Sequence Structures}
 \subsubsection{Cartesian Tree}
 \begin{lstlisting}
