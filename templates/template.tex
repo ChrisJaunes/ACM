@@ -1113,6 +1113,19 @@ namespace LeftistTree{
 		int z = merge(x, y);
 		sfa[x] = sfa[y] = sfa[z] = z;
 	}
+	void uni2(int a, int b) {
+		//val[a] >>= 1;
+		int c = merge(ls[a], rs[a]);
+		ls[a] = rs[a] = dis[a] = 0;
+		int a1 = merge(c, a);
+		//val[b] >>= 1;
+		c = merge(ls[b], rs[b]);
+		ls[b] = rs[b] = dis[b] = 0;
+		int b1 = merge(c, b);
+		c = merge(a1, b1);
+		sfa[a] = sfa[b] = sfa[c] = c;
+		printf("%d\n", val[c])
+	}
 	int pop(int x) {
 		if(fg[x]) return -1;
 		x = getSfa(x); fg[x] = 1;
@@ -1120,6 +1133,12 @@ namespace LeftistTree{
 		sfa[x] = sfa[y] = y;
 		return val[x];
 	}
+	void init(int n) {
+		for(int i = 1; i <= n; i++) {
+			sfa[i] = i;
+			ls[i] = rs[i] = dis[i] = fg[i] = 0;
+		}
+	}	
 }
 \end{lstlisting}
 \subsection{Sequence Structures}
