@@ -1088,7 +1088,7 @@ void build(int n) {
 const int MAXN = ;
 namespace LeftistTree{
 	int ls[MAXN], rs[MAXN];
-	int sz[MAXN], dis[MAXN];
+	int dis[MAXN];
 	int fg[MAXN], sfa[MAXN];
 	int val[MAXN];
 
@@ -1111,7 +1111,7 @@ namespace LeftistTree{
 		x = getSfa(x); y = getSfa(y);
 		if(x == y) return;
 		int z = merge(x, y);
-		sfa[x] = sfa[y] = z;
+		sfa[x] = sfa[y] = sfa[z] = z;
 	}
 	int pop(int x) {
 		if(fg[x]) return -1;
