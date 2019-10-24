@@ -1130,6 +1130,7 @@ namespace LeftistTree{
 	int pop(int x) {//返回堆顶值,也可以用于返回根
 		if(!x || fg[x]) return -1;
 		x = getSfa(x); fg[x] = 1;
+		push_down(x);//在删除堆顶时要下传标记
 		int y = merge(ls[x], rs[x]);
 		sfa[x] = sfa[y] = y;
 		return val[x];
