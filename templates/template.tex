@@ -1106,12 +1106,13 @@ namespace LeftistTree{
 		return x;
 	}
 	int getSfa(int x) {return sfa[x] == x ? x : sfa[x] = getSfa(sfa[x]);}
-	void uni(int x, int y) {
+	int uni(int x, int y) {//返回合并后的根
+		if(!x || !y) return x^y;
 		if(fg[x] || fg[y]) return;
 		x = getSfa(x); y = getSfa(y);
 		if(x == y) return;
 		int z = merge(x, y);
-		sfa[x] = sfa[y] = sfa[z] = z;
+		return sfa[x] = sfa[y] = sfa[z] = z;
 	}
 	void uni2(int a, int b) {
 		//val[a] >>= 1;
@@ -1126,8 +1127,8 @@ namespace LeftistTree{
 		sfa[a] = sfa[b] = sfa[c] = c;
 		printf("%d\n", val[c])
 	}
-	int pop(int x) {
-		if(fg[x]) return -1;
+	int pop(int x) {//返回堆顶值,也可以用于返回根
+		if(!x || fg[x]) return -1;
 		x = getSfa(x); fg[x] = 1;
 		int y = merge(ls[x], rs[x]);
 		sfa[x] = sfa[y] = y;
