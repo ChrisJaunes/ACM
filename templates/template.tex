@@ -185,8 +185,34 @@ void johnson() {
     dijkstra(s,n);
 }
 \end{lstlisting}
-\subsubsection{K Shortest Path}
+\subsubsection{K Shortest Path (A*)}
 \begin{lstlisting}
+//可重复走同一条边 利用了反向边表示,ecnt初始化为1
+//调用dijkstra(ed,n)跑反向图,注意if(i& 1){松弛}
+int shrt[MAXN];
+LL A_star(int st, int ed, int k, int n) {
+	if(d[st] == d[0]) return -1;
+	q.push(make_pair(d[st], st));
+	while(!q.empty()) {
+		P x = q.top(); q.pop();
+		int u = x.second;
+		LL xd = x.first;
+		++shrt[u];
+		if(u == ed) {
+			if(shrt[ed] == k) return xd;
+		}
+		for(int i = head[u], v; i; i = e[i].nxt) 
+		if(!(i & 1)) {
+			v = e[i].to;
+			if(shrt[v] < k)q.push(make_pair(xd-d[u]+e[i].w+d[v], v));
+		}
+	}
+	return -1;
+}
+\end{lstlisting}
+\subsubsection{K Shortest Path (Protractable Heap)}
+\begin{lstlisting}
+//可重复走同一条边
 typedef double LD;
 const int MAXN = ;
 const int MAXM = ;
@@ -1284,6 +1310,7 @@ namespace LeftistTree{
 		}
 	}	
 }
+//可持久化版本见k短路
 \end{lstlisting}
 \subsection{Sequence Structures}
 \subsubsection{Cartesian Tree}
