@@ -185,6 +185,148 @@ void johnson() {
     dijkstra(s,n);
 }
 \end{lstlisting}
+\subsubsection{K Shortest Path}
+\begin{lstlisting}
+typedef double LD;
+const int MAXN = ;
+const int MAXM = ;
+const int MAXLT = MAXM * 20;
+const LD DINF = ;
+const LD eps = ;
+
+namespace LT{
+	int tcnt;
+	int ls[MAXLT], rs[MAXLT], dis[MAXLT];
+	int to[MAXLT];
+	LD val[MAXLT];
+
+	inline int newnode(LD w, int _to) {
+		++tcnt;
+		ls[tcnt] = rs[tcnt] = 0; dis[tcnt] = 1;
+		val[tcnt] = w; to[tcnt] = _to;
+		return tcnt;
+	}
+	inline int copynode(int id) {
+		++tcnt;
+		ls[tcnt] = ls[id]; rs[tcnt] = rs[id]; dis[tcnt] = dis[id];
+		val[tcnt] = val[id]; to[tcnt] = to[id];
+		return tcnt;
+	}
+	void push_up(int x) {
+		if(dis[ls[x]] < dis[rs[x]]) swap(ls[x], rs[x]);
+		dis[x] = dis[rs[x]] + 1;
+	}
+	int merge(int x, int y) {
+		if(!x || !y) return x^y;
+		if(val[x] - val[y] > eps) swap(x, y);
+		int p = copynode(x);
+		rs[p] = merge(rs[p],y);
+		push_up(p);
+		return p;
+	}
+}
+int rt[MAXN];
+
+typedef pair<LD, int> P;
+struct Edge {
+    int to, nxt;
+    LD w;
+}e[MAXM];
+int head[MAXN], ecnt;
+int stan, sta[MAXN], fa[MAXN];
+int vis[MAXN], cov[MAXM];
+LD d[MAXN];
+priority_queue<P, vector<P>, greater<P> > q;
+inline void addEdge(int x, int y, LD w) {
+    e[++ecnt] = (Edge) {y, head[x], w}; head[x] = ecnt;
+}
+void init(int n, int m) {
+	ecnt = 1; stan = 0;
+	for(int i = 1; i <= n; i++) 
+		head[i] = cov[i] = fa[i] = 0;
+	for(int i = 1; i <= m; i++) {
+		int u, v; LD w;
+		scanf("%d%d%lf", &u,&v,&w);
+		addEdge(u, v, w);
+		addEdge(v, u, w);
+	}
+}
+void dijkstra(int st, int n) {
+	for(int i = 0; i <= n; i++) {d[i] = DINF; vis[i] = 0;}
+	while(!q.empty()) q.pop();
+	d[st] = 0;q.push(make_pair(0, st));
+	while(!q.empty()) {
+		P x = q.top(); q.pop();
+		int u = x.second;
+		if(vis[u]) continue; 
+		vis[u] = 1;
+		for(int i = head[u], v; i; i = e[i].nxt) 
+			if(i & 1) {
+				v = e[i].to;
+				if(d[v]- (d[u] + e[i].w) > eps) {
+					d[v] = d[u] + e[i].w;
+					q.push(make_pair(d[v], v));
+				}
+			}
+	}
+}
+void buildT(int u) {
+	sta[++stan] = u;
+	vis[u] = 1;
+	for(int i = head[u], v; i; i = e[i].nxt) 
+	if(i & 1) {
+		v = e[i].to;
+		if(fabs(d[v] - (d[u] + e[i].w)) < eps && !vis[v]) {
+			fa[v] = u; cov[i^1] = 1; buildT(v);
+		}
+	}
+}
+void buildH(int st, int n) {
+	buildT(st);
+	for(int i = 2, u, v; i <= ecnt; i += 2) {
+		if(!cov[i]) {
+			u = e[i^1].to; v = e[i].to;
+			if(fabs(d[u] - d[0]) < eps || fabs(d[v] - d[0]) < eps) continue;
+			rt[u] = LT::merge(rt[u], LT::newnode(d[v]+e[i].w-d[u], v));
+		}
+	}
+	for(int i = 2, u; i <= n; i++) 
+		if(fa[u = sta[i]]) rt[u] = LT::merge(rt[u], rt[fa[u]]);
+}
+//求前k短路径,其和不超过W,问最大k int ans = 0; 
+//求第k短路径,LD ans = 0;
+void getKth(int st, int ed, LD W) {
+	while(!q.empty()) q.pop();
+	//最短路要记入答案,注意d[st]-W<eps与W-d[st]<eps
+	//if(d[st] - W > eps) return;
+	//else{W -= d[st]; ++ans;}
+	
+	int u = rt[st], v;
+	if(u) q.push(make_pair(LT::val[u], u));
+	while (!q.empty()) {
+		u = q.top().second; LD cur = q.top().first;
+		q.pop();
+		//if (cur + d[st] - W > eps) break;
+		//else {W -= cur + d[st]; ++ans;}
+		v = LT::ls[u];
+		if (v) q.push(make_pair(cur - LT::val[u] + LT::val[v], v));
+		v = LT::rs[u];
+		if (v) q.push(make_pair(cur - LT::val[u] + LT::val[v], v));
+		v = rt[LT::to[u]];
+		if (v) q.push(make_pair(cur + LT::val[v], v));
+	}
+}
+void sol() {
+	int n, m, st = , ed = ;
+	//LD W; int k;
+	init(n, m);
+	dijkstra(ed, n);
+	for(int i = 0; i <= n; i++) vis[i] = 0;
+	buildH(ed, n);
+	getKth(st, ed, W);
+	printf("%d\n", ans);
+}
+\end{lstlisting}
 \subsection{Network Flow}
 \subsubsection{ISAP}
 \begin{lstlisting}
