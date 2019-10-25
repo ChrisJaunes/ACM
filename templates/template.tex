@@ -192,6 +192,7 @@ void johnson() {
 int shrt[MAXN];
 LL A_star(int st, int ed, int k, int n) {
 	if(d[st] == d[0]) return -1;
+	if(st == ed) k++;
 	q.push(make_pair(d[st], st));
 	while(!q.empty()) {
 		P x = q.top(); q.pop();
@@ -324,16 +325,21 @@ void buildH(int st, int n) {
 void getKth(int st, int ed, LD W) {
 	while(!q.empty()) q.pop();
 	//最短路要记入答案,注意d[st]-W<eps与W-d[st]<eps
-	//if(d[st] - W > eps) return;
-	//else{W -= d[st]; ++ans;}
+	//!if(d[st] - W > eps) return;
+	//!else{W -= d[st]; ++ans;}
+	//注意st和ed相同
+	//#if(st == ed) k++;
+	//#if(d[st] == d[0]) {ans = -1; return;}
+	//#if(--k == 0) {ans = d[st]; return;}
 	
 	int u = rt[st], v;
 	if(u) q.push(make_pair(LT::val[u], u));
 	while (!q.empty()) {
 		u = q.top().second; LD cur = q.top().first;
 		q.pop();
-		//if (cur + d[st] - W > eps) break;
-		//else {W -= cur + d[st]; ++ans;}
+		//!if (cur + d[st] - W > eps) break;
+		//!else {W -= cur + d[st]; ++ans;}
+		//#if (--k == 0) {ans = cur + d[st]; break;}
 		v = LT::ls[u];
 		if (v) q.push(make_pair(cur - LT::val[u] + LT::val[v], v));
 		v = LT::rs[u];
