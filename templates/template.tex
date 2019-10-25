@@ -714,6 +714,57 @@ namespace MST {
     }
 }
 \end{lstlisting}
+\subsubsection{Minimum Spanning Tree Calculation}
+\begin{lstlisting}
+typedef long long LL;
+const int MAXN = ;
+const int MAXM = ;
+int sum,ans1,ans2=1, Mod=;
+int fa1[MAXN],fa2[MAXN];
+bool vis[MAXN];
+struct Edge{int v,u,val;}e[MAXM];
+bool cmp(Edge A,Edge B){return A.val<B.val;}
+int getfa1(int *fa,int x){return fa[x]=fa[x]==x?x:getfa1(fa,fa[x]);}
+int getfa2(int *fa,int x){return fa[x]==x?x:getfa2(fa,fa[x]);}
+void dfs(int tot,int l,int r){
+	if(tot==0){++sum;return;}
+	for(int i=l,fx,fy;i<r;++i)
+		if(!vis[i]){
+			vis[i]=true;
+			fx=getfa2(fa2,e[i].u);fy=getfa2(fa2,e[i].v);
+			if(fx!=fy){
+				fa2[fx]=fy;
+				dfs(tot-1,i+1,r);
+				fa2[fx]=fx;
+			}
+			vis[i]=false;
+		}
+}
+void sol(){
+	int n,m;
+	scanf("%d %d",&n,&m);
+	for(int i=1;i<=n;++i)fa1[i]=fa2[i]=i;
+	for(int i=1;i<=m;++i)
+		scanf("%d %d %d",&e[i].v,&e[i].u,&e[i].val);
+	std::sort(e+1,e+m+1,cmp);e[m+1].val=-1;
+	for(int i=1,j=1,fx,fy,tot;i<=m;++i){
+		for(;e[i].val==e[j].val;++j);
+		tot=0;
+		for(int k=i;k<j;++k){
+			fx=getfa1(fa1,e[k].u);fy=getfa1(fa1,e[k].v);
+			if(fx!=fy){++tot;ans1++;fa1[fx]=fy;}
+		}
+		if(!tot)continue;
+		sum=0;dfs(tot,i,j);
+		(ans2*=sum)%=Mod;
+		for(int k=i;k<j;++k){
+			fx=getfa1(fa2,e[k].u);fy=getfa1(fa2,e[k].v);
+			if(fx!=fy)fa2[fx]=fy;
+		}	
+	}
+	if(ans1!=n-1)puts("0");else printf("%d",ans2);
+}
+\end{lstlisting}
 \subsubsection{Tree Divide and Conquer}
 \begin{lstlisting}
 struct Edge {
