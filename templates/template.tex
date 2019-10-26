@@ -714,6 +714,13 @@ namespace MST {
     }
 }
 \end{lstlisting}
+\subsubsection{Spanning Tree Calculation}
+关联矩阵B:n*m的矩阵,其中ek=(vi,vj),Bik和Bjk一个为1一个为-1,第k列其他元素为0
+度数矩阵D:n*n的矩阵,其中i!=j时,D[i][j]=0;i==j时,D[i][j]=vi的度
+邻接矩阵A:n*n的矩阵,vi,vj有边相连,为1,否则为0
+Kirchhoff矩阵: B*BT = D - A
+生成树个数:Kirchhoff矩阵n-1阶主子式的行列式值
+构造Kirchhoff矩阵,调用det(n)
 \subsubsection{Minimum Spanning Tree Calculation}
 \begin{lstlisting}
 typedef long long LL;
@@ -3662,6 +3669,25 @@ int Gauss() {
         }
     }
     return --num;
+}
+//det
+LL det(int n){
+	LL ret = 1;
+	for(int i = 1; i < n; i++){
+		for(int j = i + 1; j < n; j++)
+			while(a[j][i]){
+				LL t = (LL)a[i][i] / a[j][i];
+				for(int k = i; k < n; k++) {
+					a[i][k] = (a[i][k]-a[j][k] * t);
+					swap(a[i][k], a[j][k]);
+				}
+				ret = -ret;
+			}
+		if(a[i][i] == 0)return 0;
+		ret = ret * a[i][i];
+	}
+	if(ret<0)ret = -ret;
+	return ret;
 }
 \end{lstlisting}
 \subsubsection{Polynomial}
