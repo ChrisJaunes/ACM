@@ -654,7 +654,7 @@ namespace MST{
     }e[MAXM];
     int ecnt, fa[MAXN];
     void addEdge(int u, int v, LL w) {
-        e[++ecnt] = (Edge){v, u, w}; headp[u] = ecnt;
+        e[++ecnt] = (Edge){v, u, w}; //headp[u] = ecnt;
     }
     int Find(int x) { return x == fa[x] ? x : fa[x] = Find(fa[x]); }
     LL kruskal(int n) {
@@ -3314,10 +3314,16 @@ namespace PAM {
 	}
 };
 \end{lstlisting}
-
-
-
-
+\subsubsection{Substring Automaton}
+\begin{lstlisting}
+for(int j = 0; j < 26; j++) 
+	ch[n][j] = ch[n+1][j] = n + 1;
+for(int i = n; i >= 1; i--) {
+	for(int j = 0; j < 26; j++) 
+		ch[i-1][j] = ch[i][j];
+	ch[i-1][s[i]-'a'] = i;
+}
+\end{lstlisting}
 
 \newpage
 \section{Math}
