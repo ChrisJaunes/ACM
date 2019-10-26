@@ -3664,12 +3664,24 @@ int Gauss() {
     return --num;
 }
 \end{lstlisting}
-\subsubsection{Polynomial Inverse}
+\subsubsection{Polynomial}
+Inverse: \\
 \begin{equation*}
 \begin{aligned} 
     A_x * B'_x &\equiv 1 &\pmod {x^{\frac{n}{2}}} \\
     A_x * B_x  &\equiv 1 &\pmod {x^n} \\
     B_x &\equiv 2 \cdot B'_x - A_x \cdot {B'}_{x}^{2} &\pmod {x^n}
+\end{aligned}
+\end{equation*}
+Division: \\
+$$
+A_r(x) = x^nA(\frac{1}{x}) \Rightarrow A_r(x)[i] = A(x)[n - i]
+$$
+\begin{equation*}
+\begin{aligned} 
+    A(x) &= B(x) * Q(x) + R(x) \\
+    Q_r(x) &= A_r(x) * B_r^{-1}(x) \\
+    R(x) &= A(x) - B(x) * Q(x)
 \end{aligned}
 \end{equation*}
 \begin{lstlisting}
@@ -3678,69 +3690,107 @@ int Gauss() {
 using namespace std;
 typedef long long LL;
 const int MAXN = 300005, G = 3, mod = 998244353;
-int rev[MAXN], T;
-LL qpow(LL x, LL y) {
-    LL res = 1;
-    while(y) {
-        if(y & 1) res = res * x % mod;
-        x = x * x % mod;
-        y >>= 1;
+namespace NTT {
+    int rev[MAXN], T;
+    LL qpow(LL x, LL y) {
+        LL res = 1;
+        while(y) {
+            if(y & 1) res = res * x % mod;
+            x = x * x % mod;
+            y >>= 1;
+        }
+        return res;
     }
-    return res;
-}
-LL A[MAXN], B[MAXN];
-void ntt(LL *a, int r) {
-    for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
-    for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
-        LL gn = qpow(G, (mod - 1) / i);
-        if(r == -1) gn = qpow(gn, mod - 2);
-        for(int j = 0; j < T; j += i) {
-            LL cur = 1, tmp;
-            for(int k = j; k < j + mid; k++, cur = cur * gn % mod) {
-                tmp = a[k + mid] * cur % mod;
-                a[k + mid] = ((a[k] - tmp) % mod + mod) % mod;
-                a[k] = (a[k] + tmp) % mod;
+    void ntt(LL *a, int r) {
+        for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+        for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
+            LL gn = qpow(G, (mod - 1) / i);
+            if(r == -1) gn = qpow(gn, mod - 2);
+            for(int j = 0; j < T; j += i) {
+                LL cur = 1, tmp;
+                for(int k = j; k < j + mid; k++, cur = cur * gn % mod) {
+                    tmp = a[k + mid] * cur % mod;
+                    a[k + mid] = ((a[k] - tmp) % mod + mod) % mod;
+                    a[k] = (a[k] + tmp) % mod;
+                }
             }
         }
+        if(r == -1) {
+            LL inv = qpow(T, mod - 2);
+            for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
+        }
     }
-    if(r == -1) {
-        LL inv = qpow(T, mod - 2);
-        for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
+    void init(int n) {
+        for(T = 1; T <= n; T <<= 1);
+        for(int i = 0; i < T; i++) {
+            if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+            else rev[i] = rev[i >> 1] >> 1;
+        }
     }
 }
-void init(int n) {
-    //for(T = 1; T <= n; T <<= 1);
-    T = n << 1;
-    for(int i = 0; i < T; i++) {
-        if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
-        else rev[i] = rev[i >> 1] >> 1;
+namespace poly {
+using namespace NTT;
+    void mul(LL *a, LL *b, LL *c, int n, int m) {
+        init(n + m);
+        static LL x[MAXN], y[MAXN];
+        for(int i = 0; i < T; i++) {
+            x[i] = i <= n ? a[i] : 0;
+            y[i] = i <= m ? b[i] : 0;
+        }
+        ntt(x, 1); ntt(y, 1);
+        for(int i = 0; i < T; i++) c[i] = x[i] * y[i] % mod;
+        ntt(c, -1);
+    }
+    void poly_inv(LL *a, LL *b, int n) {
+        if(n == 1) {
+            b[0] = qpow(a[0], mod - 2);
+            return;
+        }
+        static LL c[MAXN], d[MAXN];
+        memset(c, 0, n * sizeof(LL));
+        poly_inv(a, c, n >> 1);
+        for(int i = 0; i < n; i++) {
+            d[i] = a[i];
+        }
+        init(n);
+        ntt(c, 1); ntt(d, 1);
+        for(int i = 0; i < T; i++) b[i] = c[i] * (2 + mod - d[i] * c[i] % mod) % mod;
+        ntt(b, -1);
+        for(int i = n; i < T; i++) b[i] = 0;
+    }
+    void inv(LL *a, LL *b, int n) {//A must be different from B
+        init(n);
+        poly_inv(a, b, T);
+    }
+    //A_x = B_x * Q_x + R_x;
+    void div(LL *A, LL *B, LL *Q, LL *R, int n, int m) {
+        static LL f[MAXN], g[MAXN], inv_g[MAXN];
+        for(int i = 0; i <= n; i++) f[n - i] = A[i];
+        for(int i = 0; i <= m; i++) g[m - i] = B[i];
+        //inv(G_r)
+        for(int i = n - m + 1; i <= m; i++) g[i] = 0;
+        inv(g, inv_g, n - m);
+        //Q
+        mul(f, inv_g, f, n, n - m);
+        for(int i = 0; i <= n - m; i++) Q[i] = f[n - m - i];
+        //R
+        mul(Q, B, f, n - m, m);
+        for(int i = 0; i < m; i++) R[i] = (A[i] + mod - f[i]) % mod;
     }
 }
-void poly_inv(LL *a, LL *b, int n) {
-    if(n == 1) {
-        b[0] = qpow(a[0], mod - 2);
-        return;
-    }
-    static LL c[MAXN], d[MAXN];
-    memset(c, 0, n * sizeof(LL)); memset(d, 0, n * sizeof(LL));
-    poly_inv(a, c, n >> 1);
-    for(int i = 0; i < n; i++) d[i] = a[i];
-    init(n);
-    ntt(c, 1); ntt(d, 1);
-    for(int i = 0; i < T; i++) b[i] = (2 * c[i] % mod + mod - d[i] * c[i] % mod * c[i] % mod) % mod;
-    ntt(b, -1);
-    for(int i = 0; i < n; i++) b[n + i] = 0;
-}
+LL A[MAXN], B[MAXN];
+LL Q[MAXN], R[MAXN];
 int main() {
     ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
-    int n; cin >> n; n--;
-    for(T = 1; T <= n; T <<= 1);
+    int n, m; cin >> n >> m;
     for(int i = 0; i <= n; i++) cin >> A[i];
-    poly_inv(A, B, T);
-    for(int i = 0; i <= n; i++) cout << B[i] << " "; cout << endl;
+    for(int i = 0; i <= m; i++) cin >> B[i];
+    poly::div(A, B, Q, R, n, m);
+    for(int i = 0; i <= n - m; i++) cout << Q[i] << " "; cout << endl;
+    for(int i = 0; i < m; i++) cout << R[i] << " "; cout << endl;
     return 0;
 }
-//非NTT模数
+//非NTT模数求逆
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long LL;
