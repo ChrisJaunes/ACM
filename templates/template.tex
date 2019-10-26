@@ -2874,6 +2874,53 @@ struct Hash {
     }
 };
 \end{lstlisting}
+\subsubsection{Minimum String}
+\begin{lstlisting}
+namespace minstring{
+	int getmin(char *s, int sn) {
+		int i = 0, j = 1, k = 0, t;
+		while(i < sn && j < sn && k < sn) {
+			t = s[(i + k) % sn] - s[(j + k) % sn];
+			if(!t) k++;
+			else {
+				if(t > 0) i += k + 1; else j += k + 1;
+				if(i == j) j++;
+				k = 0;
+			}
+		}
+		return i < j ? i : j;
+	}
+}
+\end{lstlisting}
+\subsection{String Matching}
+\subsubsection{Bitset Match}
+\begin{lstlisting}
+namespace BitMatch{
+	const int S = 26;
+	bitset<MAXN> bs[S], ret;
+	char s[MAXN];
+	inline int idx(char c) { return c - 'a'; }
+	inline void init() {
+		for(int i = 0; i < 26; i++) bs[i].reset();
+		scanf("%s", s);
+		int sn = strlen(s);
+		for(int i = 0; i < sn; i++) bs[idx(s[i])].set(i);
+	}
+	void modify(int p, char ch) {
+		bs[idx(s[p])].reset(p);
+		s[p] = ch;
+		bs[idx(s[p])].set(p);
+	}
+	int match(char *t, int tn) {//返回t串在s串中出现的次数
+		ret = bs[idx(t[0])];
+		for(int i = 1; i < tn; i++) {
+			ret <<= 1;
+			ret &= bs[idx(t[i])];
+		}
+		return ret.count();
+	} 
+}
+\end{lstlisting}
 \subsubsection{KMP \&\& exKMP}
 \begin{lstlisting}
 namespace KMP {
@@ -3032,24 +3079,6 @@ namespace AC {
 //			}
 //		}
 
-}
-\end{lstlisting}
-\subsubsection{Minimum String}
-\begin{lstlisting}
-namespace minstring{
-	int getmin(char *s, int sn) {
-		int i = 0, j = 1, k = 0, t;
-		while(i < sn && j < sn && k < sn) {
-			t = s[(i + k) % sn] - s[(j + k) % sn];
-			if(!t) k++;
-			else {
-				if(t > 0) i += k + 1; else j += k + 1;
-				if(i == j) j++;
-				k = 0;
-			}
-		}
-		return i < j ? i : j;
-	}
 }
 \end{lstlisting}
 \subsection{Suffix Related}
@@ -3314,7 +3343,7 @@ namespace PAM {
 	}
 };
 \end{lstlisting}
-\subsubsection{Substring Automaton}
+\subsection{Substring Automaton}
 \begin{lstlisting}
 for(int j = 0; j < 26; j++) 
 	ch[n][j] = ch[n+1][j] = n + 1;
