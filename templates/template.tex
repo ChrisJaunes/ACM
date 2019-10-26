@@ -5562,6 +5562,7 @@ done
 
 \subsection{FastIO}
 \begin{lstlisting}
+//普通情况
 namespace IO {
     const int MB = 1048576;
     const int RMAX = 16 * MB;
@@ -5573,7 +5574,7 @@ namespace IO {
         fread(rb, sizeof(char), RMAX, stdin);
     }
     template <class _T> inline void read(_T &_a) {
-        _a = 0; register bool _f = 0; register int _c = getchar();
+        _a = 0; bool _f = 0; int _c = getchar();
         while (_c < '0' || _c > '9') _f |= _c == '-', _c = getchar();
         while (_c >= '0' && _c <= '9') _a = _a * 10 + (_c ^ '0'), _c = getchar();
         _a = _f ? -_a : _a;
@@ -5582,7 +5583,7 @@ namespace IO {
         static char buf[20], *top = buf;
         if (_a) {
             while (_a) {
-                register _T tm = _a / 10;
+                _T tm = _a / 10;
                 *(++top) = char(_a - tm * 10) | '0';
                 _a = tm;
             }
@@ -5592,6 +5593,57 @@ namespace IO {
     }
     void output() {
         fwrite(wb, sizeof(char), wp - wb, stdout);
+    }
+}
+//EOF结尾+分块读入
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+namespace IO {
+    const int MB = 1048576;
+    const int RMAX = 4 * MB;
+    const int WMAX = 4 * MB;
+    unsigned long long filesize;
+    #define putchar(x) (*(wp++) = (x))
+    char rb[RMAX], wb[WMAX], *wp = wb;
+    int rp = 0;
+    inline void init() {
+        filesize = fread(rb, sizeof(char), RMAX, stdin);
+        rp = 0;
+        wp = wb;
+    }
+    void output() {
+        fwrite(wb, sizeof(char), wp - wb, stdout);
+    }
+    inline char getCHAR(){
+        if(unlikely(rp == filesize)){
+            fwrite(wb, sizeof(char), wp - wb, stdout);
+            init();
+            if(unlikely(filesize == 0)) {
+                //cerr << 1.0 * (clock() - st) / CLOCKS_PER_SEC << endl;
+                exit(0);
+            }
+        }
+        return rb[rp++];
+    }
+    template <class _T> inline void read(_T &_a) {
+        _a = 0; static bool _f = 0; static int _c;
+        _f = 0; _c = getCHAR();
+        while (_c < '0' || _c > '9') _f |= _c == '-', _c = getCHAR();
+        while (_c >= '0' && _c <= '9') _a = _a * 10 + (_c ^ '0'), _c = getCHAR();
+        _a = _f ? -_a : _a;
+    }
+    template <class _T> inline void write(_T _a) {
+        static char buf[20], *top = buf;
+        if (_a) {
+            while (_a) {
+                _T tm = _a / 10;
+                *(++top) = char(_a - tm * 10) | '0';
+                _a = tm;
+            }
+            while (top != buf) putchar(*(top--));
+        }
+        else putchar('0');
+        putchar('\n');
     }
 }
 \end{lstlisting}
