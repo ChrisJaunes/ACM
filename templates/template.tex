@@ -3900,6 +3900,246 @@ int main() {
     cout << endl;
     return 0;
 }
+
+//LOJ挑战多项式(备用)
+#include <bits/stdc++.h>
+#define rep(i, a, b) for (int i = (a); i <= (b); i++)
+#define per(i, a, b) for (int i = (a); i >= (b); i--)
+#define REP(i, n) for (int i = (0); i < (n); i++)
+#define fi first
+#define se second
+#define mp make_pair
+#define pb push_back
+using namespace std;
+typedef unsigned long long ull;
+typedef pair<int, int> pii;
+typedef vector<int> poly;
+typedef long long ll;
+struct ano {
+    char a[1 << 25], *s;
+    char b[1 << 25], *t;
+    ano() : s(a), t(b) { a[fread(a, 1, sizeof a, stdin)] = 0; }
+    ~ano() { fwrite(b, 1, t - b, stdout); }
+    operator int() {
+        int x = 0;
+        while (*s < 48) ++s;
+        while (*s > 32) x = x * 10 + *s++ - 48;
+        return x;
+    }
+    ll in() {
+        ll x = 0;
+        while (*s < 48) ++s;
+        while (*s > 32) x = x * 10 + *s++ - 48;
+        return x;
+    }
+    void out(int x, char e = ' ') {
+        static char c[12];
+        char *i = c;
+        if (!x)
+            *t++ = 48;
+        else {
+            while (x) {
+                int y = x / 10;
+                *i++ = x - y * 10 + 48, x = y;
+            }
+            while (i != c) *t++ = *--i;
+        }
+        *t++ = e;
+    }
+} buf;
+const int mod = 998244353;
+namespace Poly {
+const int N = (1 << 20) + 5, g = 3;
+inline int power(int x, int p) {
+    int res = 1;
+    for (; p; p >>= 1, x = (ll)x * x % mod)
+        if (p & 1)
+            res = (ll)res * x % mod;
+    return res;
+}
+inline int fix(const int x) { return x >= mod ? x - mod : x; }
+void dft(poly &A, int n) {
+    static ull W[N << 1], *H[30], *las = W, mx = 0;
+    for (; mx < n; mx++) {
+        H[mx] = las;
+        ull w = 1, wn = power(g, (mod - 1) >> (mx + 1));
+        REP(i, 1 << n) *las++ = w, w = w * wn % mod;
+    }
+    if (A.size() != (1 << n))
+        A.resize(1 << n);
+    static ull a[N];
+    for (int i = 0, j = 0; i < (1 << n); ++i) {
+        a[i] = A[j];
+        for (int k = 1 << (n - 1); (j ^= k) < k; k >>= 1)
+            ;
+    }
+    for (int k = 0, d = 1; k < n; k++, d <<= 1)
+        for (int i = 0; i < (1 << n); i += (d << 1)) {
+            ull *l = a + i, *r = a + i + d, *w = H[k], t;
+            for (int j = 0; j < d; j++, l++, r++) {
+                t = (*r) * (*w++) % mod;
+                *r = *l + mod - t, *l += t;
+            }
+        }
+    REP(i, 1 << n) A[i] = a[i] % mod;
+}
+void idft(poly &a, int n) {
+    a.resize(1 << n), reverse(a.begin() + 1, a.end());
+    dft(a, n);
+    int inv = power(1 << n, mod - 2);
+    REP(i, 1 << n) a[i] = (ll)a[i] * inv % mod;
+}
+poly FIX(poly a) {
+    while (!a.empty() && !a.back()) a.pop_back();
+    return a;
+}
+poly add(poly a, poly b, int op = 0) {
+    a.resize(max(a.size(), b.size()));
+    REP(i, b.size()) a[i] = fix(op ? a[i] + mod - b[i] : a[i] + b[i]);
+    return FIX(a);
+}
+poly mul(poly a, poly b, int t = 1) {
+    if (t == 1 && a.size() + b.size() <= 24) {
+        poly c(a.size() + b.size(), 0);
+        REP(i, a.size()) REP(j, b.size()) c[i + j] = (c[i + j] + (ll)a[i] * b[j]) % mod;
+        return FIX(c);
+    }
+    int n = 1, aim = a.size() * t + b.size();
+    while ((1 << n) <= aim) n++;
+    dft(a, n), dft(b, n);
+    if (t == 1)
+        REP(i, 1 << n) a[i] = (ll)a[i] * b[i] % mod;
+    else
+        REP(i, 1 << n) a[i] = (ll)a[i] * a[i] % mod * b[i] % mod;
+    idft(a, n), a.resize(aim);
+    return FIX(a);
+}
+poly mul(poly a, int b) {
+    REP(i, a.size()) a[i] = (ll)a[i] * b % mod;
+    return FIX(a);
+}
+
+poly inv(poly a, int n) {  // a[0] != 0
+    a.resize(n);
+    poly b;
+    if (n == 1) {
+        b.pb(power(a[0], mod - 2));
+        return b;
+    }
+    b = inv(a, n + 1 >> 1);
+    b = add(mul(b, 2), mul(b, a, 2), 1);
+    return b.resize(n), b;
+}
+
+poly Der(poly a) {
+    REP(i, a.size() - 1) a[i] = (ll)(i + 1) * a[i + 1] % mod;
+    return a.pop_back(), a;
+}
+poly Int(poly a) {
+    static int inv[N];
+    inv[1] = 1;
+    a.pb(0);
+    rep(i, 2, a.size()) inv[i] = (ll)(mod - mod / i) * inv[mod % i] % mod;
+    per(i, a.size() - 1, 1) a[i] = (ll)a[i - 1] * inv[i] % mod;
+    return a[0] = 0, a;
+}
+poly Ln(poly a, int n) {  // a[0] = 1
+    a = mul(Der(a), inv(a, n)), a.resize(n - 1);
+    return FIX(Int(a));
+}
+poly Exp(poly a, int n) {  // a[0] = 0
+    a.resize(n);
+    poly b, one(1, 1);
+    if (n == 1)
+        return one;
+    b = Exp(a, n + 1 >> 1);
+    b = mul(b, add(add(a, Ln(b, n), 1), one));
+    return b.resize(n), b;
+}
+
+poly Div(poly a, poly b) {
+    poly c;
+    int n = a.size() - 1, m = b.size() - 1;
+    if (n < m)
+        return c;
+    reverse(a.begin(), a.end());
+    a.resize(n - m + 1);
+    reverse(b.begin(), b.end());
+    b.resize(n - m + 1);
+    c = mul(a, inv(b, n - m + 1));
+    c.resize(n - m + 1);
+    return reverse(c.begin(), c.end()), c;
+}
+poly Mod(poly a, poly b) { return FIX(add(a, mul(Div(a, b), b), 1)); }
+inline int chk(int x) { return power(x, (mod - 1) / 2) == 1; }
+inline int R() { return rand() % mod; }
+inline pii mul(pii a, pii b, int w) {
+    return mp(((ll)a.fi * b.fi + (ll)a.se * b.se % mod * w) % mod, ((ll)a.fi * b.se + (ll)a.se * b.fi) % mod);
+}
+inline int Sqrt(int x) {
+    if (!chk(x))
+        return -1;
+    int a = R();
+    while (chk(((ll)a * a - x + mod) % mod)) a = R();
+    int w = ((ll)a * a - x + mod) % mod, p = (mod + 1) / 2;
+    pii res = mp(1, 0), t = mp(a, 1);
+    for (; p; p >>= 1, t = mul(t, t, w))
+        if (p & 1)
+            res = mul(res, t, w);
+    assert(!res.se);
+    return min(res.fi, mod - res.fi);
+}
+poly Sqrt(poly a, int n) {
+    if (n == 1) {
+        poly b(1, Sqrt(a[0]));
+        return b;
+    }
+    a.resize(n);
+    poly b = Sqrt(a, n + 1 >> 1);
+    b = mul(add(b, mul(a, inv(b, n))), (mod + 1) / 2);
+    return b.resize(n), b;
+}
+poly fastpow(poly a, ll k, int n) {
+    a.resize(n), a = FIX(a);
+    if (!a.size())
+        return a;
+    int st = 0, base = 0;
+    while (!a[st]) ++st;
+    if (st * k >= n)
+        return a.resize(0), a;
+    REP(i, a.size() - st) a[i] = a[i + st];
+    if (st)
+        a.resize(a.size() - st);
+    base = a[0];
+    ll inv = power(base, mod - 2);
+    REP(i, a.size()) a[i] = a[i] * inv % mod;
+    a = FIX(Exp(mul(Ln(a, n), k % mod), n));
+    ;
+    if (st) {
+        reverse(a.begin(), a.end());
+        a.resize(a.size() + st * k);
+        reverse(a.begin(), a.end());
+        a.resize(n), a = FIX(a);
+    }
+    base = power(base, k);
+    REP(i, a.size()) a[i] = (ll)a[i] * base % mod;
+    return FIX(a);
+}
+}  // namespace Poly
+using namespace Poly;
+int main() {
+    int n = buf + 1, K = buf;
+    poly a(n, 0), b;
+    REP(i, n) a[i] = buf;
+    b = add(a, Exp(Int(inv(Sqrt(a, n), n)), n), 1);
+    b[0] = (b[0] + 2 - a[0] + mod) % mod;
+    a = Ln(b, n);
+    a[0]++;
+    b = Der(fastpow(a, K, n));
+    b.resize(n - 1);
+    REP(i, n - 1) buf.out(b[i]);
+    return 0;
+}
 \end{lstlisting}
 \subsubsection{Lagrange Polynomial}
 $$
