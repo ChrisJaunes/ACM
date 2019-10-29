@@ -5403,6 +5403,24 @@ double Integrate(double l,double r,double S){
     return Integrate(l,mid,A)+Integrate(mid,r,B);
 }
 \end{lstlisting}
+\subsection{Closest Point}
+\begin{lstlisting}
+vector <Point> P;
+DB CP(int l, int r) {
+    if (l == r) return DB_INF;
+    if (l + 1 == r) return DisPP(P[l], P[r]);
+    int mid = (l + r) >> 1;
+    DB d = min(CP(l, mid), CP(mid + 1, r));
+    vector <Point> tmp;
+    for (int i = l; i <= r; i++)
+        if (fabs(P[mid].x - P[i].x) < d) tmp.push_back(P[i]);
+    sort(tmp.begin(), tmp.end(), cmpy);
+    for (int i = 0; i < tmp.size(); i++)
+        for (int j = i + 1; j < tmp.size() && tmp[j].y - tmp[i].y < d; j++)
+            d = min(d, DisPP(tmp[i], tmp[j]));
+    return d;
+}
+\end{lstlisting}
 
 \newpage
 \section{Conclusion}
