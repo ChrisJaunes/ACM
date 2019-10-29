@@ -5745,8 +5745,50 @@ $$cnt(r) = 4 \prod_{i = 1}^{m} \sum_{j = 0}^{a_i} \chi(p_i^j) = 4 \prod_{i = 1}^
 \par
 Define CNT is the number of integer point in circle
 $$CNT(r) = 1 + \sum_{i = 1}^{r^2}cnt(i) = 1 + \sum_{i = 1}^{r^2} \lfloor \frac{r^2}{i} \rfloor \chi(i)$$
-
-
+\subsection{Josephus}
+\subsubsection{$J(n, m)$ : The Last Surviving Person}
+\textbf{based-0, $m - 1$ was the first be killed.}
+\[
+    J_0(n, m) = 
+    \begin{cases}
+        0 & n = 1; \\
+        (J_0(n - 1, m) + m) \% n & 1 < n < m; \\
+        \lfloor \frac{k((f(n', k) - n mod k) mod n')}{k - 1} \rfloor \ where \ n' = n - \lfloor \frac{n}{k} \rfloor & m <= n
+    \end{cases}
+\]
+$$J_k(n, m) = (J_0(n, m) + k) \% n$$
+\begin{lstlisting}
+int J0(int n, int m) {
+    if (m == 1) return n - 1;
+    int ans = 0;
+    for (int i = 2; i <= n; ) {
+        if (ans + m >= i) {
+            ans = (ans + m) % i;
+            i++;
+            continue;
+        }
+        int step = (i - 1 - ans - 1) / (m - 1);
+        if (i + step > n) {
+            ans += (n - (i - 1)) * m;
+            break;
+        }
+        i += step; ans += step * m;
+    }
+    return ans;
+}
+\end{lstlisting}
+\subsubsection{$aJ(n, 1, K)$ : Survival Time of $K$-th Person}
+\textbf{based-1, $1$ was the first be killed.}
+\begin{lstlisting}
+int aJ1(int size, int be, int goal){
+	if (be > size) be = (be - 1) % size + 1;
+	if (goal % m == be % m) return (goal - be) / m + 1;
+	return (size - be) / m + 1 + get(size - (size - be) / m - 1, (be + ((size - be) / m + 1) * m) - size, goal > be ? goal - (goal - be) / m - 1 : goal);
+}
+\\ size : the size of current group;
+\\ be : the start person of current step;
+\\ goal : index of the asked person.
+\end{lstlisting}
 
 
 
