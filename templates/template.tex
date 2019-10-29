@@ -6314,6 +6314,7 @@ static class InputReader {
 \end{lstlisting}
 \subsection{pb\_ds}
 \begin{lstlisting}
+//P.S.:无脑正确使用pb_ds代替std::set/map/priority_queue不会变慢
 //可持久化平衡树,不过时间和空间都不太行
 #include <ext/rope>
 using namespace __gnu_cxx;
@@ -6328,22 +6329,107 @@ x->erase(pos,x)     // 从pos开始删除x个
 x->replace(pos,x)   // 从pos开始换成x
 x->substr(pos,x)    // 提取pos开始x个
 
-//名次树(rbtree and splay)
+//树
+//不支持低级操作（如交换左右子树）
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 using namespace __gnu_pbds;
 定义一颗红黑树
-tree<int,null_type,less<int>,rb_tree_tag,tree_order_statistics_node_update>t;
+tree<int,null_type,less<int>,rb_tree_tag,tree_order_statistics_node_update>t, other;
 int 关键字类型
-null_type无映射(低版本g++为null_mapped_type)
+null_type
+无映射(低版本g++为null_mapped_type) (无映射为类似set，有映射类似map)
 less<int>从小到大排序
 rb_tree_tag 红黑树（splay_tree_tag）
-tree_order_statistics_node_update结点更新
-插入t.insert();
-删除t.erase();
-Rank:t.order_of_key();
-第K值:t.find_by_order();
+tree_order_statistics_node_update结点更新(统计子树size，可自写)，不写不支持order_of_key以及find_by_order
+插入:t.insert();
+删除:t.erase();
+比x小的个数:t.order_of_key(x);
+第x+1值:t.find_by_order(x);
 前驱:t.lower_bound();
-后继t.upper_bound();
+后继:t.upper_bound();
+合并:t.join(other); (other和*this值域不能相交)
+分裂:t.split(x, other); (清空other，将t中比x小的元素移至other)
+
+//自定义节点更新
+template <class Node_CItr , class Node_Itr , class Cmp_Fn , class _Alloc >
+struct my_node_update {
+	virtual Node_CItr node_begin () const = 0;
+	virtual Node_CItr node_end() const = 0;
+	typedef char metadata_type;//节点上记录的额外信息的类型
+	//以上为固定格式
+
+	//operator()的功能是将节点it的信息更新为其左右孩子的信息之和，传入的end_it表示空节点
+	//对Node_Itr可以做的事情有：用get_l_child,get_r_child获取左右孩子，用两个星号获取节点信息，用get_metadata获取节点额外信息
+	inline void operator()(Node_Itr it, Node_CItr end_it) {
+		Node_Itr l = it.get_l_child(), r = it.get_r_child();
+		int left = 0, right = 0;
+		if(l != end_it) left = l.get_metadata();
+		if(r != end_it) right = r.get_metadata();
+		const_cast<metadata_type &>(it.get_metadata()) = left + right + (*it)->second;
+		//it是node_Itr, 取*后变为iterator，再取->second变成mapped_value
+	}
+	inline int prefix_sum(int x) {
+		int ans = 0;
+		Node_CItr it = node_begin ();
+		while(it != node_end()) {
+			Node_CItr l = it.get_l_child(), r = it.get_r_child();
+			if(Cmp_Fn()(x, (*it)->first)) it = l;
+			else {
+				ans += (*it)->second;
+				if(l != node_end()) ans += l.get_metadata();
+				it = r;
+			}
+		}
+		return ans;
+	}
+	inline int interval_sum(int l, int r) {
+		return prefix_sum(r) - prefix_sum(l - 1);
+	}
+};
+
+tree<int, char, less<int>, rb_tree_tag, my_node_update> T;//map
+int main() {
+	T[2] = 'a'; T[3] = 'b'; T[4] = 1;
+	cout << (char)T.interval_sum(3, 4) << endl;//c
+	return 0;
+}
+//堆
+#include <ext/pb_ds/priority_queue.hpp>
+using namespace __gnu_pbds;
+__gnu_pbds::priority_queue<int, std::less<int>, __gnu_pbds::pairing_heap_tag> q;
+
+template <typename Value_Type ,
+typename Cmp_Fn = std::less<Value_Type>, 
+typename Tag = pairing_heap_tag ,
+typename Allocator = std::allocator<char> >
+class priority_queue
+Tag可以是binary_heap_tag（二叉堆）binomial_heap_tag（二项堆）rc_binomial_heap_tag pairing_heap_tag（配对堆）thin_heap_tag
+用begin()和end()获取迭代器从而遍历
+删除单个元素 void erase(point_iterator)
+更改一个元素的值 void modify(point_iterator, const_reference)
+合并 void join(priority_queue &other)，把other合并到*this，并把other清空
+push()会返回迭代器
+五种操作：push、pop、modify、erase、join
+• pairing_heap_tag：push和joinO(1)，其余均摊O(logn)
+• binary_heap_tag：只支持push和pop，均为均摊O(logn)
+• binomial_heap_tag：push为均摊O(1)，其余为O(logn)
+• rc_binomial_heap_tag：push为O(1)，其余为O(logn)
+• thin_heap_tag：push为O(1)，不支持join，其余为O(logn)；但是如果只有increase_key，modify均摊O(1)
+• 不支持不是不能用，而是用起来很慢
+经过实践检测得到的结论：
+• Dijkstra算法中应用pairing_heap_tag，速度与手写数据结构相当。
+• binary_heap_tag在绝大多数情况下优于std::priority_queue
+• pairing_heap_tag在绝大多数情况优于binomial_heap_tag和rc_binomial_heap_tag
+• 只有push，pop和join操作时，binary_heap_tag速度较快
+• 有modify操作时，可以考虑thin_heap_tag或者pairing_heap_tag，或手写数据结构。
+
+//hash_table
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/hash_policy.hpp>
+using namespace __gnu_pbds;
+__gnu_pbds::cc_hash_table <Key, Mapped> mp; //使用链地址法解决哈希冲突
+__gnu_pbds::gp_hash_table <Key, Mapped> mp; //使用探测法解决哈希冲突
+//用法和map一样
 \end{lstlisting}
 \end{document}
