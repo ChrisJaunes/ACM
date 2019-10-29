@@ -6327,5 +6327,23 @@ x->insert(pos,x)    // 在pos插入x
 x->erase(pos,x)     // 从pos开始删除x个
 x->replace(pos,x)   // 从pos开始换成x
 x->substr(pos,x)    // 提取pos开始x个
+
+//名次树(rbtree and splay)
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
+定义一颗红黑树
+tree<int,null_type,less<int>,rb_tree_tag,tree_order_statistics_node_update>t;
+int 关键字类型
+null_type无映射(低版本g++为null_mapped_type)
+less<int>从小到大排序
+rb_tree_tag 红黑树（splay_tree_tag）
+tree_order_statistics_node_update结点更新
+插入t.insert();
+删除t.erase();
+Rank:t.order_of_key();
+第K值:t.find_by_order();
+前驱:t.lower_bound();
+后继t.upper_bound();
 \end{lstlisting}
 \end{document}
