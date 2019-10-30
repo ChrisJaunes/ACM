@@ -3354,6 +3354,12 @@ for(int i = n; i >= 1; i--) {
 }
 \end{lstlisting}
 
+
+
+
+
+
+
 \newpage
 \section{Math}
 \subsection{Algebra}
@@ -5598,7 +5604,7 @@ SJ定理说明：先手必胜，当且仅当以下两个条件同时成立或同
 2.所有游戏的SG值不超过1。\\
 \subsubsection{Surreal Number Theory}
 
-\subsection{Math Theory}
+\subsection{Math}
 \subsubsection{Euler's Theorem}
 \begin{equation*}
     a^b\equiv\left\{
@@ -5716,7 +5722,148 @@ $$
 最后一位只能是1.\\
 所以这个数是45321.\\
 按以上方法可以得出通用的算法。\\
-\subsection{Convolution}
+\subsubsection{$\sum_{i=1}^n i^k$}
+{\large\bfseries 差分和组合数:$O(k^2)$\par}
+考虑数列\{$1_k,2_k,\cdots,i_k$\}\\
+相邻两项做差之后，得到的数列的每项应 该是一个 k − 1 次关于 i 的多项式。\\
+再次相邻两项做差之后，得到的数列的每项应该是一个 k − 2 次 关于 i 的多项式。\\
+如此进行 k 次，得到的数列的每项应该是一个 0 次关于 i 的多 项式，即常数数列。\\
+再次相邻两项做差之后，一定会得到一个全是 0 的数列。 \\
+假设经过 i 次差分数列之后的数列第一项为 $r_i$ 那么答案就是\\
+$$
+\sum_{i=0}^k r_i \binom{n}{i+1}
+$$
+举例来说，考虑数列\\
+1,8,27,64,125,216,... \\
+求差分可得\\
+7,19,37,61,91,... \\
+12,18,24,30,... \\
+6,6,6,...\\
+0,0,...\\
+每个数列的第一项为 1, 7, 12, 6。所以最终的答案即为\\
+$$
+\binom{n}{1} + 7\binom{n}{2}+12\binom{n}{3}+6\binom{n}{4} =\frac{n^2(n+1)^2}{4}
+$$
+{\large\bfseries 拉格朗日插值:$O(k)$\par}
+\subsubsection{Generating Function}
+{\Large\bfseries 生成函数\par}
+{\large\bfseries 普通型\par}
+$$
+A(x) = \sum_{i=0}^{\infty}a_ix^i
+$$
+
+已知 \{$a_i$\}, \{$b_i$\} 的生成函数分别是 A(x), B(x)。\\
+那么 \{$a_i$ $\pm$ $b_i$\} 的生成函数是 A(x) $\pm$ B(x)。 \\
+值得注意的是数列 \{$a_i$\}, \{$b_i$\} 的卷积的生成函数，恰好是 C(x) = A(x)B(x)。\\
+$$
+c_i = \sum_j a_jb_{i-j}
+$$
+{\large\bfseries 关键公式\par}
+\begin{equation*}
+\begin{aligned}
+    \frac{1}{1-x} &= 1 + x + x^2 + x^3 + \cdots = \sum_{i}x^i\\
+    \frac{1}{1-x^2} &= 1+x^2+x^4+x^6+\cdots=\sum_i x^{2i}
+\end{aligned}
+\end{equation*}
+推广的二项式定理\\
+$$
+(1+x)^n = \binom n0 x^0 + \binom n1 x^1 + \binom n2 x^2 + \cdots = \sum_i \binom ni x^i
+$$
+{\large\bfseries 例子\par}
+{\large\bfseries Fibonacci生成函数\par}
+构造一个与${f_n}$有关得幂级数\\
+$$
+F(x) = f_1x +f_2x^2 + \cdots + f_n x^n + \cdots
+$$
+亦即
+$$
+F(x) = xF(x) + x^2F(x) + f_0 + (f_1 - f_0)x
+$$
+带入$f_0=0,f_1=1$\\
+$$
+F(x) = \frac{x}{1-x-x^2}
+$$
+如果想继续计算通项，我们需要解方程得到\\
+$$
+\frac{x}{1-x-x^2} = \frac{a}{1-\alpha x} + \frac{b}{1-\beta x}
+$$
+解出
+$$
+\left\{
+\begin{aligned}
+\alpha &= \frac{1+\sqrt5}{2} \\
+\beta &= \frac{1-\sqrt5}{2}
+\end{aligned}
+\right.
+$$
+带入方程有
+$$
+a = \frac{1}{\sqrt5}, b = -\frac{1}{\sqrt5}
+$$
+则
+$$
+\begin{aligned}
+F(x) &= \frac{a}{1-\alpha x} + \frac{b}{1-\beta x}\\
+&= a(1+\alpha x + \alpha^2x^2+\cdots) + b(1+\beta x + \beta^2x^2+\cdots)
+\end{aligned}
+$$
+蕴含通项为
+$$
+f_n = a\alpha^n + b\beta^n = \frac{(\frac{1+\sqrt5}{2})^n - (\frac{1-\sqrt5}{2})^n}{\sqrt5}
+$$
+{\large\bfseries Catalan数\par}
+$$
+c_n = \sum_{i=1}^{n-1} c_ic_{n-i}
+$$
+生成函数
+$$
+C(x) = c_1x+x_2x^2+\cdots
+$$
+亦即
+$$
+C(x) = xC(x)^2 + 1
+$$
+解得
+$$
+C(x) = \frac{1 - \sqrt{1-4x}}{2x}
+$$
+利用推广的二项式定理展开$\sqrt{1-4x}$可得通项
+$$
+c_n = \frac1n \binom{2n-2}{n-1}
+$$
+{\Large\bfseries 指数型生成函数\par}
+$$
+A(x) = \sum_{i=0}^{\infty} \frac{a_ix^i}{i!}
+$$
+已知 \{$a_i$\}, \{$b_i$\} 的生成函数分别是 A(x), B(x)。\\
+那么 \{$a_i$ $\pm$ $b_i$\} 的生成函数是 A(x) $\pm$ B(x)。 \\
+值得注意的是数列 \{$a_i$\}, \{$b_i$\} 的卷积的生成函数，恰好是 C(x) = A(x)B(x)。\\
+$$
+c_i = \sum_j \binom{i}{j} a_jb_{i-j}
+$$
+{\large\bfseries 关键公式\par}
+\begin{equation*}
+\begin{aligned}
+e^x &= 1 + x + \frac12x^2 + \frac16x^3+\cdots = \sum_i \frac{x^i}{i!}\\
+e^{-x} &= 1 - x + \frac12x^2 - \frac16x^3+\cdots = \sum_i \frac{(-x)^i}{i!}\\
+\frac{e^x + x^{-x}}{2} &= 1+\frac12x^2+\frac1{24}x^4+\cdots = \sum_i \frac{x^{2i}}{(2i)!}
+\end{aligned}
+\end{equation*}
+\subsubsection{Polya}
+设 G 是 p 个对象的一个置换群，用 k 种颜色去染这 p 个对象，若一种染色方案在群 G 的作用下变为另一种方案，则这两个方案当作是同一种方案，这样的不同染色方案数为:\\
+$$
+\frac{1}{|G|} \times \sum(k^{C(f)}), f \in G
+$$
+C( f ) 为循环节，|G| 表示群的置换方法数\\
+对于有 n 个位置的手镯，有 n 种旋转置换和 n 种翻转置换\\
+对于旋转置换:\\
+$$
+C(f_i) = gcd(n, i)
+$$
+i 表示一次转过 i 颗宝石，i = 0 时 c = n;\\
+对于翻转置换:\\
+如果n为偶数:则有 $\frac n2$ 个置换 $C(f)=\frac n2$，有 $\frac n2$ 个置换 $C(f)=\frac n2 +1$\\
+如果 n 为奇数: $C(f) = \frac n2 + 1$\\
 \subsubsection{FWT}
 \begin{equation*}
 \left\{
@@ -5731,6 +5878,12 @@ $$
     \end{aligned}
 \right.
 \end{equation*}
+\subsection{Graph Theory}
+\subsubsection{Matrix-Tree Theorem}
+基尔霍夫矩阵树定理\\
+构造一个矩阵 A。\\
+如果 i = j，那么 Aij 为点 i(j) 的度数。\\
+如果i̸=j，那么Aij 为i到j的边数的相反数。 最终得到的矩阵，删掉任意一行，任意一列之后的矩阵行列式求 值，可得到原图中生成树的个数。\\
 \subsection{Geometry}
 \subsubsection{The Number of Ingeter Point on a Circle}
 Set $r = const$ is the radius of the circle.
