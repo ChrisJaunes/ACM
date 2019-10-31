@@ -4980,6 +4980,80 @@ int main() {
     return 0;
 }
 \end{lstlisting}
+$$
+\sum_{i=1}^n \mu(i)
+$$
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 1e6 + 5;
+int prime[MAXN], isp[MAXN], cnt;
+LL g[3][MAXN << 1], h[3][MAXN << 1];
+LL w[MAXN << 1];
+int id1[MAXN], id2[MAXN];
+void Euler(int n) {
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime[++cnt] = i;
+            h[0][cnt] = h[0][cnt - 1] + 1;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                break;
+            }
+        }
+    }
+}
+LL a, b;
+LL n;
+int sz, m;
+inline int id(LL x) {
+    return x <= sz ? id1[x] : id2[n / x];
+}
+//f(p ^ k)
+inline int f(int p, int k) {
+    return k == 1 ? -1 : 0;
+}
+LL S(LL x, int y) {
+    if(x <= 1 || prime[y] > x) return 0;
+    //g(x) - h(j - 1)
+    LL res = - g[0][id(x)] + h[0][y - 1];
+    for(int j = y, k = 1; j <= cnt && (LL)prime[j] * prime[j] <= x; j++, k = 1) {
+        for(LL pk = prime[j]; pk * prime[j] <= x; pk *= prime[j], k++) {
+            res += S(x / pk, j + 1) * f(prime[j], k) + f(prime[j], k + 1);
+        }
+    }
+    return res;
+}
+LL cal(LL x) {
+    n = x;
+    m = 0;
+    sz = sqrt(n);
+    for(LL i = 1, last, t; i <= n; i = last + 1) {
+        last = n / (n / i);
+        w[++m] = n / i, t = n / i;
+        w[m] <= sz ? id1[w[m]] = m : id2[last] = m;
+        g[0][m] = t - 1;
+    }
+    for(int j = 1; j <= cnt; j++) {
+        for(int i = 1; i <= m && (LL)prime[j] * prime[j] <= w[i]; i++) {
+            g[0][i] = g[0][i] - (g[0][id(w[i] / prime[j])] - h[0][j - 1]);
+        }
+    }
+    return S(x, 1) + 1;
+} 
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    cin >> a >> b; 
+    Euler(sqrt(b));
+
+    //S(n, 1) + F(1);
+    cout << cal(b) - cal(a - 1) << endl;
+    return 0;
+}
+\end{lstlisting}
 \subsubsection{Möbius Inversion}
 $$
 \sum_i^n \sum_j^m lcm(i,j)\pmod p
