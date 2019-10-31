@@ -4865,6 +4865,36 @@ LL cal(LL n) {
 }
 \end{lstlisting}
 \subsubsection{Min\_25 Sieve}
+思路为把结果分为i为质数的和，i为合数的和，i=1的和\\
+g(n, j)表示从1累加到n的f(i)，其中的i满足要么i自己是质数，要么i的最小质因子大于第j个质数\\
+要求$f(p)(p \ is\  prime)$可被多项式表示,$f(p^k)$可快速计算\\
+分别计算多项式$x^0$, $x^1$, $x^2$的g(n,j)和h(n,j)\\
+h由欧拉筛计算，递归起点g(n, 0)\\
+公式
+$$
+\sum_i^n f(i)
+$$
+$$
+g(n, j) = \left\{
+\begin{aligned}
+g(n, j - 1)\ \  & p_j^2 > n\\
+g(n, j - 1) - f(p_j)[g(\frac{n}{p_j}, j - 1) - g(p_j - 1, j - 1)] \ \   & p_j^2 \leq n
+\end{aligned}
+\right.
+$$
+
+其中
+$$
+g(p_j - 1, j - 1) = \sum_i^{j - 1} f(p_i)
+$$
+可用h表示\\
+S(n,j)表示从1累加到n的f(i)，同样的，i满足要么i自己是质数，要么i的最小质因子大于第j个质数\\
+和g顺序相反，最后答案为S(n, 1)，递推式为
+$$
+S(n, j) = g(n, |P|) - \sum_{i = 1}^j f(p_i) + \sum_{k \geq j} \sum_{p_k^{e + 1} < n} (f(p_k^e)S(\frac{n}{p_k^e}, k + 1) + f(p_k^{e + 1}))
+$$
+前一部分$g(n, |P|) - \sum_{i = 1}^j f(p_i)$是相应的质数部分和。\\
+例题：欧拉函数前缀和
 $$
 \sum_{i = 1}^n \varphi(i)
 $$
@@ -4874,6 +4904,7 @@ $$
 $$
 \sum_{i=1}^n i^k
 $$
+
 \begin{lstlisting}
 #include <bits/stdc++.h>
 using namespace std;
@@ -4914,7 +4945,7 @@ inline int f(int p, LL pk) {
 }
 LL S(LL x, int y) {
     if(x <= 1 || prime[y] > x) return 0;
-    //G(x) - H(j - 1)
+    //G(x) - H(j - 1) (first part)
     LL res = add(add(g[1][id(x)], mod - g[0][id(x)]), mod - add(h[1][y - 1], mod - h[0][y - 1]));
     for(int j = y, k = 1; j <= cnt && (LL)prime[j] * prime[j] <= x; j++, k = 1) {
         for(LL pk = prime[j]; pk * prime[j] <= x; pk *= prime[j], k++) {
@@ -6022,11 +6053,18 @@ $$
 所以这个数是45321.\\
 按以上方法可以得出通用的算法。\\
 \subsubsection{$\sum_{i=1}^n i^k$}
+\begin{equation*}
+\begin{aligned}
+\sum_i^n i &= \frac{n(n + 1)}{2}\\
+\sum_i^n i^2 &= \frac{n(n + 1)(2n + 1)}{6}\\
+\sum_i^n i^3 &= [\frac{n(n + 1)}{2}] ^ 2
+\end{aligned}
+\end{equation*}
 {\large\bfseries 差分和组合数:$O(k^2)$\par}
 考虑数列\{$1_k,2_k,\cdots,i_k$\}\\
-相邻两项做差之后，得到的数列的每项应 该是一个 k − 1 次关于 i 的多项式。\\
-再次相邻两项做差之后，得到的数列的每项应该是一个 k − 2 次 关于 i 的多项式。\\
-如此进行 k 次，得到的数列的每项应该是一个 0 次关于 i 的多 项式，即常数数列。\\
+相邻两项做差之后，得到的数列的每项应 该是一个 k - 1 次关于 i 的多项式。\\
+再次相邻两项做差之后，得到的数列的每项应该是一个 k - 2 次 关于 i 的多项式。\\
+如此进行 k 次，得到的数列的每项应该是一个 0 次关于 i 的多项式，即常数数列。\\
 再次相邻两项做差之后，一定会得到一个全是 0 的数列。 \\
 假设经过 i 次差分数列之后的数列第一项为 $r_i$ 那么答案就是\\
 $$
