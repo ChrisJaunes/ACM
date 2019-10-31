@@ -174,7 +174,7 @@ void SPFA(int st) {
     }
 }
 \end{lstlisting}
-\subsection{Johnson}
+\subsubsection{Johnson}
 \begin{lstlisting}
 void johnson() {
     //建图中,Edge需要from,w1,w2,去掉w;
@@ -793,6 +793,102 @@ void sol(){
 	if(ans1!=n-1)puts("0");else printf("%d",ans2);
 }
 \end{lstlisting}
+\subsubsection{Steiner Tree}
+\begin{lstlisting}
+const int MAXH = 128;
+const int MAXW = 128;
+const int MAXST = 1256;
+namespace SteinerTree{
+    const int dx[4] = {0,0,1,-1};
+    const int dy[4] = {1,-1,0,0};
+    int n, m, k, stn;
+    bool vis[MAXH][MAXW];
+    LL G[MAXH][MAXW],f[MAXST][MAXH][MAXW];
+    queue<pair<int, int> > q;
+    struct PRE{int s, x, y;} pre[MAXST][MAXH][MAXW];
+
+    void spfa(int st) {
+        while(!q.empty()) {
+            int vx = q.front().first,vy = q.front().second;
+            q.pop();
+            vis[vx][vy] = 0;
+            for (int i = 0, ux,uy; i < 4; ++i) {
+                ux = vx + dx[i];
+                uy = vy + dy[i];
+                if (ux==0||uy==0||ux==n+1||uy==m+1)continue;
+                if (f[st][vx][vy]+G[ux][uy]<f[st][ux][uy]) {
+                    f[st][ux][uy] = f[st][vx][vy] + G[ux][uy];
+                    pre[st][ux][uy] = (PRE) {st, vx, vy};
+                    if (!vis[ux][uy]) {
+                        vis[ux][uy]=1;
+                        q.push(make_pair(ux,uy));
+                    }
+                }
+            }
+        }
+    }
+    LL sum = 0;
+    void init() {
+        k = 0;
+        for(int i = 1; i <= n; ++i)
+            for(int j = 1; j <= m; ++j) {
+                scanf("%d", &G[i][j]);
+                if(G[i][j] == 0)  k++;
+            }
+        stn = 1<<k;
+        for (int st = 0; st < stn; ++st)
+            for (int i = 1; i <= n; ++i)
+                for (int j = 1; j <= m; ++j)
+                    f[st][i][j] = INF;
+        int tk = 0;
+        for(int i = 1; i <= n; ++i)
+            for(int j = 1; j <= m; ++j) {
+                vis[i][j] = 0;
+                if(G[i][j] == 0) {f[1<<tk][i][j] = 0; tk++;}
+            }
+    }
+    void dfs(int st, int x, int y) {
+        vis[x][y] = 1;
+        PRE tmp = pre[st][x][y];
+        if (tmp.x == 0 && tmp.y == 0) return ;
+        dfs(tmp.s, tmp.x, tmp.y);
+        if (tmp.x == x && tmp.y == y) dfs(st - tmp.s, tmp.x, tmp.y);
+    }
+    void sol(int _n, int _m) {
+        n = _n; m = _m;
+        init();
+        for (int st = 0; st < stn; ++st) {
+            for (int i = 1; i <= n; ++i)
+                for (int j = 1; j <= m; ++j) {
+                    for (int s = st&(st-1); s; s = st&(s-1))
+                    if(f[st-s][i][j]+f[s][i][j]-G[i][j] < f[st][i][j]){	
+                        f[st][i][j] = f[st-s][i][j]+f[s][i][j]-G[i][j];
+                        pre[st][i][j] = (PRE) {s, i, j};
+                    }
+                    if (f[st][i][j]!=INF) {
+                        q.push(make_pair(i,j));
+                        vis[i][j]=1;
+                    }
+                }
+            spfa(st);
+        }
+        int ansx, ansy, fg = 0;
+        for(int i = 1; i <= n && !fg; ++i) 
+           for(int j = 1; j <= m; ++j) 
+           if(!G[i][j]) {ansx = i; ansy = j; fg = 1; break;}
+        printf("%d\n", f[stn-1][ansx][ansy]); 
+        memset(vis, 0, sizeof vis);
+        dfs(stn-1, ansx, ansy);
+        for(int i = 1; i <= n; i++, puts("")) {
+            for(int j = 1; j <= m; j++) {
+                if(G[i][j] == 0) putchar('x');
+                else if(vis[i][j]) putchar('o');
+                else putchar('_');	
+            }
+        }
+    }
+}      
+\end{lstlisting}
 \subsubsection{Tree Divide and Conquer}
 \begin{lstlisting}
 struct Edge {
@@ -857,6 +953,88 @@ void solve(int x) {
 int main() {
     solve(getrt(1));
 }
+\end{lstlisting}
+
+\subsubsection{Dominator Tree}
+\begin{lstlisting}
+#define LL long long
+#define FILE "dagch"
+using namespace std;
+
+const int N = 200010;
+struct Node{int to,next;}E[N<<1];
+int n,m,q,head[N],tot,dfn[N],clo,rev[N],fa[N],semi[N],Ans[N];
+vector<int>G[N];
+struct Union_Merge_Set{
+    int fa[N],Mi[N];
+    inline void init(){
+        for(int i=0;i<=n;++i)
+            fa[i]=Mi[i]=semi[i]=i;
+    }
+    inline int find(int x){
+        if(x==fa[x])return x;
+        int fx=fa[x],y=find(fa[x]);
+        if(dfn[semi[Mi[fx]]]<dfn[semi[Mi[x]]])Mi[x]=Mi[fx];
+        return fa[x]=y;
+    }
+}uset;
+
+inline void tarjan(int u) {
+    rev[dfn[u] = ++tarjan_time] = u;
+    for(auto v : G[u]) 
+    if(!dfn[v]) {
+        fa[v] = u;
+        tarjan(v);
+    }
+}
+inline void get_semi() {
+    for(int i = tarjan_time; i >= 2; i--) {
+        int u = rev[i], tsemi = n;
+        for(auto v : rG[u]) {
+            if(!dfn[v]) continue;
+            if(dfn[v] < dfn[u]) tsemi = min(tsemi, dfn[x]);
+            else{
+                uset.find(x);
+                tsemi = min(tsemi, dfn[semi[uset.Mi[x]]]);
+            }
+        }
+        uset.fa[y] = fa[y]; 
+        semi[y] = rev[tsemi];
+        Ans[rev[tsemi]]++;
+    }
+}
+
+inline void solve() {
+    scanf("%d %d %d", &n, &m, &q);
+    fa[1]=1;
+    for(int i = 1, u, v; i <= m; ++i){
+        scanf("%d%d", &u,&v);
+        link(v,u);
+        G[u].push_back(v);
+    }
+    for(int i = 1; i <= n; i++) 
+        if(G[i].size()) 
+            sort(G[i].begin(), G[i].end());
+    
+    uset.init();
+    
+    tarjan(1);
+    build();
+    for(int i=1;i<=q;++i)
+        printf("%d ",Ans[gi()]);
+    printf("\n");
+    for(int i=0;i<=n;++i){
+        G[i].clear();head[i]=0;
+        Ans[i]=semi[i]=fa[i]=0;
+    }
+    clo=tot=0;
+}
+
+int main() {
+    int T; scanf("%d", &T);
+    while(T--) solve();
+    return 0;
+}        
 \end{lstlisting}
 \subsection{LCA}
 \subsubsection{Tree Decomposition LCA}
@@ -1249,7 +1427,6 @@ int main() {
     return 0;
 }
 \end{lstlisting}
-
 
 
 
@@ -6676,6 +6853,27 @@ syntax on
 inoremap { {}<left>
 map <F9> :w<CR> :! g++ % -o %< -Wall --std=c++14 -g && ./%< <CR>
 "ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+\end{lstlisting}
+\begin{lstlisting}
+set nocompatible
+source $VIMRUNTIME/vimrc_example.vim
+source $VIMRUNTIME/mswin.vim
+se cin nu mouse=a ts=4 sw=4 ww=b,s,<,>,[,]
+syntax on
+inoremap { {}<left>
+map <F9> :w<CR> :! g++ % -o %< -Wall --std=c++14 -g && ./%< <CR>
+func! AddTitle()	
+    call append(0,"// Cease to struggle and you cease to live")	
+    call append(1,"// Created by hjj")
+    call append(2,"#include <bits/stdc++.h>")	
+    call append(3,"using namespace std;")	
+    call append(4,"")	
+    call append(5,"int main() {")	
+    call append(6,"")	
+    call append(7,"    return 0;")	
+    call append(8,"}")
+endfunc
+map <F8> :call AddTitle()<CR>	    
 \end{lstlisting}
 
 \subsection{Check}
