@@ -6068,11 +6068,28 @@ $$
 $$
 (1+x)^n = \binom n0 x^0 + \binom n1 x^1 + \binom n2 x^2 + \cdots = \sum_i \binom ni x^i
 $$
+其中有$\beta$函数和$\Gamma$函数
+$$
+\begin{aligned}
+\Gamma(s) &= \int_0^{+\infty} x^{s-1} e^{-x} dx\\
+B(p, q) &= \binom {p + q}{p} = \int_0^1 x^{p-1}(1-x)^{q-1}dx =\frac{\Gamma(p) \Gamma(q)}{\Gamma(p+q)}
+\end{aligned}
+$$
+分别有递推公式
+$$
+\begin{aligned}
+\Gamma(s + 1) &= s \Gamma(s) \\
+B(p, q) &= B(q, p) \\
+&= \frac{q - 1}{p + q - 1} B(p, q - 1)\\
+&= \frac{p - 1}{p + q - 1} B(p - 1, q)\\
+&= \frac{(p - 1)(q - 1)}{(p + q - 1)(p + q - 2)} B(p - 1, q - 1)
+\end{aligned}
+$$
 {\large\bfseries 例子\par}
 {\large\bfseries Fibonacci生成函数\par}
 构造一个与${f_n}$有关得幂级数\\
 $$
-F(x) = f_1x +f_2x^2 + \cdots + f_n x^n + \cdots
+F(x) = f_0 + f_1x +f_2x^2 + \cdots + f_n x^n + \cdots
 $$
 亦即
 $$
