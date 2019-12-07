@@ -5309,7 +5309,7 @@ LL phi(LL x) {
 int get_g_init(LL p) {
 	//p : 2 or 4 or (p**n) or (2 * p**n); else return -1;
 	vector<int> p_fact;
-	LL tp = p - 1, p_phi = phi(p);
+	LL p_phi = phi(p), tp = p_phi ;
 	for(int i = 2, in = sqrt(p) + 0.5; i <= in; i++)
 	if(tp % i == 0) {
 		p_fact.push_back(p_phi / i);
