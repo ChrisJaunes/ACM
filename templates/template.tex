@@ -5283,7 +5283,7 @@ int main() {
 \subsubsection{Primitive Root}
 简易版
 如果模m有原根，则有$\varphi(\varphi(m))$ 个原根
-当d遍历$\varphi(m)$的完全剩余系时，$g^d$遍历完m的全部原根
+当d遍历$\varphi(m)$的简化剩余系时，$g^d$遍历完m的全部原根
 \begin{lstlisting}
 const int MAXN = ;
 LL qpow(LL a, LL b, LL mod) {
@@ -5305,9 +5305,23 @@ LL phi(LL x) {
 	if(x > 1) res = res / x * (x - 1);
 	return res;
 }
+int has_primitive_root(int p) {
+	if (p == 4) return 1;
+	if (p % 2 == 0) p /= 2;
+	if (p % 2 == 0) return false;
+	for (int i = 2; i <= p/i; i++) 
+	if (p % i == 0) {
+		while(p % i == 0) p /= i;
+		return p == 1 ? i : 0;
+	}
+	return p;
+}
 //int indg[MAXN];
 int get_g_init(LL p) {
 	//p : 2 or 4 or (p**n) or (2 * p**n); else return -1;
+	if(p == 2) {puts("1");return 1;}
+	if(p == 4) {puts("3"); return 3;}
+	if(!has_primitive_root(p)) {puts("-1"); return -1;}
 	vector<int> p_fact;
 	LL p_phi = phi(p), tp = p_phi ;
 	for(int i = 2, in = sqrt(p) + 0.5; i <= in; i++)
@@ -5319,10 +5333,18 @@ int get_g_init(LL p) {
 	int g = 1;
 	for (bool fg = 0; !fg ;) {
 		fg = 1; g++;
+		if(qpow(g, p_phi, p) != 1) {fg = 0; continue;}
 		for(auto it : p_fact) 
 			if(qpow(g, it, p) == 1) {fg = 0; break;}
 	}
 	//for(int i = 0, tg = 1; i < p_phi; i++, tg = tg * g % p) indg[tg] = i;
+	/*vector<int> fac;
+	for(int d = 1, tg = g; d < p_phi; d++, tg = tg * g % p) 
+		if(__gcd((LL)d, p_phi) == 1) fac.push_back(tg);
+	sort(fac.begin(), fac.end());
+	int ed = fac.back();
+	for(auto it : fac) 
+		printf("%d%c", it, it != ed ? ' ':'\n');*/
 	return g;
 }
 \end{lstlisting}
