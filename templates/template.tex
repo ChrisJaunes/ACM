@@ -5280,8 +5280,10 @@ int main() {
     return 0;
 }
 \end{lstlisting}
-\subsubsection{primitive root}
+\subsubsection{Primitive Root}
 简易版
+如果模m有原根，则有$\varphi(\varphi(m))$ 个原根
+当d遍历$\varphi(m)$的完全剩余系时，$g^d$遍历完m的全部原根
 \begin{lstlisting}
 const int MAXN = ;
 LL qpow(LL a, LL b, LL mod) {
