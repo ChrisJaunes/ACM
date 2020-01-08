@@ -3021,10 +3021,177 @@ namespace LCT {
     }
 }
 \end{lstlisting}
+\subsubsection{Tree Decomposition}
+\begin{lstlisting}
+namespace CST{
+	struct RMQ {
+		int lg[MAXN], mn[MAXN][S+1], mx[MAXN][S+1];
+		inline void init(int *a, int n) {
+			for (int i = 2; i <= n; i++) lg[i] = lg[i >> 1] + 1;
+			for (int i = 1; i <= n; i++) mn[i][0] = mx[i][0] = a[i];
+			for (int k = 1; (1 << k) <= n; k++)
+				for (int i = 1; i + (1 << k) - 1 <= n; i++) {
+					mn[i][k] = min(mn[i][k - 1], mn[i + (1 << (k - 1))][k - 1]);
+					mx[i][k] = max(mx[i][k - 1], mx[i + (1 << (k - 1))][k - 1]);
+				}
+		}
+		inline int Min(int l, int r) {
+			int len = lg[r - l + 1];
+			return min(mn[l][len], mn[r - (1 << len) + 1][len]);
+		}
+		inline int Max(int l, int r) {
+			int len = lg[r - l + 1];
+			return max(mx[l][len], mx[r - (1 << len) + 1][len]);
+		}
+	} D;
 
+	struct SEG {
+		int setL, setR, setW;
+		int mn[MAXN << 2], tag[MAXN << 2];
+		
+		inline void pushup(int x) {
+			mn[x] = min(mn[x << 1], mn[x << 1 | 1]);
+		}
+		inline void pushdown(int x) {
+			if(!tag[x]) return;
+			mn[x << 1] += tag[x]; mn[x << 1 | 1] += tag[x];
+			tag[x << 1] += tag[x]; tag[x << 1 | 1] += tag[x]; tag[x] = 0;
+		}
+		void init(int x, int l, int r) {
+			mn[x] = tag[x] = 0;
+			if (l == r) return;
+			int mid = (l + r) >> 1;
+			init(x << 1, l, mid);
+			init(x << 1 | 1, mid + 1, r);
+		}
+		void upt(int x, int l, int r) {
+			if (setL <= l && r <= setR) {
+				tag[x] += setW; mn[x] += setW; 
+				return;
+			}
+			pushdown(x);
+			int mid = (l + r) >> 1;
+			if (setL <= mid) upt(x << 1, l, mid);
+			if (mid < setR ) upt(x << 1 | 1, mid+1, r);
+			pushup(x);
+		}
+		int que(int x, int l, int r) {
+			if (l == r) return l;
+			pushdown(x);
+			int mid = (l+r)>>1;
+			if (!mn[x << 1]) return que(x << 1, l, mid);
+			return que(x << 1 | 1, mid+1, r);
+		}
+	} T;
 
-
-
+	int tpmn, stmn[MAXN], tpmx, stmx[MAXN], tpk, stk[MAXN];
+	int ncnt, type[MAXN<<1], L[MAXN<<1], R[MAXN<<1], M[MAXN<<1];
+	int dep[MAXN<<1], fa[MAXN<<1][S+1], C[MAXN<<1];
+	int id[MAXN << 1];
+	int newnode(int _type, int _L, int _R, int _M = 0) {
+		++ncnt; type[ncnt] = _type; 
+		L[ncnt] = _L; R[ncnt] = _R; M[ncnt] = _M;
+		C[ncnt] = 0;
+		return ncnt;
+	}
+	
+	inline bool judge(int l, int r) {
+		return D.Max(l, r) - D.Min(l, r) == r - l;
+	}
+	
+	int ecnt, head[MAXN << 1];
+	struct Edge{int to, nxt;} e[MAXN<<1];
+	inline void addEdge(int x, int y) {
+		e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
+		fa[y][0] = x; C[x]++;
+	}
+	void dfs(int u) {
+		for(int j = 0; j < S; j++) fa[u][j+1] = fa[fa[u][j]][j];
+		for(int i = head[u]; i; i = e[i].nxt) {
+			dep[e[i].to] = dep[u] + 1;
+			dfs(e[i].to);
+		}
+	}
+	
+	inline void init(int n) {
+		ecnt = 0;
+		for(int i = 0; i <= n; i++) head[i] = 0;
+	}
+	void buildT(int *a, int n) {
+		init(n);
+		D.init(a, n);
+		T.init(1, 1, n);
+		tpmn = tpmx = tpk = 0; 
+		stmn[0] = stmx[0] = stk[0] = 0;
+		for (int i = 1; i <= n; i++) {
+			for (;tpmn && a[i] <= a[stmn[tpmn]]; --tpmn) {
+				T.setL = stmn[tpmn - 1] + 1; T.setR = stmn[tpmn]; T.setW = a[stmn[tpmn]];
+				T.upt(1, 1, n);
+			}
+			T.setL = stmn[tpmn] + 1; T.setR = i; T.setW = -a[i];
+			T.upt(1, 1, n);
+			stmn[++tpmn] = i;
+			
+			for (;tpmx && a[i] >= a[stmx[tpmx]]; --tpmx) {
+				T.setL = stmx[tpmx - 1] + 1; T.setR = stmx[tpmx]; T.setW = -a[stmx[tpmx]];
+				T.upt(1, 1, n);
+			}
+			T.setL = stmx[tpmx] + 1; T.setR = i; T.setW = a[i];
+			T.upt(1, 1, n);
+			stmx[++tpmx] = i;
+			
+			int Li = T.que(1, 1, n), np = id[i] = newnode(0, i, i), nq, nw; 
+			while (tpk && L[nq = stk[tpk]] >= Li) {
+				if (type[nq] && judge(M[nq], i)) {
+					R[nq] = i;
+					addEdge(nq, np);
+					np = nq; tpk--;
+				} else if (judge(L[nq], i)) {
+					nw = newnode(1, L[nq], i, L[np]);
+					addEdge(nw, nq); addEdge(nw, np);
+					np = nw; tpk--;
+				} else {
+					nw = newnode(0, -1, i);
+					addEdge(nw, np);
+					do {
+						addEdge(nw, nq);
+						nq = stk[--tpk];
+					} while (tpk && !judge(L[nq], i));
+					addEdge(nw, nq);
+					L[nw] = L[nq]; R[nw] = i; 
+					np = nw; --tpk;
+				}
+			}
+			stk[++tpk] = np;
+			T.setL = 1; T.setR = i; T.setW = -1;
+			T.upt(1, 1, n);
+		}
+		assert(tpk == 1);
+		dfs(stk[tpk]);
+	}
+    void lca(int u, int v, int &aL, int &bR) {
+    	if(u == v) {
+    		aL = L[u]; bR = R[v];
+    		return;
+		}
+        if(dep[u] > dep[v]) swap(u, v);
+		for(int i = S; i >= 0; i--) 
+			if(dep[fa[v][i]] >= dep[u]) v = fa[v][i];
+		assert(u != v);
+		for(int i = S; i >= 0; i--) 
+			if(fa[u][i] != fa[v][i]) {
+				u = fa[u][i]; v = fa[v][i];
+			}
+		if(type[fa[u][0]]) {
+			aL = min(L[v], L[u]);
+			bR = max(R[v], R[u]);
+		}else{
+			aL = L[fa[u][0]];
+			bR = R[fa[u][0]];
+		}
+	}
+};
+\end{lstlisting}
 
 
 \newpage
