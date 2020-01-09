@@ -3021,9 +3021,14 @@ namespace LCT {
     }
 }
 \end{lstlisting}
-\subsubsection{CST}
+\subsubsection{Divide Combine Tree}
+1.[i,i+1]构造依赖,利用线段树辅助建图，利用tarjan求scc，利用rmq求最左最右边界
+2.定义(i,j)为一个好二元组，当且仅当a[i]-a[j]=1 这样的两项的二元组在[l,r]中恰好有r-l个
+线段树维护 val + l = r， 其中val是区间[l,r]中好二元组的个数
+离线
+3.析合树维护 mx - mn = r - l <=> fx = (mx - mn) - (r - l) 
 \begin{lstlisting}
-namespace CST{
+namespace DCT{
 	struct RMQ {
 		int lg[MAXN], mn[MAXN][S+1], mx[MAXN][S+1];
 		inline void init(int *a, int n) {
