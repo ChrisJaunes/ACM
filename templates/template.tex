@@ -3272,6 +3272,7 @@ namespace BitMatch{
 \end{lstlisting}
 \subsubsection{KMP \&\& exKMP}
 \begin{lstlisting}
+判断循环子串的充要条件：i/(i-fa[i]) > 1 && i%(i-fa[i])==0 (i是长度)且去除下面fa的优化
 namespace KMP {
 	int fa[MAXN];
 	void get_fail(char* t, int tn) {
