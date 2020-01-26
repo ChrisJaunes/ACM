@@ -611,6 +611,7 @@ namespace NWF{
     }
     LL mcmf() {
         LL cost = 0;
+        //while(spfa() && dis[T] < 0) {//最小费用可行流
         while(spfa()) {
             LL flow = INF;
             for(int i = T; i != S; i = e[cur[i] ^ 1].to)
