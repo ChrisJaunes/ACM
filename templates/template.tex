@@ -2893,131 +2893,128 @@ const int MAXN = ;
 const int INF = ;
 int A[MAXN], B[MAXN];
 struct SGT{
-	int sL, sR, sW;
-	int mx[MAXN << 2];
+    int sL, sR, sW;
+    int mx[MAXN << 2];
     void push_down(int v) {
     }
     void push_up(int  v) {
-		mx[v] = max(mx[v << 1], mx[v<<1|1]);
-	}
+        mx[v] = max(mx[v << 1], mx[v<<1|1]);
+    }
 	void build(int v, int l, int r) {
-		if(l == r) {
-			mx[v] = B[l];
-			return;
-		}
-		int mid = (l + r) >> 1;
-		build(v << 1, l, mid);
-		build(v<<1|1, mid+1,r);
-		push_up(v);
-	}
-
-	void upd(int v, int l, int r) {
-		if(sL <= l && r <= sR) {
-			//sum[v] = sW *(r - l + 1);
-			mx[v] = sW;
-			return;
-		}
-		push_down(v);
-		int mid = (l + r) >> 1;
-		if(sL <= mid) upd(v << 1, l, mid);
-		if(mid < sR)  upd(v<<1|1, mid+1,r);
-		push_up(v);
-	}
-	void qmax(int v, int l, int r) {
-		if(sL <= l && r <= sR) {
-			sW = max(sW, mx[v]);
-			return;
-		}
-		push_down(v);
-		int mid = (l + r) >> 1;
-		if(sL <= mid) qmax(v << 1, l, mid);
-		if(mid < sR)  qmax(v<<1|1, mid+1, r);
-	}
+        if(l == r) {
+            mx[v] = B[l];
+            return;
+        }
+        int mid = (l + r) >> 1;
+        build(v << 1, l, mid);
+        build(v<<1|1, mid+1,r);
+        push_up(v);
+    }
+    void upd(int v, int l, int r) {
+        if(sL <= l && r <= sR) {
+            //sum[v] = sW *(r - l + 1);
+            mx[v] = sW;
+            return;
+        }
+        push_down(v);
+        int mid = (l + r) >> 1;
+        if(sL <= mid) upd(v << 1, l, mid);
+        if(mid < sR)  upd(v<<1|1, mid+1,r);
+        push_up(v);
+    }
+    void qmax(int v, int l, int r) {
+        if(sL <= l && r <= sR) {
+            sW = max(sW, mx[v]);
+            return;
+        }
+        push_down(v);
+        int mid = (l + r) >> 1;
+        if(sL <= mid) qmax(v << 1, l, mid);
+        if(mid < sR)  qmax(v<<1|1, mid+1, r);
+    }
 }T;
 namespace TD{
-	struct Edge {int to, nxt;}e[MAXN << 1];
-	int head[MAXN], ecnt;
-	inline void addEdge(int x, int y) {
-	    e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
-		e[++ecnt] = (Edge) {x, head[y]}; head[y] = ecnt;
-	}
-	
-	int fa[MAXN], sz[MAXN], dep[MAXN], son[MAXN], top[MAXN];
-	int dfn_time, dfn[MAXN], rnk[MAXN];
-
-	void dfs1(int u) {
-	    sz[u] = 1; son[u] = -1;
-	    for(int i = head[u], v; i; i = e[i].nxt) {
-			v = e[i].to;
-			if(v == fa[u]) continue;
-	        fa[v] = u;
-	        dep[v] = dep[u] + 1;
-	        dfs1(v);
-	        sz[u] += sz[v];
-	        if(son[u] == -1 || sz[v] > sz[son[u]]) son[u] = v;
-	    }
-	}
-	void dfs2(int u) {
-		dfn[u] = ++dfn_time;
-		//rnk[dfn_time] = u;
-		B[dfn[u]] = A[u];
-		if(son[u] == -1) return;
-	    top[son[u]] = top[u];
-	    dfs2(son[u]);
-	    for(int i = head[u], v; i; i = e[i].nxt) {
-	        v = e[i].to;
-	        if(v == fa[u] || v == son[u]) continue;
-	        top[v] = v;
-	        dfs2(v);
-	    }
-	}
-	inline void init(int n) {
-		ecnt = 0;
-		for(int i = 0; i <= n; i++) head[i] = 0;
-	}
-	inline void pre(int rt) {
-		fa[rt] = 0; dep[rt] = 1; 
-		top[rt] = rt; dfn_time = 0;
-	    dfs1(rt); dfs2(rt); 
-		T.build(1, 1, dfn_time);
-	}
-	int lca(int u, int v) {
-    	while(top[u] != top[v]) {
-    	    if(dep[top[u]] > dep[top[v]]) swap(u, v);
-    	    v = fa[top[v]];
-    	}
-    	if(dep[u] > dep[v]) swap(u, v);
-    	return u;
-	}
-	void upd(int a, int b, int c) {
-		int ta = top[a], tb = top[b];
-		while(ta != tb) {
-        	if(dep[ta] < dep[tb]) { swap(a, b); swap(ta, tb); }
-			T.sL = dfn[ta]; T.sR = dfn[a]; T.sW = c;
-			T.upd(1, 1, dfn_time);
-			a = fa[ta]; ta = top[a];
-		}
-		if(dep[a] > dep[b]) swap(a, b);               // point
-		//if(a == b) return;                          // edge
-		//if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge
-		T.sL = dfn[a]; T.sR = dfn[b]; T.sW = c;
-		T.upd(1, 1, dfn_time);
-	}
-	int qmax(int a, int b) {
-		int ta = top[a], tb = top[b]; int res = - INF;
-		while(ta != tb) {
-        	if(dep[ta] < dep[tb]) { swap(a, b); swap(ta, tb); }
-			T.sL = dfn[ta]; T.sR = dfn[a]; T.sW = - INF;
-			T.qmax(1, 1, dfn_time); res = max(T.sW, res);
-			a = fa[ta];ta = top[a];
-		}
-		if(dep[a] > dep[b]) swap(a, b);               // point
-		//if(a == b) return res;                      // edge
-		//if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge		
-		T.sL = dfn[a]; T.sR = dfn[b]; T.sW = -INF;
-		T.qmax(1, 1, dfn_time); res = max(T.sW, res);
-		return res;
-	}
+    struct Edge {int to, nxt;}e[MAXN << 1];
+    int head[MAXN], ecnt;
+    inline void addEdge(int x, int y) {
+        e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
+        e[++ecnt] = (Edge) {x, head[y]}; head[y] = ecnt;
+    }
+    int fa[MAXN], sz[MAXN], dep[MAXN], son[MAXN], top[MAXN];
+    int dfn_time, dfn[MAXN], rnk[MAXN];
+    void dfs1(int u) {
+        sz[u] = 1; son[u] = -1;
+        for(int i = head[u], v; i; i = e[i].nxt) {
+            v = e[i].to;
+            if(v == fa[u]) continue;
+            fa[v] = u;
+            dep[v] = dep[u] + 1;
+            dfs1(v);
+            sz[u] += sz[v];
+            if(son[u] == -1 || sz[v] > sz[son[u]]) son[u] = v;
+        }
+    }
+    void dfs2(int u) {
+        dfn[u] = ++dfn_time;
+        //rnk[dfn_time] = u;
+        B[dfn[u]] = A[u];
+        if(son[u] == -1) return;
+        top[son[u]] = top[u];
+        dfs2(son[u]);
+        for(int i = head[u], v; i; i = e[i].nxt) {
+            v = e[i].to;
+            if(v == fa[u] || v == son[u]) continue;
+            top[v] = v;
+            dfs2(v);
+        }
+    }
+    inline void init(int n) {
+        ecnt = 0;
+        for(int i = 0; i <= n; i++) head[i] = 0;
+    }
+    inline void pre(int rt) {
+        fa[rt] = 0; dep[rt] = 1; 
+        top[rt] = rt; dfn_time = 0;
+        dfs1(rt); dfs2(rt); 
+        T.build(1, 1, dfn_time);
+    }
+    int lca(int u, int v) {
+        while(top[u] != top[v]) {
+            if(dep[top[u]] > dep[top[v]]) swap(u, v);
+            v = fa[top[v]];
+        }
+        if(dep[u] > dep[v]) swap(u, v);
+        return u;
+    }
+    void upd(int a, int b, int c) {
+        int ta = top[a], tb = top[b];
+        while(ta != tb) {
+            if(dep[ta] < dep[tb]) { swap(a, b); swap(ta, tb); }
+            T.sL = dfn[ta]; T.sR = dfn[a]; T.sW = c;
+            T.upd(1, 1, dfn_time);
+            a = fa[ta]; ta = top[a];
+        }
+        if(dep[a] > dep[b]) swap(a, b);               // point
+        //if(a == b) return;                          // edge
+        //if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge
+        T.sL = dfn[a]; T.sR = dfn[b]; T.sW = c;
+        T.upd(1, 1, dfn_time);
+    }
+    int qmax(int a, int b) {
+        int ta = top[a], tb = top[b]; int res = - INF;
+        while(ta != tb) {
+            if(dep[ta] < dep[tb]) { swap(a, b); swap(ta, tb); }
+            T.sL = dfn[ta]; T.sR = dfn[a]; T.sW = - INF;
+            T.qmax(1, 1, dfn_time); res = max(T.sW, res);
+            a = fa[ta];ta = top[a];
+        }
+        if(dep[a] > dep[b]) swap(a, b);               // point
+        //if(a == b) return res;                      // edge
+        //if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge
+        T.sL = dfn[a]; T.sR = dfn[b]; T.sW = -INF;
+        T.qmax(1, 1, dfn_time); res = max(T.sW, res);
+        return res;
+    }
 }
 \end{lstlisting}
 \subsubsection{Link-Cut Tree}
