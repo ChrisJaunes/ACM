@@ -2893,8 +2893,8 @@ const int MAXN = ;
 const int INF = ;
 int A[MAXN], B[MAXN];
 struct SGT{
-    int sL, sR, sW;
-    int mx[MAXN << 2];
+    int sL, sR;
+    LL sW, mx[MAXN << 2];
     void push_down(int v) {
     }
     void push_up(int  v) {
@@ -2935,7 +2935,7 @@ struct SGT{
 }T;
 namespace TD{
     struct Edge {int to, nxt;}e[MAXN << 1];
-    int head[MAXN], ecnt;
+    int ecnt, head[MAXN];
     inline void addEdge(int x, int y) {
         e[++ecnt] = (Edge) {y, head[x]}; head[x] = ecnt;
         e[++ecnt] = (Edge) {x, head[y]}; head[y] = ecnt;
@@ -2998,6 +2998,11 @@ namespace TD{
         //if(a == b) return;                          // edge
         //if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge
         T.sL = dfn[a]; T.sR = dfn[b]; T.sW = c;
+        T.upd(1, 1, dfn_time);
+    }
+    //更新子树，由于dfs2中有if(son[u] == -1) return; 小心使用end[u];
+    void upd2(int a, int c) {
+        T.sL = dfn[a]; T.sR = dfn[a] + sz[a] - 1; T.sW = c;
         T.upd(1, 1, dfn_time);
     }
     int qmax(int a, int b) {
