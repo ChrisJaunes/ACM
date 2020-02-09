@@ -2900,7 +2900,7 @@ struct SGT{
     void push_up(int  v) {
         mx[v] = max(mx[v << 1], mx[v<<1|1]);
     }
-	void build(int v, int l, int r) {
+    void build(int v, int l, int r) {
         if(l == r) {
             mx[v] = B[l];
             return;
