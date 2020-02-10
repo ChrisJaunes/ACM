@@ -2891,7 +2891,7 @@ inline void pre() {
 //--------------------------------------------------------------------------------------
 const int MAXN = ;
 const int INF = ;
-int A[MAXN], B[MAXN];
+int A[MAXN], B[MAXN], C[MAXN];
 struct SGT{
     int sL, sR;
     LL sW, mx[MAXN << 2];
@@ -2969,13 +2969,22 @@ namespace TD{
         }
     }
     inline void init(int n) {
-        ecnt = 0;
+        ecnt = 1;
         for(int i = 0; i <= n; i++) head[i] = 0;
     }
     inline void pre(int rt) {
-        fa[rt] = 0; dep[rt] = 1; 
+        fa[rt] = -1; dep[rt] = 1; 
         top[rt] = rt; dfn_time = 0;
         dfs1(rt); dfs2(rt); 
+        // edge -> point
+        //for(int i = 2; i <= ecnt; i += 2)  {
+        //    if(e[i].to == fa[e[i^1].to]) {
+        //        C[i / 2] = e[i^1].to;
+        //    }else{
+        //        C[i / 2] = e[i].to;
+        //    } 
+        //    B[dfn[C[i / 2]]] = e[i].w;
+        //}
         T.build(1, 1, dfn_time);
     }
     int lca(int u, int v) {
@@ -2996,7 +3005,8 @@ namespace TD{
         }
         if(dep[a] > dep[b]) swap(a, b);               // point
         //if(a == b) return;                          // edge
-        //if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge
+        //if(dep[a] > dep[b]) swap(a, b);             // edge
+        //a = son[a];                                 // edge
         T.sL = dfn[a]; T.sR = dfn[b]; T.sW = c;
         T.upd(1, 1, dfn_time);
     }
@@ -3015,7 +3025,8 @@ namespace TD{
         }
         if(dep[a] > dep[b]) swap(a, b);               // point
         //if(a == b) return res;                      // edge
-        //if(dep[a] > dep[b]) swap(a, b); a = son[a]; // edge
+        //if(dep[a] > dep[b]) swap(a, b);             // edge
+        //a = son[a];                                 // edge
         T.sL = dfn[a]; T.sR = dfn[b]; T.sW = -INF;
         T.qmax(1, 1, dfn_time); res = max(T.sW, res);
         return res;
@@ -3025,20 +3036,22 @@ namespace TD{
 \subsubsection{Link-Cut Tree}
 \begin{lstlisting}
 namespace LCT {
-    int fa[MAXN], rev[MAXN], tr[MAXN][2];
-    int s[MAXN], val[MAXN];
-    void push_up(int x) {
-        int l = tr[x][0], r = tr[x][1];
-        s[x] = s[l] + s[r] + val[x];
-    }
+    int fa[MAXN], tr[MAXN][2], rev[MAXN];
+    int val[MAXN], sval[MAXN];
     void Rev(int x) {
         rev[x] ^= 1; swap(tr[x][0], tr[x][1]);
     }
-    void push_down(int x) {
-        if(!rev[x]) return;
+    void push_up(int x) {
         int l = tr[x][0], r = tr[x][1];
-        rev[x] = 0;
-        if(l) Rev(l); if(r) Rev(r);
+        sval[x] = sval[l] + val[x] + sval[r];
+    }
+    void push_down(int x) {
+        int l = tr[x][0], r = tr[x][1];
+        if(rev[x]) {
+            if(l) Rev(l); 
+            if(r) Rev(r);
+            rev[x] = 0;
+        }
     }
     bool isroot(int x) {
         return tr[fa[x]][0] != x && tr[fa[x]][1] != x;
@@ -3048,60 +3061,68 @@ namespace LCT {
         push_down(x);
     }
     void rotate(int x) {
-        int y = fa[x]; int z = fa[y];
-        int l = tr[y][1] == x;
-        int r = l ^ 1;
+        int y = fa[x], z = fa[y], lr = tr[y][1] == x;
         if(!isroot(y)) tr[z][tr[z][1] == y] = x;
-        fa[x] = z; fa[y] = x; fa[tr[x][r]] = y;
-        tr[y][l] = tr[x][r]; tr[x][r] = y;
-        push_up(y);
+        fa[x] = z;
+        fa[tr[y][lr] = tr[x][lr^1]] = y;
+        fa[tr[x][lr^1] = y] = x;
+        push_up(y); //push_up(x);
     }
-    void splay(int x) {
+    inline void splay(int x) {
         pre(x);
-        int y, z;
-        while(!isroot(x)) {
+        for (int y, z; !isroot(x); rotate(x)) {
             y = fa[x]; z = fa[y];
-            if(!isroot(y)) {
-                if((tr[z][0] == y) == (tr[y][0] == x))rotate(y);
-                else rotate(x);
-            }
-            rotate(x);
+            if (!isroot(y)) rotate((tr[z][0] == y) ^ (tr[y][0] == x) ? x : y);
         }
         push_up(x);
     }
-    void access(int x) {
+    inline int access(int x) {
         int y = 0;
-        while(x) {
-            splay(x); tr[x][1] = y;
+        for (; x; y = x, x = fa[x]) {
+            splay(x);
+            tr[x][1] = y;
             push_up(x);
-            y = x; x = fa[x];
         }
+        return y;
     }
-    void makeroot(int x) {
+    inline void makeroot(int x) {
         access(x); splay(x); Rev(x);
     }
-    void lnk(int x, int y) {
-        makeroot(x); fa[x] = y;
+    inline int findroot(int x) {
+        access(x); splay(x);
+        for(;tr[x][0]; x = tr[x][0]) push_down(x);
+        splay(x);
+        return x;
     }
-    void cut(int x, int y) {
-        makeroot(x); access(y); splay(y);
-        tr[y][0] = fa[x] = 0; push_up(y);
+    inline void lnk(int x, int y) {
+        makeroot(x); 
+        if(findroot(y) != x) fa[x] = y;
     }
-    void update(int x, int y) {
+    inline void cut(int x,int y){
+        makeroot(x);
+        if(findroot(y) == x&&fa[y] == x&&!tr[y][0]){
+            fa[y] = tr[x][1] = 0;
+            push_up(x);
+        }
+    }
+    inline void cut(int y) {
+        access(y); splay(y);
+        fa[tr[y][0]] = 0;
+        tr[y][0] = 0;
+        push_up(y);
+    }
+    inline int lca(int u, int v) {
+        access(u); 
+        return access(v);
+    }
+    void upd(int x, int y) {
         makeroot(x); val[x] = y; push_up(x);
     }
-    int query(int x, int y) {
+    int que(int x, int y) {
         makeroot(x); access(y); splay(y);
-        return s[y];
+        return sval[y];
     }
-    bool check(int x, int y) {
-        int tmp = y;
-        makeroot(x); access(y); splay(x);
-        while(!isroot(y)) y = fa[y];
-        splay(tmp);
-        return x == y;
-    }
-}
+};
 \end{lstlisting}
 \subsubsection{Divide Combine Tree}
 1.[i,i+1]构造依赖,利用线段树辅助建图，利用tarjan求scc，利用rmq求最左最右边界
