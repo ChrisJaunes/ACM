@@ -1,5 +1,8 @@
 __pycache__
 venv
 bot_config.py
-scut_gugugu_bot
 nohup.out
+scut_gugugu_bot.db
+*.swp
+*.swo
+*.bak

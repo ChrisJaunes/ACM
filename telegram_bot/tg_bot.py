@@ -5,6 +5,7 @@ import logging
 import requests
 import random
 import datetime
+import json
 from telegram.error import NetworkError, Unauthorized
 from time import sleep
 from bot_config  import *
@@ -12,13 +13,11 @@ from bot_sqlite  import *
 from bot_crawler import *
 
 help_message = '''
-<table>
-  <tr> <th>help      </th> <th> tell you some operation about the bot </th> </tr>
-  <tr> <th>get_todo  </th> <th> [default] get your task; [(e.g : /get_todo#TA)] get TA todo</th> </tr>
-  <tr> <th>set_todo  </th> <th> [(e.g: /set_todo#TA#todo)] set TA todo </th> </tr>
-  <tr> <th>get_done  </th> <th> [default] get your do in todolist; [(e.g: /get_done#TA) ] get TA do in todolist</th> </tr>
-  <tr> <th>set_done  </th> <th> [(e.g: /set_done#do or /set_done#do#todo_id] set your do </th> </tr>
-</table>
+<b>help    </b>   tell you some operation about the bot 
+<b>get_todo</b>   [default] get your task; [(e.g : <i>/get_todo#TA</i>)] get TA todo
+<b>set_todo</b>   [(e.g: <i>/set_todo#TA#todo</i>)] set TA todo 
+<b>get_done</b>   [default] get your do in todolist; [(e.g: <i>/get_done#TA</i>) ] get TA do in todolist
+<b>set_done</b>   [(e.g: <i>/set_done</i>#do or <i>/set_done#do#todo_id</i>] set your do 
 '''
 cf_pro = {'hjj' : '', 'wzk' : '', 'zys' : ''}
 
@@ -41,11 +40,11 @@ def main():
     # 主函数功能
     while True:
         try:
+            operation(bot)
             if(datetime.date.today() not in date_set) :
-                date_set.add(datetime.date.today())
                 res = get_date_todo()
                 bot.send_message(chat_id = scut_gugugu_chat_id, text = res, parse_mode = telegram.ParseMode.HTML)
-            operation(bot)
+                date_set.add(datetime.date.today())
         except NetworkError:
             sleep(1)
         except Unauthorized:
@@ -65,24 +64,25 @@ def operation(bot):
         if(update.message.text.startswith('/help')):
             res = help_message
         elif(update.message.text.startswith('/get_todo')):
-            if(len(msg) == 1) : msg.append(update.message.from_user.username)
+            if(len(msg_argv) == 1) : msg_argv.append(update.message.from_user.username)
             res = get_todo(msg_argv)
         elif(update.message.text.startswith('/set_todo')):
             res = set_todo(msg_argv)
         elif(update.message.text.startswith('/get_done')):
-            if(len(msg) == 1) : msg.append(update.message.from_user.username)
-            res = get_todo(msg_argv)
+            if(len(msg_argv) == 1) : msg_argv.append(update.message.from_user.username)
+            res = get_done(msg_argv)
         elif(update.message.text.startswith('/set_done')):
             msg_argv[0] = update.message.from_user.username
-            res = get_todo(msg_argv)
+            res = get_done(msg_argv)
         elif(update.message.text.startswith('/get_contest')):
             get_context(update.message)
         elif(update.message.text.startswith('/set_contest')):
             set_context(update.message)
         else: update.message.reply_text(update.message.text)
-        res = '<html><body>' + res + '</body></html>'
-        update.message.reply_text(res, parse_mode = telegram.ParseMode.HTML)
-
+        try:
+            update.message.reply_text(res, parse_mode = telegram.ParseMode.HTML)
+        except Exception as e:
+            update.message.reply_text(res)
 
 def get_cf_pro(tag) :
     url = 'https://codeforces.com/api/problemset.problems?tags=' + str(tag)
@@ -103,28 +103,27 @@ def get_cf_pro(tag) :
     except Exception as e:
         print(e)
 
-def get_date_todo() :
-    def get_todo_pro(_name):
-        resc = get_todo_res(_name)
-        if(resc[0] == 'Err') return resc[1][0]
-        tresc = []
-        for i in resc[1] :
-            if(i[4] == 'no') :
-                tresc.append('<p>' + str(i[1])+'&nbsp;'+str(i[0]) + '&nsbp;' + str(i[2])+'&nbsp;'+str(i[3])+'</p><br/>'
-        res = random.choice(tresc) +'</div>'
-        return res
+def get_todo_pro(_name):
+    resc = get_todo_resc([_name])
+    if(resc[0] == 'Err'): return resc[1][0]
+    tresc = []
+    for i in resc[1] :
+        if(i[4] == 'no') :
+            tresc.append(str(i[1])+'|'+str(i[0]) + '|' + str(i[2])+'|'+str(i[3])+'\n')
+    return random.choice(tresc)
     
-    res = '<div> <p>' + str(datetime.today()) + 'todo list:</p><br/>'
-    res = res + set_todo_pro(['hjj'])
-    res = res + set_todo_pro(['wzk'])
-    res = res + set_todo_pro(['zys'])
+def get_date_todo() :
+    res = str(datetime.date.today()) + 'todo list:\n'
+    res = res +get_todo_pro('hjj')
+    res = res +get_todo_pro('wzk')
+    res = res +get_todo_pro('zys')
+    res = res +'CF problem\n'
     cf_pro['hjj'], pro_link = get_cf_pro(random.choice(HJJ_TAG))
-    res = res + '<p>[hjj]' + str(cf_pro['hjj']) + '&nbsp;' + pro_link + '</p><br/>'
+    res = res + '[hjj]' + str(cf_pro['hjj']) + '  ' + pro_link + '\n'
     cf_pro['wzk'], pro_link = get_cf_pro(random.choice(WZK_TAG))
-    res = res + '<p>[wzk]' + str(cf_pro['wzk']) + '&nbsp;' + pro_link + '</p><br/>'
+    res = res + '[wzk]' + str(cf_pro['wzk']) + '  ' + pro_link + '\n'
     cf_pro['zys'], pro_link = get_cf_pro(random.choice(ZYS_TAG))
-    res = res + '<p>[zys]' + str(cf_pro['zys']) + '&nbsp;' + pro_link + '</p><br/>'
-    res = re + '</div>'
+    res = res + '[zys]' + str(cf_pro['zys']) + '  ' + pro_link + '\n'
     return res
 
 # 定义程序的入口

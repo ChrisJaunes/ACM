@@ -2,7 +2,7 @@
 
 import sqlite3
 import datetime
-from config import *
+from bot_config import *
 def create():
     conn = sqlite3.connect('scut_gugugu_bot.db')
     print("Opened database successfully")
@@ -36,7 +36,7 @@ def get_todo_resc(msg_argv):
         _name = msg_argv[0]
         _name = NAMETR[_name]
     except Exception:
-        return ['Err',['<p> <font color=red> error command argv or no uesr </font> </p>']]
+        return ['Err',['error command argv or no uesr']]
     try:
         conn = sqlite3.connect('scut_gugugu_bot.db')
         c = conn.cursor()
@@ -45,26 +45,25 @@ def get_todo_resc(msg_argv):
         conn.commit()
         c.close()
     except Exception:
-        return ['Err', ['<p> <font color=red>sql error, please contact Admin </font> </p>']]
+        return ['Err', ['sql error, please contact Admin']]
     return [_name, resc]
 
 def get_todo(msg_argv):
-    resc = get_todo_res(msg_argv[1:])
-    if(resc[0] == 'Err') return resc[1][0]
-    res = '<table> <caption> ['+resc[0]+'] todo list: </caption>'
+    resc = get_todo_resc(msg_argv[1:])
+    if(resc[0] == 'Err') : return resc[1][0]
+    res = '<b> ['+resc[0]+'] todo list: </b>\n'
     for i in resc[1]:
         if(i[4] == 'no') :
-            res = res + '<tr> <th>' + str(i[0])+'</th> <th>'+str(i[2])+'</th> <th><font color = red>'+str(i[3])+'</font></th> </tr>'
-    res = res + '</table>'
+            res = res + str(f' {str(i[0]):<4}:{str(i[2])} :{str(i[3])}\n')
     return res
 
 def set_todo(msg_argv):
-    if(len(msg_argv) != 3):return '<p> <font color=red> wrong number of command argv </font> </p>'
+    if(len(msg_argv) != 3):return 'wrong number of command argv'
     try:
         msg_argv = msg_argv[1:]
         msg_argv[0] = NAMETR[msg_argv[0]]
     except Exception:
-        return '<p> <font color=red> no user </font> </p>'
+        return 'no user'
     try:
         conn = sqlite3.connect("scut_gugugu_bot.db")
         c = conn.cursor()
@@ -76,49 +75,48 @@ def set_todo(msg_argv):
         conn.commit()
         c.close()
     except Exception:
-        return '<p> <font color=red> sql error, please contact Admin </font> </p>'
-    return '<p> <font color=green> ok </font> </p>'
+        return 'sql error, please contact Admin'
+    return 'ok'
 
 def get_done(msg_argv):
-    resc = get_todo_res(msg_argv[1:])
-    if(resc[0] == 'Err') return resc[1][0]
-        res = '<table> <caption> ['+resc[0]+'] todo list: </caption>'
+    resc = get_todo_resc(msg_argv[1:])
+    if(resc[0] == 'Err')  : return resc[1][0]
+    res = '<b> ['+resc[0]+'] todo list: </b>\n'
     for i in resc[1]:
         if(i[4] == 'yes') :
-            res = res + '<tr> <th>' + str(i[0])+'</th> <th>'+str(i[2])+'</th> <th><font color = red>'+str(i[3])+'</font></th> </tr>'
-    res = res + '</table>'
+            res = res + str(f'<s>{str(i[0]):<4}:{str(i[2])} :{str(i[3])}</s>\n')
     return res
 
 def set_done(msg_argv):
     if(len(msg_argv) != 2 and len(msg_argv) != 3) : 
-        return '<p> <font color=red> wrong number of command argv </font> </p>'
+        return 'wrong number of command argv'
     try:
         msg_argv[0] = NAMETR[msg_argv[0]]
     except Exception:
-        return '<p> <font color=red> no user </font> </p>'
+        return 'no user'
     if(len(msg_argv) == 2) :
         try:
             conn = sqlite3.connect("scut_gugugu_bot.db")
             c = conn.cursor()
             c.execute('INSERT INTO TODO(NAME, CONTENT, DDL, ok) VALUES ('+
-                        '"'+msg_argv[0]+'", '+
-                        '"'+msg_argv[1]+'", '+
+                        '"'+str(msg_argv[0])+'", '+
+                        '"'+str(msg_argv[1])+'", '+
                         '"'+str(datetime.date.today())+'", "yes");')
             conn.commit()
             c.close()
         except Exception:
-            return '<p> <font color=red> sql error, please contact Admin </font> </p>'
+            return 'sql error, please contact Admin'
     if(len(msg_argv) == 3) :
         try:
             conn = sqlite3.connect("scut_gugugu_bot.db")
             c = conn.cursor()
             res = c.execute('UPDATE TODO SET ok == "yes" where ' +
-                            'name = '+msg_argv[0]+'and id = "' + msg_argv[2]+'";')
+                            ' name = '+str(msg_argv[0])+'and id = "' + str(msg_argv[2])+'";')
             conn.commit()
             c.close()
         except Exception:
-            return '<front><p> <font color=red> sql error, please contact Admin </font> </p>'
-    return '<p> <font color=red> ok </font> </p>'
+            return 'sql error, please contact Admin'
+    return 'ok'
 
 def getContest(name):
     pass
