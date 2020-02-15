@@ -3174,6 +3174,18 @@ namespace LCT {
 //新建一个附加值存储虚子树的贡献，在统计时将其加入本结点答案，在改变边的虚实时及时维护。
 //其余部分同普通 LCT，在统计子树信息时一定将其作为根节点。
 //如果维护的信息没有可减性，如维护区间最值，可以对每个结点开一个平衡树维护结点的虚子树中的最值。
+if(x == y) continue;
+if(Find(x) != Find(y)) {
+    unite(x, y);
+    addEdge(mp[{x, y}]);
+}else{
+    int eid = que(x, y);
+    int id = mp[{x, y}];
+    if(val[eid] > e[id].w) {
+        delEdge(eid - vcnt);
+        addEdge(id);
+    }
+}
 \end{lstlisting}
 \subsubsection{Divide Combine Tree}
 1.[i,i+1]构造依赖,利用线段树辅助建图，利用tarjan求scc，利用rmq求最左最右边界
