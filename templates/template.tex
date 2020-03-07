@@ -7294,7 +7294,12 @@ while true; do
     echo Passed
 done
 \end{lstlisting}
-
+\subsection{Random}
+\begin{lstlisting}
+mt19937_64 mt(chrono::steady_clock::now().time_since_epoch().count());
+shuffle(per.begin(), per.end(), mt);
+//random_shuffle(per.begin(),per.end());
+\end{lstlisting}
 \subsection{FastIO}
 \begin{lstlisting}
 //普通情况
