@@ -7623,4 +7623,107 @@ __gnu_pbds::cc_hash_table <Key, Mapped> mp; //使用链地址法解决哈希冲�
 __gnu_pbds::gp_hash_table <Key, Mapped> mp; //使用探测法解决哈希冲突
 //用法和map一样
 \end{lstlisting}
+
+
+\newpage
+\section{code}
+\subsection{最大子矩阵}
+单调栈法：
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 1007;
+int a[MAXN][MAXN], b[MAXN][MAXN];
+pair<int, int> mp[MAXN * MAXN];
+pair<int, int> off[MAXN][MAXN];
+int tail;
+pair<int, int> st[MAXN];
+int Up[MAXN][MAXN];
+int ans = 0;
+void maintain(pair<int, int> v) {
+    for(;tail && st[tail].first >= v.first; tail--) {
+        ans = max(ans, st[tail].first * (v.second - st[tail-1].second-1));
+    }
+}
+void clear(int pos) {
+    for(;tail; tail--)
+        ans = max(ans, st[tail].first * (pos -st[tail-1].second-1));
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    for(int i = 1; i <= n; i++)
+        for(int j = 1; j <= m; j++) {
+            cin >> a[i][j];
+            mp[a[i][j]] = {i,j};
+        }
+    for(int i = 1; i <= n; i++)
+        for(int j = 1; j <= m; j++) {
+            cin >> b[i][j];
+            off[i][j] = {i - mp[b[i][j]].first, j - mp[b[i][j]].second};
+
+        }
+    for(int i = 1; i <= n; i++) {
+        st[0].second = 0;
+        for(int j = 1; j <= m; j++) {
+            Up[i][j] = i > 1 && off[i][j] == off[i-1][j] ? Up[i-1][j] + 1 : 1;
+            if(j > 1 && off[i][j] == off[i][j-1]) 
+                maintain({Up[i][j], j}); else {clear(j); st[0].second = j-1;}
+            st[++tail] = {Up[i][j], j};
+        }
+        clear(m+1);
+    }
+    cout << ans << endl;
+    return 0;
+}
+\end{lstlisting}
+悬线法：
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 1007;
+int a[MAXN][MAXN], b[MAXN][MAXN];
+pair<int, int> mp[MAXN * MAXN];
+pair<int, int> off[MAXN][MAXN];
+int L[MAXN][MAXN], R[MAXN][MAXN], UP[MAXN][MAXN];
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0);
+    int n, m;
+    cin >> n >> m;
+    for(int i = 1; i <= n; i++)
+        for(int j = 1; j <= m; j++) {
+            cin >> a[i][j];
+            mp[a[i][j]] = {i,j};
+        }
+    for(int i = 1; i <= n; i++)
+        for(int j = 1; j <= m; j++) {
+            cin >> b[i][j];
+            off[i][j] = {i - mp[b[i][j]].first, j - mp[b[i][j]].second};
+            L[i][j] = R[i][j] = j;
+            UP[i][j] = 1;
+        }
+    for(int i = 1; i <= n; i++) 
+        for(int j = 2; j <= m; j++) {
+            if(off[i][j] == off[i][j-1]) L[i][j] = L[i][j-1];
+        }
+    for(int i = 1; i <= n; i++) 
+        for(int j = m - 1; j >= 1; j--) {
+            if(off[i][j] == off[i][j+1]) R[i][j] = R[i][j+1];
+        }
+    int ans = 0;
+    for(int i = 1; i <= n; i++) 
+        for(int j = 1; j <= m; j++) {
+            if(i > 1 && off[i][j] == off[i-1][j]) {
+                UP[i][j] = UP[i-1][j] + 1;
+                L[i][j] = max(L[i][j], L[i-1][j]);
+                R[i][j] = min(R[i][j], R[i-1][j]); 
+            }
+            ans = max(ans, (R[i][j] - L[i][j] + 1) * UP[i][j]);
+        }
+    cout << ans << endl;
+    return 0;
+}
+\end{lstlisting}
+
 \end{document}
