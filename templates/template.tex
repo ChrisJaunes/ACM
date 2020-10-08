@@ -5814,18 +5814,18 @@ namespace CG{
 \subsubsection{Get Convex Hull}
 \begin{lstlisting}
 namespace CG{
-    Point p[MAXN],s[MAXN];
+    Point p[MAXN],s[MAXN]; // both based from 0
     int ConvexHull(Point *p,int n,Point *s){
         sort(p,p+n,cmp); //x从小到大,y从小到大;
         int m=0;
         for (int i=0;i<n;i++){
             for (;m>=2 && Cross(s[m-1]-s[m-2],p[i]-s[m-1])<=0;m--);
-            s[++m]=p[i];
+            s[m++]=p[i];
         }
         int k=m;
         for (int i=n-2;i;i--){
             for (;m>=k+1 && Cross(s[m-1]-s[m-2],p[i]-s[m-1])<=0;m--);
-            s[++m]=p[i];
+            s[m++]=p[i];
         }
         return m-1;
     }
