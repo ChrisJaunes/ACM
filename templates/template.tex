@@ -177,12 +177,15 @@ void SPFA(int st) {
 \subsubsection{Johnson}
 \begin{lstlisting}
 void johnson() {
-    //建图中,Edge需要from,w1,w2,去掉w;
-    spfa(1);
+    //全源带负权最短路,新建超级节点向全部点连权为0的边，计算D，利用Dij计算点对距离
+    for(int i = 1; i <= n; i++) addEdge(0, i, 0);
+    spfa(0);
     for(int u = 1; u <= n; u++) 
         for(int i = head[u]; i; i = e[i].nxt)
-            e[i].w2 = e[i].w1 + d[e[i].from] - d[e[i].to]; 
+            e[i].w += D[e[i].from] - D[e[i].to]; 
     dijkstra(s,n);
+    //ans  = d[n] - D[s] + D[n];
+    
 }
 \end{lstlisting}
 \subsubsection{K Shortest Path (A*)}
