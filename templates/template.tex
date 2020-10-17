@@ -524,6 +524,7 @@ namespace NWF{
 }
 \end{lstlisting}
 \subsubsection{Dinic}
+注意当流为浮点数的时候，要判断eps以及不能使用sumf-=tmpf，否者1e18将不会发生改变
 \begin{lstlisting}
 namespace NWF {
     struct Edge {
@@ -572,8 +573,125 @@ namespace NWF {
         while (bfs()) ret += dfs(S, INF);
         return ret;
     }
+    void rebuild(){
+        //无向图采用e[i].f = e[i^1].f的方式建立图
+        for(int i = 2; i <= ecnt; i+=2) e[i].f = e[i^1].f = (e[i].f + e[i^1].f) >> 1;
+        //有向图
+        //for(int i = 2; i <= ecnt; i+=2) e[i].f += e[i^1].f, e[i^1].f = 0;
+    }
 }
 \end{lstlisting}
+\subsubsection{Bound_Flow}
+\begin{lstlisting}
+namespace NWF{
+    //在Edge中添加下限，delta_flow[i]:节点i的入流-出流, bound_flow注意要处理除了SS和TT以外的点
+    int delta_flow[MAXN];
+    void addEdge(int u, int v, int mxf, int mnf) {
+        addEdge(u, v, mxf-mnf); 
+        delta_flow[u] -= mnf; delta_flow[v] += mnf;
+    }
+    void delEdge(int u) {
+        for(int i = head[u]; i; i = e[i].nxt) e[i].f = e[i^1].f = 0;
+    }
+    int bound_flow() {
+        int SS = ++tot, TT = ++ tot, sum = 0;
+        head[SS] = head[TT] = 0;
+        for(int i =1; i <= tot;++i) {
+            if(delta_flow[i]<0) addEdge(i, TT, -delta_flow[i]);
+            if(delta_flow[i]>0){
+                sum+=delta_flow[i];
+                addEdge(SS, i, delta_flow[i]);
+            }
+        }
+        addEdge(T,S, INF);
+        int tS = S, tT = T;
+        S = SS; T = TT;
+        if (dinic()==sum) {
+            delEdge(SS); delEdge(TT);
+            int flow = e[ecnt].f;
+            e[ecnt].f = e[ecnt^1].f = 0;
+            //S = tS; T = tT;// 有上下界有源汇最大流
+            //return flow + dinic();
+            S = tT; T = tS;// 有上下界有源汇最小流    
+            return flow - dinic();
+        }else{
+            return -1;
+        }
+    }
+}
+\end{lstlisting}
+\subsubsection{Gomory-Hu Tree}
+\begin{lstlisting}
+namespace NWF{
+    Edge Te[MAXN];
+    int Tcnt, Thead[MAXN];
+    void TaddEdge(int u, int v, LL f) {
+        Te[++Tcnt] = (Edge) {v, Thead[u], f}; Thead[u] = Tcnt;
+        Te[++Tcnt] = (Edge) {u, Thead[v], f}; Thead[v] = Tcnt;
+    }
+    int node[MAXN], tmp[MAXN];
+    void build(int l, int r) {
+        if (l == r) return;
+        S = node[l]; T = node[l+1];
+        rebuild();
+        LL cut = dinic();
+        TaddEdge(S, T, cut);
+        int tl = l, tr = r;
+        for(int i = l; i <= r; i++) {
+            if(dis[node[i]]) tmp[tl++] = node[i]; else tmp[tr--] = node[i];
+        }
+        for(int i=l; i<=r; i++) node[i] = tmp[i];
+        build(l,tl-1); build(tr+1,r);
+    }
+    int log2n;
+    int dep[MAXN], anc[MAXN][MAXS];LL mnl[MAXN][MAXS];//anc：祖先；mnl：最小边
+    void lca_dfs(int u, int _fa) {
+        for(int i=Thead[u], v; i; i=Te[i].nxt) {
+            if((v = Te[i].to) == _fa) continue;
+            dep[v] = dep[u] + 1;
+            anc[v][0] = u;
+            mnl[v][0] = Te[i].f;
+            lca_dfs(v, u);
+        }
+    }
+    void work() {
+        if(tot == 0) return;
+        log2n = log2(tot)+1; Tcnt = 1;
+        for(int i=1; i<=tot; i++) node[i]=i, Thead[i]=0;
+        build(1, tot);
+        dep[1] = 1; anc[1][0] = 0; mnl[1][0] = INF;
+        lca_dfs(1, -1);
+        for(int j = 1; j <= log2n; j++) {
+            for(int i = 1; i <= tot; i++) {
+                anc[i][j] = anc[anc[i][j-1]][j-1];
+                mnl[i][j] = min(mnl[i][j-1], mnl[anc[i][j-1]][j-1]);
+            }
+        }
+    }
+    LL get_cut(int u,int v) {
+        LL res=INF;
+        if(dep[u] < dep[v]) swap(u, v);
+        for(int i = log2n; i >= 0; i--) {
+            if(dep[anc[u][i]] >= dep[v]){
+                res = min(res, mnl[u][i]);
+                u = anc[u][i];
+            }
+        }
+        if(u == v) return res;
+        for(int i = log2n; i>=0 ; i--) {
+            if(anc[u][i] != anc[v][i]) {
+                res = min(res, mnl[u][i]);
+                res = min(res, mnl[v][i]);
+                u = anc[u][i];
+                v = anc[v][i];
+            }
+        }
+        res = min(res, mnl[u][0]);
+        res = min(res, mnl[v][0]);
+        return res;
+    }
+}
+\end{lstlisting}}
 \subsubsection{MCMF}
 \begin{lstlisting}
 namespace NWF{
@@ -1078,7 +1196,7 @@ void LCA(int u){
 \begin{lstlisting}
 namespace SCC{
     vector<int> G[MAXN];
-    int dfs_clock, scc_cn, dfn[MAXN], low[MAXN], sccno[MAXN];
+    int dfs_clock, scc_cnt, dfn[MAXN], low[MAXN], sccno[MAXN];
     stack<int> S;
     void addEdge(int u, int v) {
         G[u].push_back(v);
@@ -7728,5 +7846,51 @@ int main() {
     return 0;
 }
 \end{lstlisting}
+\subsection{网络流建模}
+最大权闭合子图建模 eg: (+++) - (---)
+定义：在一个有向图中，每个点都有一个点权。闭合子图：对于这个子图，它任意一个点的的后继必须在这个子图中。最大权闭合子图：在所有的闭合子图中，该图的点权和最大。
+建模：
+1. 建立超级源S和超级汇T
+2. 把所有点权为正的点与S连接一条有向边，方向是从S到u，边权是点权；把所有点权为负的点与T连接一条有向边，方向是从u到T，边权是点权的相反数；
+3. 原图中所有有向边的边权是INT_MAX；也可以根据情况按照割的思想处理。
+答案：
+最大权闭合子图的权值和就是所有点的点权和-该生成图的最小割
 
+独立集就是，就是一个点集，点集中的各点没有关系。
+最大独立集就是，点的个数最多的独立集。 
+求解一般无向图的最大团、最大独立集是NPC问题。
+二分图最大独立集 = 点的总数 - 最小点覆盖。
+最大点权独立集的点权和 = 所有点权和-最小点权覆盖的点权
+
+路径覆盖：给定有向图 G=(V,E)。设 P 是 G 的一个简单路(顶点不相交)的集合。如果 V 中每个定点恰好在P的一条路上，则称 P 是 G 的一个路径覆盖。
+最小路径覆盖：G 的最小路径覆盖是 G 所含路径条数最少的路径覆盖
+建模：拆点，对于原图的(u,v),连接(u->v')
+答案：原图的结点数-新图的最大匹配数
+
+最小割的可行边和必须边(所有割集的交集和并集)
+注意：必须边⊆可行边.
+1. 残余网络中有剩余流量的边一定不在最小割中
+2. 残余网络中一条满流边的首尾还能相互到达，那么这条边不是可行边
+3. 残余网络中一条满流的首尾分别与S和T在一个强连通分量中，那么这条边为必须边
+具体实现,需要先跑最大流,然后Tarjan缩强连通分量,条件是:
+可行边 : 两端不在一个强连通分量内。
+必须边 : 一端在S的分量内,另一端在T的分量内。
+
+求割边最少的最小割:把边的权值全部乘以一个较大的数E再加1, E要严格大于边的数量
+最小割: ans/E;
+最小割下的最小割边: ans \% E
+
+公平分配模型：
+题意：n个球队，已经有一些胜负场，现在还有一些场次，你去分配胜负，问每支球队有没有可能获胜
+解：
+1. 枚举每一个人，贪心计算比赛最大获胜次数max_win
+2. 将比赛当作节点，从源到比赛连比赛次数边
+3. 分配比赛胜利者，从比赛到人连无穷边
+4. 从人到汇连{max_win - 已经获胜的比赛次数}的边
+5. 检查是否能将比赛全部安排完
+
+费用流：物品通过代价重复使用
+1. 拆点，使用物品前和使用物品后
+2. 对于节点[使用物品前]：考虑物品来源:从源点、节点[使用物品后]获得,去向:汇点
+3. 对于节点[使用物品后]：考虑物品来源:通过源点补足，去向:节点[使用物品前]
 \end{document}
