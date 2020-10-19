@@ -19,9 +19,9 @@
             citecolor=black]{hyperref}
 \geometry{a4paper,scale=0.8}
 \renewcommand\contentsname{Contents}
-\setmonofont[Mapping={}]{Consolas} 
+%\setmonofont[Mapping={}]{Monaco} 
 \setlength{\parindent}{0pt}
-%\setmonofont[Mapping={}]{Consolas}    %英文引号之类的正常显示，相当于设置英文字体
+\setmonofont[Mapping={}]{Consolas}    %英文引号之类的正常显示，相当于设置英文字体
 %\setsansfont{Consolas} %设置英文字体 Monaco, Consolas,  Fantasque Sans Mono
 %\setmainfont{Monaco} %设置英文字体
 %\setmainfont{Helvetica Neue} %设置英文字体
@@ -104,10 +104,9 @@
 \newpage
 \section{Graph Theory}
 \subsection{Shortest Path}
-尚未开始
+
 \subsection{Network Flow}
 修订稿 Created By ChrisJaunes
-
 最大权闭合子图建模 eg: (+++) - (---) \\
 定义：在一个有向图中，每个点都有一个点权。闭合子图：对于这个子图，它任意一个点的的后继必须在这个子图中。最大权闭合子图：在所有的闭合子图中，该图的点权和最大。\\
 建模：\\
@@ -237,6 +236,136 @@
 尚未开始
 \subsection{Palindrome Related}
 尚未开始
+\subsection{Substring Automaton}
+求解 子序列个数，不重复, 包括空串
+\begin{lstlisting}
+int dfs(int x) {
+    if(dp[x]) return dp[x];
+    dp[x] = 1;
+    for(int i = 0; i < 26; i++)
+        if(ch[x][i] != -1) dp[x] += dfs(ch[x][i]);
+    return dp[x];
+}    
+\end{lstlisting}
+求解 回文公共子序列个数，不重复，包括空串\\
+原串与反串都建一遍,这样有两个字符串,x+y<=n+1这个序列才是合法的\\
+x+y=n+1以外的情况统计奇回文序列要++f[x][y]\\
+特殊处理x+y=n+1、x+y<n+1时不++f[x][y], 可以统计偶回文序列\\
+相减可以统计奇回文序列
+\begin{lstlisting}
+LL dfs(LL x,LL y) {
+    if(f[x][y]) return f[x][y];
+    for(LL i = 0; i < 26; i++)
+    if(ch1[x][i] != -1 && ch2[y][i] != -1) {
+        if(ch1[x][i]+ch2[y][i] > n+1) continue;
+        if(ch1[x][i]+ch2[y][i] < n+1) f[x][y]++;
+        f[x][y] = (f[x][y]+dfs(ch1[x][i],ch2[y][i]))%mod;
+    }
+    return ++f[x][y];
+}
+\end{lstlisting}
+求解 两个字符串的所有公共子序列个数，可重复
+\begin{lstlisting}
+for(int i=1;i<=n;i++)
+    for(int j=1;j<=m;j++) {
+        f[i][j]=f[i-1][j]+f[i][j-1]-f[i-1][j-1];
+        if(arr[i]==brr[j]) f[i][j]+=f[i-1][j-1]+1;
+        if(f[i][j]<0) f[i][j]+=mod;
+        if(f[i][j]>=mod) f[i][j]%=mod;
+    }
+\end{lstlisting}
+求解 两个字符串的所有公共子序列个数，去重复， 包括了空串
+输入：a串长度、b串长度、a串、b串、（0：输出所有的公共子序列个数|1：按照字典序输出所有不重复公共子序列）
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const LL MOD = 1e9;
+const int MAXN = 3020;
+const int MAXM = 3e6 + 7;
+const int MAXS = 58;
+struct Big {//压位高精度
+    int len, a[20];
+    Big() {
+        len = 0;
+        for (int i = 0; i < 20; i++) a[i] = 0;
+    }
+    void put() {
+        printf("%d", a[len]);
+        for (int i = len - 1; i >= 0; i--) printf("%09d", a[i]);
+    }
+    void operator=(int o) {
+        if (o >= MOD) {
+            a[0] = o % MOD;
+            a[len = 1] = 0 / MOD;
+        } else
+            a[len = 0] = o;
+    }
+    void operator+=(const Big& o) {
+        len = max(len, o.len);
+        for (int i = 0; i <= len; i++) {
+            a[i] += o.a[i];
+            if (a[i] >= MOD) {
+                a[i + 1] += a[i] / MOD;
+                a[i] %= MOD;
+            }
+        }
+        while (a[len + 1]) len++;
+    }
+} dp[MAXM];
+
+char sta[MAXN];
+int top = -1;
+
+char a[MAXN], b[MAXN];
+int an, bn, k;
+LL ans;
+int cha[MAXN][MAXS], chb[MAXN][MAXS];
+
+int markn, mark[MAXN][MAXN];
+void build(char* s, int sn, int (*ch)[58]) {
+    for (int j = 0; j < 58; j++) ch[sn][j] = ch[sn + 1][j] = -1;
+    for (int i = sn; i >= 1; i--) {
+        for (int j = 0; j < 58; j++) ch[i - 1][j] = ch[i][j];
+        ch[i - 1][s[i] - 'A'] = i;
+    }
+}
+int dfs0(int x, int y) {
+    if (mark[x][y])
+        return mark[x][y];
+    int p = mark[x][y] = ++markn;
+    dp[p] = 1;
+    for (int i = 0; i < 58; i++) {
+        if (cha[x][i] != -1 && chb[y][i] != -1) {
+            dp[p] += dp[dfs0(cha[x][i], chb[y][i])];
+        }
+    }
+    return mark[x][y];
+}
+LL dfs1(int x, int y) {
+    puts(sta);
+    LL cnt = 1;
+    for (int i = 0; i < 58; i++) {
+        if (cha[x][i] != -1 && chb[y][i] != -1) {
+            sta[++top] = i + 'A';
+            cnt += dfs1(cha[x][i], chb[y][i]);
+            sta[top--] = '\0';
+        }
+    }
+    return cnt;
+}
+int main() {
+    scanf("%d%d%s%s%d", &an, &bn, a + 1, b + 1, &k);
+    build(a, an, cha);
+    build(b, bn, chb);
+    if (k == 1)
+        dfs1(0, 0);
+    dfs0(0, 0);
+    dp[mark[0][0]].put();
+    return 0;
+}
+\end{lstlisting}
+
 
 
 \newpage

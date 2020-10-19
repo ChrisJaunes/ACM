@@ -4009,14 +4009,14 @@ namespace PAM {
 \subsection{Substring Automaton}
 \begin{lstlisting}
 for(int j = 0; j < 26; j++) 
-	ch[n][j] = ch[n+1][j] = n + 1;
+	ch[n][j] = ch[n+1][j] = n + 1; //或者 -1
 for(int i = n; i >= 1; i--) {
 	for(int j = 0; j < 26; j++) 
 		ch[i-1][j] = ch[i][j];
 	ch[i-1][s[i]-'a'] = i;
 }
 \end{lstlisting}
-
+当字符集过大时使用主席树维护ch
 
 
 
