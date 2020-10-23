@@ -235,7 +235,250 @@
 \subsection{Suffix Related}
 尚未开始
 \subsection{Palindrome Related}
-尚未开始
+周期：若$0 < p \leq |S|, {\forall}1 \leq i \leq{|s|-p}, s[i] = s[i+p]$ 就称p是s的周期\\
+border：若$0 \leq r < |S|, pre(s, r) = suf(s,r)$ 就称pre(s,r)是s的border\\
+周期和 border 的关系：t是s的border，当且仅当$|s| - |t|$是s的周期\\
+t是回文串s的后缀，t是s的 border当且仅当t是回文串\\
+t是回文串s的border($|s|\leq 2|t|$)，s是回文串当且仅当t是回文串\\
+t是回文串s的border，则|s|-|t|是s的周期，|s|-|t|为s的最小周期，当且仅当t是s的最长回文真后缀\\
+x是一个回文串，y是x的最长回文真后缀，z是y的最长回文真后缀。令u,v分别为满足x=uy,y=vz的字符串，则有下面三条性质\\
+1. $|u| \geq |v|$\\
+2. 如果$|u| > |v|$，那么$ |u| > |z|$\\
+3. 如果$|u| = |v|$，那么$ u = v$\\
+推论：s的所有回文后缀按照长度排序后，可以划分成log|s|段等差数列\\
+遍历回文自动机的fail链，能得到当前串的所有Border\\
+
+1. 计算以该i结尾的回文子串个数. 解：输出num[i];\\
+2. 计算本质不同的(奇/偶/总)回文串个数. 解：奇回文for(int i = 2; i < pcnt; i++) if(len[i]\%2 == 1) ++ans;\\
+3. 计算(奇/偶/总)回文串个数. 解：\\
+奇回文for(int i = 2; i < pcnt; i++) if(len[i]\%2 == 1) ans += cnt[i];\\
+动态情况下，总串累计num[i]
+4. 计算$ww^{-1}ww^{-1}$的最长长度. 解: if(len[trans[last]]+len[trans[last]]==len[last] && len[last]\%4==0) ans = max(ans, len[last]);\\
+5. 计算$aa^{-1}bb^{-1}$的最长长度. 解：正反各建立一颗回文树，以i-1结尾的最长回文串和以i开始的最长回文串最大值即为答案\\
+6. 计算相交回文串的个数. 输入：字符串长度n(1<=n<=2*10^6)、字符串. 解: 总数 - 计算不相交的个数\\
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 2e6 + 7;
+const LL MOD = 51123987;
+namespace PAM {
+	int scnt, S[MAXN];
+	int pcnt, last, len[MAXN], fail[MAXN];
+	struct node{int c, pos, nxt;} e[MAXN];
+	int ecnt, head[MAXN];
+	int num[MAXN];
+	int newnode(int _len) {
+		len[pcnt] = _len;
+		num[pcnt] = head[pcnt] = 0;
+		return pcnt++;
+	}
+	inline void init() {
+		S[scnt = 0] = -1;
+		pcnt = 0;newnode(0);newnode(-1);
+		fail[0] = 1;last = 0;
+		ecnt = 0;
+		memset(head, 0, sizeof head);
+	}
+	int getfail(int x) {
+		while(S[scnt - len[x] - 1] != S[scnt]) x = fail[x];
+		return x;
+	}
+	int ch(int u, int c) {
+		for(int i = head[u]; i; i = e[i].nxt) if(e[i].c == c) return e[i].pos;
+		return 0;
+	}
+	void setCh(int u, int c, int pos) {
+		e[++ecnt] = (node) {c, pos, head[u]}; head[u] = ecnt;
+	}
+	void extend(int c) {
+		S[++scnt] = c;
+		int cur = getfail(last);
+		if(!(last = ch(cur, c))) {
+			last = newnode(len[cur] + 2);
+			fail[last] = ch(getfail(fail[cur]), c);
+			setCh(cur, c, last);
+			num[last] = num[fail[last]] + 1;
+		}
+	}
+};
+using namespace PAM;
+LL sum[MAXN];
+int main() {
+    ios::sync_with_stdio(false); cin.tie(0);
+	int n; cin >> n;
+	string s; cin >> s;
+	init();
+	for(int i = 1; i <= n; i++) {
+		extend(s[i-1] - 'a');
+		sum[i] = sum[i-1] + num[last];
+		if(sum[i] >= MOD) sum[i] -= MOD;
+	} 
+	LL ans = sum[n] * (sum[n] - 1) / 2;
+	init();
+	for(int i = n; i; i--) {
+		extend(s[i-1] - 'a');
+		ans = (ans - sum[i-1] * num[last] % MOD + MOD) % MOD ;
+	}
+	cout << ans << endl;
+	return 0;
+} 
+\end{lstlisting}
+7. {操作一: 串开头或末尾加一个字符, 操作二: 串开头或末尾加一个该串的逆串} 从空串到指定串最少步骤\\
+解：每个偶回文串v的情况为: min(dp[u] + 1, dp[trans[v]] + len[v]/2 - len[trans[v]] + 1); 答案为 min(ans, dp[v] + n - len[v])\\
+
+8. 公共回文子串的个数,重复计算. 输入两个串s1，s2. 解：分别建立回文树，在两颗树上同时跑
+\begin{lstlisting}
+int main() {
+    ios::sync_with_stdio(false); cin.tie(0);
+    string s1, s2; cin >> s1 >> s2;
+    T1.init();for(auto it : s1) T1.extend(it-'A');T1.count();
+    T2.init();for(auto it : s2) T2.extend(it-'A');T2.count();
+    queue<pair<int,int> > q;
+    q.push({0, 0}); q.push({1, 1});
+    LL ans = 0;
+    while(!q.empty()) {
+        int cur1 = q.front().first, cur2 = q.front().second; q.pop();
+        for(int i = 0; i < 26; i++) {
+            int t1 = T1.ch[cur1][i], t2 = T2.ch[cur2][i]; 
+            if(t1 && t2) {
+                q.push({t1, t2});
+                ans += (LL)T1.cnt[t1] * T2.cnt[t2];
+            }
+        }
+    }
+    cout << ans<< endl;
+    return 0;
+} 
+\end{lstlisting}
+9. 给定一个串S，把串分为偶数段, 假设分为了s1,s2,s3....sk, 求满足$s_1=s_k,s_2=s_{k-1}......$的方案数
+解： 题目转化为$S'= S_1S_nS_2S_{n−2}...$, 求把S'分为若干个长度为偶数的回文串的方案数
+辅助数组g: g[v] 表示v所在的等差数列的dp值之和, 且v是这个等差数列中长度最长的节点
+$g[v] = \sum_{x, slink[x]=v} dp[i - len[x]]$
+$g[v] = g[fail[x]] + 多出来的一个位置的dp 之和$, 多出来的这个位置为$i - (len[slink] + diff[x])$
+然后利用g[v] 更新 f[i], 正确性依赖于：如果v和fail[v]属于同一个等差数列，那么fail[x]上一次出现位置是i-diff[v]
+无论f[i]是否要求修改，都要更新对应位置的g
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 1e6 + 7;
+int MOD = 1e9 + 7;
+namespace PAM {
+    int scnt, S[MAXN];
+    int pcnt, last, len[MAXN], fail[MAXN], ch[MAXN][26];
+    int diff[MAXN], slink[MAXN];
+    int newnode(int _len) {
+        len[pcnt] = _len; diff[pcnt] = slink[pcnt] = 0;
+        for(int i = 0; i < 26; i++) ch[pcnt][i] = 0;
+        return pcnt++;
+    }
+    inline void init() {
+        S[scnt = 0] = -1;
+        pcnt = 0;newnode(0);newnode(-1);
+        fail[0] = 1;last = 0;
+    }
+    int getfail(int x) {
+        while(S[scnt - len[x] - 1] != S[scnt]) x = fail[x];
+        return x;
+    }
+    void extend(int c) {
+        S[++scnt] = c;
+        int cur = getfail(last);
+        if(!ch[cur][c]) {
+            int now = newnode(len[cur] + 2);
+            fail[now] = ch[getfail(fail[cur])][c];
+            ch[cur][c] = now;
+            diff[now] = len[now] - len[fail[now]];
+            slink[now] = (diff[now] == diff[fail[now]]) ? slink[fail[now]] : fail[now];
+        }
+        last = ch[cur][c];
+    }
+};
+using namespace PAM;
+int g[MAXN], f[MAXN];
+void sol(int i, int cur) {
+	for(; cur; cur = slink[cur]) {
+		g[cur] = f[i - len[slink[cur]] - diff[cur]];
+		if (slink[cur] != fail[cur]) g[cur] = (g[cur] + g[fail[cur]])%MOD;
+		f[i] = (f[i] + g[cur]) % MOD;
+	}
+}
+int main() {
+    ios::sync_with_stdio(false); cin.tie(0);
+	string s; cin >> s;
+	int sn = s.size();
+	init();f[0]=1;
+	for(int i = 0; i < sn; i += 2) {
+		extend(s[i >> 1] - 'a');sol(i+1, last); f[i+1] = 0;
+		extend(s[sn-1 - (i>>1)] - 'a'); sol(i+2, last);
+	} 
+	cout << f[sn] << endl;
+	return 0;
+} 
+\end{lstlisting}
+10. 前后均支持插入，利用不基于势能分析的PAM模板
+11. 在Trie上构建回文自动机
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 1e5 + 7;
+int MOD = 1e9 + 7;
+namespace PAM {
+    int scnt, S[MAXN<<1];
+    int pcnt, last[MAXN];
+    int len[MAXN<<1], fa[MAXN<<1], quick[MAXN<<1][26], ch[MAXN<<1][26];
+    int newnode(int _len) {
+        len[pcnt] = _len;
+        for(int i = 0; i < 26; i++) ch[pcnt][i] = 0;
+        return pcnt++;
+    }
+    inline void init() {
+        pcnt = 0;newnode(0);newnode(-1);
+        fa[0] = 1;
+        for(int i = 0; i < 26; i++) quick[0][i] = quick[1][i] = 1;
+        S[scnt = 0] = -1;
+    }
+    int extend(int p, int c) {
+        if (S[scnt-len[p]-1] ^ c) p = quick[p][c];
+        if (!ch[p][c]) {
+            int np = newnode(len[p]+2), q = fa[p];
+            if (S[scnt-len[q]-1] ^ c) q = quick[q][c];
+            fa[np] = ch[q][c];
+            memcpy(quick[np],quick[fa[np]], sizeof(quick[np]));
+            quick[np][S[scnt-len[fa[np]]]] = fa[np];
+            ch[p][c] = np;
+        }
+        return ch[p][c];
+    }
+    int ilen[MAXN]; char s[MAXN];
+    long long ans;
+    vector<int> G[MAXN];
+    void dfs(int u, int _fa) {
+        S[++scnt] = s[u] - 'a';
+        last[u] = extend(last[_fa], s[u]-'a'); 
+        ilen[u] = max(len[last[u]], ilen[_fa]);
+        ans += ilen[u];
+        for(auto v : G[u]) if(v != _fa) dfs(v, u);
+        --scnt;
+    }
+};
+using namespace PAM;  
+int main() {
+    int n; scanf("%d", &n);
+    scanf("%s", s + 1);
+    init();
+    for(int i = 1; i < n; i++) {
+        int x, y;
+        cin >> x >> y;
+        G[x].push_back(y);
+        G[y].push_back(x);
+    } 
+    dfs(1, 0);
+    printf("%lld", ans);
+    return 0;
+} 
+\end{lstlisting}
+
 \subsection{Substring Automaton}
 求解 子序列个数，不重复, 包括空串
 \begin{lstlisting}

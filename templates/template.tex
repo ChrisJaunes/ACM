@@ -3968,42 +3968,123 @@ namespace Manachar {
 }
 \end{lstlisting}
 \subsubsection{Palindromic Automaton}
+pcnt 本质不同的回文串的个数
+len[u] 状态u代表的串的长度
+fail[u] 状态u所代表的回文串的最长回文后缀
+trans[u] 小于等于当前节点长度一半的最长回文后缀
+cnt[u] 包含状态u表示的回文串的出现的个数(调用count())
+num[u] 以状态u表示的回文串的右端点为回文串结尾的回文串个数[..[....[]
+diff[u] 表示节点u和fail[u]所代表的回文串的长度差，即len[u] - len[fail[u]
+slink[u] 表示u一直沿着fail向上跳到第一个节点v,使得diff[v]!=diff[u]，也就是u所在等差数列中长度最小的那个节点
 \begin{lstlisting}
 namespace PAM {
-	int scnt, S[MAXN];
-	int pcnt, last, len[MAXN], fail[MAXN], ch[MAXN][26];
-	int cnt[MAXN]; //节点i表示的本质不同的串的个数(调用count())
-	int num[MAXN]; //以节点i表示的最长回文串的最右端点为回文串结尾的回文串个数
-	int newnode(int _len) {
-		len[pcnt] = _len;
-		cnt[pcnt] = num[pcnt] = 0;
-		for(int i = 0; i < 26; i++) ch[pcnt][i] = 0;
-		return pcnt++;
-	}
-	inline void init() {
-		S[scnt = 0] = -1;
-		pcnt = 0;newnode(0);newnode(-1);
-		fail[0] = 1;last = 0;
-	}
-	int getfail(int x) {
-		while(S[scnt - len[x] - 1] != S[scnt]) x = fail[x];
-		return x;
-	}
-	void extend(int c) {
-		S[++scnt] = c;
-		int cur = getfail(last);
-		if(!ch[cur][c]) {
-			int now = newnode(len[cur] + 2);
-			fail[now] = ch[getfail(fail[cur])][c];
-			ch[cur][c] = now;
-			num[now] = num[fail[now]] + 1;
-		}
-		last = ch[cur][c];
-		cnt[last]++;
-	}
-	void count() {
-		for(int i = pcnt - 1; i >= 0; i--) cnt[fail[i]] += cnt[i];
-	}
+    int scnt, S[MAXN];
+    int pcnt, last, len[MAXN], fail[MAXN], ch[MAXN][26];
+    int cnt[MAXN], num[MAXN], trans[MAXN], diff[MAXN], slink[MAXN];
+    int newnode(int _len) {
+        len[pcnt] = _len;
+        cnt[pcnt] = num[pcnt] = 0;
+        for(int i = 0; i < 26; i++) ch[pcnt][i] = 0;
+        return pcnt++;
+    }
+    inline void init() {
+        S[scnt = 0] = -1;
+        pcnt = 0;newnode(0);newnode(-1);
+        fail[0] = 1;last = 0;
+    }
+    int getfail(int x) {
+        while(S[scnt - len[x] - 1] != S[scnt]) x = fail[x];
+        return x;
+    }
+    void extend(int c) {
+        S[++scnt] = c;
+        int cur = getfail(last);
+        if(!ch[cur][c]) {
+            int now = newnode(len[cur] + 2);
+            fail[now] = ch[getfail(fail[cur])][c];
+            ch[cur][c] = now;
+            num[now] = num[fail[now]] + 1;
+            if (len[now] <= 2) trans[now] = fail[now];
+            else{
+                int x = trans[cur]; 
+                while(S[scnt - len[x] - 1] != S[scnt] || (len[x]+2) * 2 > len[now]) x = fail[x];
+                trans[now] = ch[x][c];
+            }
+            diff[now] = len[now] - len[fail[now]];
+            slink[now] = (diff[now] == diff[fail[now]]) ? slink[fail[now]] : fail[now];
+        }
+        last = ch[cur][c];
+        cnt[last]++;
+    }
+    void count() {
+        for(int i = pcnt - 1; i >= 0; i--) cnt[fail[i]] += cnt[i];
+    }
+};
+\end{lstlisting}
+支持前后插入
+不基于势能分析的构造法可以实现持久化，比如在Trie上实现
+\begin{lstlisting}
+namespace PAM {
+    int sL, sR, S[MAXN<<1];
+    int pcnt, lastL, lastR;
+    int len[MAXN<<1], fa[MAXN<<1], quick[MAXN<<1][26], ch[MAXN<<1][26];
+    int cnt[MAXN<<1], num[MAXN<<1];
+    int newnode(int _len) {
+        len[pcnt] = _len;
+        cnt[pcnt] = num[pcnt] = 0;
+        for(int i = 0; i < 26; i++) ch[pcnt][i] = 0;
+        return pcnt++;
+    }
+    inline void init() {
+        pcnt = 0;newnode(0);newnode(-1);
+        fa[0] = 1;
+        for(int i = 0; i < 26; i++) quick[0][i] = quick[1][i] = 1;
+        lastL = lastR = 0;
+        sL = MAXN; sR = MAXN-1;
+        S[sL] = S[sR] = -1;
+    }
+    void push_front(int c) {
+        S[--sL] = c; S[sL-1]=-1;
+        int p = lastL;
+        if (S[sL+len[p]+1] ^ c) p = quick[p][c];
+        if (!ch[p][c]) {
+            int np = newnode(len[p]+2), q = fa[p];
+            if (S[sL+len[q]+1] ^ c) q = quick[q][c];
+            fa[np] = ch[q][c];
+            memcpy(quick[np], quick[fa[np]], sizeof(quick[np]));
+            quick[np][S[sL+len[fa[np]]]] = fa[np];
+            ch[p][c] = np;
+            num[np] = num[fa[np]] + 1;
+        }
+        lastL = ch[p][c];
+        cnt[lastL]++;
+        if (len[lastL] == sR-sL+1) lastR = lastL;
+    }
+    void push_back(int c) {
+        S[++sR] = c; S[sR+1]=-1;
+        int p = lastR;
+        if (S[sR-len[p]-1] ^ c) p = quick[p][c];
+        if (!ch[p][c]) {
+            int np = newnode(len[p]+2), q = fa[p];
+            if (S[sR-len[q]-1] ^ c) q = quick[q][c];
+            fa[np] = ch[q][c];
+            memcpy(quick[np],quick[fa[np]], sizeof(quick[np]));
+            quick[np][S[sR-len[fa[np]]]] = fa[np];
+            ch[p][c] = np;
+            num[np] = num[fa[np]] + 1;
+        }
+        lastR = ch[p][c];
+        cnt[lastR]++;
+        if (len[lastR] == sR-sL+1) lastL = lastR;
+    }
+    int c[MAXN<<1], rs[MAXN<<2];
+    void count() {
+        for (int i = 0; i < pcnt; i++) c[i] = 0;
+        for (int i = 2; i < pcnt; i++) c[len[i]]++;
+        for (int i = 1; i < pcnt; i++) c[i] += c[i-1];
+        for (int i = 2; i < pcnt; i++) rs[c[len[i]]--] = i;
+        for (int i = pcnt-1; i; i--)  cnt[fa[rs[i]]]+=cnt[rs[i]];
+    }
 };
 \end{lstlisting}
 \subsection{Substring Automaton}
