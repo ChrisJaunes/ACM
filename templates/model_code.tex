@@ -1088,8 +1088,761 @@ int main() {
 
 \newpage
 \section{Math}
-尚未开始
+\subsection{FFT}
+分治FFT:\\
+对集合S，$val(s) = F_{sum(s)}$,where sum(s) is the sum of all the elements of the set.\\
+Given a set S having N elements, please calculate the sum of the values of all subsets of S of size K.\\
+$$
+F_n = \frac{1 - a^n}{1-a}
+$$
+生成函数:
+$$
+(x+a^{s_1}) \cdot (x+a^{s_2}) \cdot \cdot \cdot (x+a^{s_n})
+$$
+答案为$x^{n-k}$的系数
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 300005, mod = 1e5 + 3, P = mod - 1;
+const double pi = acos(-1.);
+struct comp {
+    double x, y;
+    comp operator + (const comp& a) const { return (comp) {x + a.x, y + a.y}; }
+    comp operator - (const comp& a) const { return (comp) {x - a.x, y - a.y}; }
+    comp operator * (const comp& a) const { return (comp) {x * a.x - y * a.y, x * a.y + y * a.x}; }
+};
+#define conj(a) ((comp){a.x, -a.y})
+int rev[MAXN], T;
+comp Sin[MAXN], tmp;
+void fft(comp *a, int r) {
+    for(int i = 1; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+    for(int i = 2, mid = 1, s = (T >> 1); i <= T; mid = i, i <<= 1, s >>= 1) {
+        for(int j = 0; j < T; j += i) {
+            for(int k = j, cur = 0; k < j + mid; k++, cur += s) {
+                tmp = a[k + mid] * Sin[cur];
+                a[k + mid] = a[k] - tmp;
+                a[k] = a[k] + tmp;
+            }
+        }
+    }
+}
+comp A[MAXN];
+void init(int n) {
+    for(T = 1; T <= n; T <<= 1);
+    for(int i = 0; i < T; i++) {
+        if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+        else rev[i] = rev[i >> 1] >> 1;
+        A[i] = (comp) {0, 0};
+    }
+    for(int i = 0; i < (T >> 1); i++) {
+        Sin[i] = (comp) {cos(2 * pi * i / T), sin(2 * pi * i / T)};
+    }
+}
+void mtt(int *x, int *y) {
+    for(int i = 0; i < T; i++) (x[i] += mod) %= mod, (y[i] += mod) %= mod;
+    static comp a[MAXN], b[MAXN];
+    static comp dfta[MAXN], dftb[MAXN], dftc[MAXN], dftd[MAXN];
+    for(int i = 0; i < T; i++) {
+        a[i] = {x[i] & 0x7fff, x[i] >> 15};
+        b[i] = {y[i] & 0x7fff, y[i] >> 15};
+    }
+    fft(a, 1); fft(b, 1);
+    for(int i = 0; i < T; i++) {
+        int j = (T - i) & (T - 1);
+        static comp da, db, dc, dd;
+        da = (a[i] + conj(a[j])) * (comp){0.5, 0};
+        db = (a[i] - conj(a[j])) * (comp){0, -0.5};
+        dc = (b[i] + conj(b[j])) * (comp){0.5, 0};
+        dd = (b[i] - conj(b[j])) * (comp){0, -0.5};
+        dfta[i] = da * dc;
+        dftb[i] = da * dd;
+        dftc[i] = db * dc;
+        dftd[i] = db * dd;
+    }
+    for(int i = 0; i < T; i++) {
+        a[i] = dfta[i] + dftb[i] * (comp) {0, 1};
+        b[i] = dftc[i] + dftd[i] * (comp) {0, 1};
+    }
+    for(int i = 0; i < (T >> 1); i++) Sin[i].y = -Sin[i].y;
+    fft(a, -1); fft(b, -1);
+    for(int i = 0; i < T; i++) {
+        static int da, db, dc, dd;
+        da = (LL)(a[i].x / T + 0.5) % mod;
+        db = (LL)(a[i].y / T + 0.5) % mod;
+        dc = (LL)(b[i].x / T + 0.5) % mod;
+        dd = (LL)(b[i].y / T + 0.5) % mod;
+        x[i] = ((da + ((LL)(db + dc) << 15) + ((LL)dd << 30)) % mod + mod) % mod;
+    }
+}
+LL f[MAXN], g[MAXN];
+int x[MAXN], y[MAXN];
+void solve(int l, int r) {
+    if(l == r) {
+        f[0] = 1;
+        f[1] = g[l];
+        return;
+    }
+    int mid = (l + r) >> 1;
+    solve(l, mid);
+    LL tmp[mid - l + 5];
+    for(int i = 0; i <= mid - l + 1; i++) tmp[i] = f[i];
+    solve(mid + 1, r);
+    init(r - l + 1);
+    for(int i = 0; i < T; i++) x[i] = y[i] = 0;
+    for(int i = 0; i <= mid - l + 1; i++) x[i] = tmp[i];
+    for(int i = 0; i <= r - mid; i++) y[i] = f[i];
+    mtt(x, y);
+    for(int i = 0; i <= r - l + 1; i++) {
+        f[i] = x[i];
+    }
+}
+LL fac[mod + 5], inv[mod + 5];
+void init_C() {
+    fac[0] = 1;
+    for(int i = 1; i < mod; i++) fac[i] = fac[i - 1] * i % mod;
+    inv[0] = inv[1] = 1;
+    for(int i = 2; i < mod; i++) inv[i] = (mod - mod / i) * inv[mod % i] % mod;
+    for(int i = 1; i < mod; i++) inv[i] = inv[i] * inv[i - 1] % mod;
+}
+LL C(int a, int b) {
+    if(b > a) return 0;
+    if(a < mod) return fac[a] * inv[b] % mod * inv[a - b] % mod;
+    return C(a / mod, b / mod) * C(a % mod, b % mod) % mod;
+}
+LL pw[MAXN];
+LL qpow(LL x, LL y) {
+    LL res = 1;
+    while(y) {
+        if(y & 1) res = res * x % mod;
+        x = x * x % mod;
+        y >>= 1;
+    }
+    return res;
+}
+int main() {
+    init_C();
+    int n, a, Q;
+    scanf("%d%d%d", &n, &a, &Q);
+    pw[0] = 1;
+    for(int i = 1; i < mod; i++) pw[i] = pw[i - 1] * a % mod;
+    for(int i = 1, s; i <= n; i++) {
+        scanf("%d", &s);
+        g[i] = pw[s % P];
+    }
+    solve(1, n);
+    int k;
+    int INV = qpow(a - 1, mod - 2);
+    while(Q--) {
+        scanf("%d", &k);
+        printf("%lld\n", (f[k] + mod - C(n, k)) % mod * INV % mod);
+    }
+    return 0;
+}
+\end{lstlisting}
+\subsection{FWT}
+题目大意:\\ 
+给一个$n*m$矩阵$(a)_{ij}$，行向量为$v_i$, 求$\oplus_{x=0}^{2^k}(count(x) * 3^x\space mod(10^9+7))$
+其中$count(x)$表示$\frac{1}{2^m}  \sum_i^n \prod_j^m (1-(-1)^{|a_{ij} \space and \space x| })$, $\oplus$表示异或,$|a|$表示a的二进制中1的个数。\\
 
+解：\\
+考虑化简以上$count(x)$,由于$(-1)^{|a\space and \space x| + |b\space and\space x|}= (-1)^{|(a \space \oplus \space b) \space and \space x|}$
+则展开$\prod$后得到:
+$$
+\frac{1}{2^m} \sum_i^n \sum_{S \subseteq {v_i}} (-1)^{size(S)} * (-1)^{|(\oplus_{\atop j \in S}a_{ij}) \space and \space x |}
+$$
+其中s为枚举每个行向量的二进制集合。
+  
+这里可以观察到和离散沃尔什变换相似的地方，即：\\
+
+\begin{equation*}
+\left\{
+    \begin{aligned}
+        C_k&=\sum_{i\oplus j=k}A_i*B_j \\
+        DWT(A)_i&=\sum_j^nA_j*f_{i,j} \\
+        DWT(C)_i&=DWT(A)_i*DWT(B)_i\\
+        f_{i,j} \cdot f_{i,k} &=f_{i,j\oplus k}\\
+        f_{i,j} &= [i \ and \ j == i] \  &(and)\\
+        f_{i,j} &= [i \  and \  j == j] \ &(or)\\
+        f_{i,j} &= (-1)^{| i \  and \  j |} \ &(xor)
+    \end{aligned}
+\right.
+\end{equation*}
+
+注意到$xor$的形式与上述形式完全一致，所以令
+$$cnt_x = \sum_i^n \sum_{S \in i} (-1)^{size(S)}$$
+其中$x=\oplus_{\atop j \in S} a_{i,j}$，则对于$cnt$做沃尔什变换可得：
+$$
+DWT(cnt)_x=\sum_j^{2^k}\sum_i^n\sum_{S \subseteq v_i} (-1)^{size(S)}*(-1)^{|j \ and \ x|}
+$$
+由此可得：
+$$count(x)=\frac{1}{2^m} *DWT(cnt)_x$$
+预处理$cnt_x$复杂度$O(n\  2^m)$，$FWT$复杂度$O(k\ 2^k)$，总复杂度为$O(n \ 2^m + k \ 2^k)$
+
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int mod = 1e9 + 7;
+void FWT(vector<int> &a,int n) {
+    for(int i = 2;i <= n; i <<= 1) {
+        for(int j = 0; j < n; j += i) {
+            for(int d = 0, w = i >> 1; d < w; d++){
+                int u = a[j + d], v = a[j + d + w];
+                a[j + d] = u + v, a[j + d + w] = u - v;
+            }
+        }
+    }
+}
+void dfs(vector<int> &cnt, const vector<int> &a, int i, int x, int p) {
+    if(i < a.size()) {
+        dfs(cnt, a, i + 1, x, p);
+        dfs(cnt, a, i + 1, x ^ a[i], -p);
+    }
+    else {
+        cnt[x] += p;
+    }
+}
+int main() {
+    int n, m, k;
+    while(~scanf("%d%d%d", &n, &m, &k)) {
+        auto cnt = vector<int>(1 << k, 0);
+        auto a = vector<int>(m);
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < m; j++) a[j] = read();
+            dfs(cnt, a, 0, 0, 1);
+        }
+        FWT(cnt, 1 << k);
+        int ans = 0, pw = 1 << m, w = 1;
+        for(int x = 0; x < (1 << k); x++) {
+            ans ^= (long long)w * (cnt[x] / pw) % mod;
+            w = (long long)w * 3 % mod;
+        }
+        printf("%d\n", ans);
+    }
+    return 0;
+} 
+\end{lstlisting}
+\subsection{Functions}
+题目大意：求$\Sigma_i^n\Sigma_j^mgcd(i, j) * 2 - 1$\\
+
+解:\\
+$\Sigma_i^n\Sigma_j^mgcd(i, j) * 2 - 1$\\
+=$- n * m + 2 * \Sigma_i^n\Sigma_j^mgcd(i, j) $\\
+=$- n * m + 2 * \Sigma_i^n\Sigma_j^m\Sigma_{d|gcd(i, j)} \phi(d) $\\
+=$-n * m + 2 * \Sigma_d^{max(n, m)}\phi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor $\\枚举d，复杂度O(n)
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+#include <cmath>
+using namespace std;
+const int MAXN = 100003;
+int phi[MAXN], prime[MAXN], cnt;
+bool isp[MAXN];
+void Euler(int n) {
+    phi[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime[++cnt] = i;
+            phi[i] = i - 1;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                phi[i * prime[j]] = phi[i] * prime[j];
+                break;
+            }
+            else phi[i * prime[j]] = phi[i] * (prime[j] - 1);
+        }
+    }
+}
+long long ans;
+int main() {
+    int n, m, k;
+    scanf("%d%d", &n, &m);
+    k = max(n, m);
+    Euler(k);
+    ans -= (long long)n * m;
+    for(int d = 1; d <= k; d++) {
+        ans += 2LL * phi[d] * (n / d) * (m / d);
+    }
+    printf("%lld\n", ans);
+    return 0;
+}
+\end{lstlisting}
+
+题目大意：对于给定的整数N,M和d，有多少正整数对x,y，满足x<=N，y<=M，并且gcd(x,y)=d。\\
+
+解：\\
+等价于x<=N/d，y<=M/d，互质的x，y的对数。\\
+那么我们另n=N/d, m = M/d\\
+于是原题就变成了求$\Sigma_i^n\Sigma_j^me(gcd(i, j))$\\
+其中$e(x) = (x == 1) = \Sigma_{d | x} \mu(d)$\\
+然后根据套路我们再来推一波式子\\
+$\Sigma_i^n\Sigma_j^me(gcd(i, j))$\\
+=$\Sigma_i^n\Sigma_j^m\Sigma_{d|gcd(i, j)} \mu(d)$\\
+=$\Sigma_d^{min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor$\\
+根据上一题的做法，每次询问复杂度O(n)，显然不能胜任。\\
+但是我们观察式子，显然 $\lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor$的取值只有$\sqrt{n} + \sqrt{m}$\\个，那么我们可以预处理$\mu$的前缀和，并分块完成。
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int MAXN = 50003;
+int mu[MAXN], prime[MAXN], cnt;
+bool isp[MAXN];
+void Euler(int n) {
+    mu[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime[++cnt] = i;
+            mu[i] = -1;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                mu[i * prime[j]] = 0;
+                break;
+            }
+            mu[i * prime[j]] = -mu[i];
+        }
+    }
+}
+int cal(int n, int m) {
+    if(n > m) swap(n, m);
+    int res = 0, last;
+    for(int i = 1; i <= n; i = last + 1) {
+        last = min(n / (n / i), m / (m / i));
+        res += (n / i) * (m / i) * (mu[last] - mu[i - 1]);
+    }
+    return res;
+}
+int main() {
+    Euler(50000);
+    for(int i = 2; i <= 50000; i++) mu[i] += mu[i - 1];
+    int T, a, b, d;
+    scanf("%d", &T);
+    while(T--) {
+        scanf("%d%d%d", &a, &b, &d); a /= d; b /= d;
+        printf("%d\n", cal(a, b));
+    }
+    return 0;
+}
+\end{lstlisting}
+
+题目大意：另F(i)表示i的约数和，q次给定n,m,a，求$\Sigma_i^n\Sigma_{j and F(gcd(i, j)) <= a}^m F(gcd(i, j)) mod 2 ^ {31}$\\
+
+解：\\
+有个a的限制，式子并不能推了。所以先把它去掉。\\
+令$g(i) = \Sigma_x^n\Sigma_y^me(gcd(x, y) == i)$\\
+那么可以得到$g(i) = \Sigma_{i | d}\mu(\frac{d}{i}) *  \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor$\\
+于是$ans = \Sigma_i^{min(n, m)}F(i) * g(i)$\\
+展开化简得到$\Sigma_d^{min(n, m)} \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor\Sigma_{i | d}F(i)\mu(\frac{d}{i})$\\
+然后对$\Sigma_{i | d}F(i)\mu(\frac{d}{i})$求个前缀和\\
+枚举每个i更新i的倍数即可\\
+现在考虑将a离线处理，询问按a排序\\
+用树状数组维护前缀和即可。\\
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+typedef pair<int, int> P;
+const int MAXN = 100003;
+int prime[MAXN], cnt, mu[MAXN], mnsum[MAXN], a[MAXN];
+bool isp[MAXN];
+P f[MAXN];
+void Euler(int n) {
+    mu[1] = 1;
+    f[1] = P(1, 1);
+    for(int i = 2; i <= n; i++) {
+        f[i].second = i;
+        if(!isp[i]) {
+            prime[++cnt] = a[i] = i;
+            mu[i] = -1;
+            f[i].first = mnsum[i] = i + 1;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                mu[i * prime[j]] = 0;
+                mnsum[i * prime[j]] = mnsum[i] + a[i] * prime[j];
+                f[i * prime[j]].first = f[i].first / mnsum[i] * mnsum[i * prime[j]];
+                a[i * prime[j]] = a[i] * prime[j];
+                break;
+            }
+            mu[i * prime[j]] = -mu[i];
+            f[i * prime[j]].first = f[i].first * (prime[j] + 1);
+            a[i * prime[j]] = prime[j];
+            mnsum[i * prime[j]] = prime[j] + 1;
+        }
+    }
+}
+int bit[MAXN];
+void add(int x, int v) {
+    for(; x <= 100000; x += x & -x) bit[x] += v;
+}
+int sum(int x) {
+    int res = 0;
+    for(; x; x -= x & -x) res += bit[x];
+    return res;
+}
+struct Node {
+    int n, m, a, id;
+    bool operator < (const Node &x) const {
+        return a < x.a;
+    }
+    inline void read(int i) {
+        id = i; scanf("%d%d%d", &n, &m, &a);
+    }
+}q[MAXN];
+int ans[MAXN];
+int cal(int n, int m) {
+    if(n > m) swap(n, m);
+    int res = 0, last;
+    for(int i = 1; i <= n; i = last + 1) {
+        last = min(n / (n / i), m / (m / i));
+        res += (n / i) * (m / i) * (sum(last) - sum(i - 1));
+    }
+    return res & 0x7fffffff;
+}
+int main() {
+    Euler(100000);
+    sort(f + 1, f + 100001);
+    int T;
+    scanf("%d", &T);
+    for(int i = 1; i <= T; i++) q[i].read(i);
+    sort(q + 1, q + T + 1);
+    int cur = 1, N, M, A;
+    for(int Q = 1; Q <= T; Q++) {
+        N = q[Q].n, M = q[Q].m, A = q[Q].a;
+        while(cur <= 100000 && f[cur].first <= A) {
+            for(int i = f[cur].second; i <= 100000; i += f[cur].second)
+                add(i, f[cur].first * mu[i / f[cur].second]);
+            cur++;
+        }
+        ans[q[Q].id] = cal(N, M);
+    }
+    for(int i = 1; i <= T; i++) printf("%d\n", ans[i]);
+    return 0;
+}
+\end{lstlisting}
+
+题目大意：求$\Sigma_i^n\Sigma_j^mlcm(i, j) mod 20101009$\\
+
+解：\\
+这里跟之前的区别在于，gcd(i,j)在分母上，那么考虑反演\\
+令$f(x) = \frac{1}{x}$\\
+$F(x) = f $ X $\mu$ 这里X是Dirichlet积\\
+即$F(x) = \Sigma_{d | x}f(d) * \mu(\frac{x}{d})$\\
+那么由莫比乌斯反演我们有$f=F$X$1$\\
+那么$\Sigma_i^n\Sigma_j^mlcm(i, j)$\\
+=$\Sigma_i^n\Sigma_j^mi*j*f(gcd(i, j))$\\
+=$\Sigma_i^n\Sigma_j^mi*j*\Sigma_{d|gcd(i, j)F(d)}$\\
+另$sum(x, y) = \Sigma_i^x\Sigma_j^yi*j$\\
+于是可以进一步化简$ans = \Sigma_d^nF(d) * d * d * sum(\frac{n}{d}, \frac{m}{d})$\\
+\begin{lstlisting}
+#include <iostream>
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+typedef long long ll;
+const int mod = 20101009, MAXN = 10000003;
+int mu[MAXN], prime[MAXN], sum[MAXN];
+int cnt;
+bool isp[MAXN];
+void getmu(int n) {
+    mu[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            mu[i] = -1;
+            prime[++cnt] = i;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                mu[i * prime[j]] = 0;
+                break;
+            }
+            mu[i * prime[j]] = -mu[i];
+        }
+    }
+}
+ll n, m, ans;
+ll query(ll x, ll y) { return (x * (x + 1) / 2 % mod) * (y * (y + 1) / 2 % mod) % mod; }
+ll F(ll x, ll y) {
+    ll res = 0, last;
+    for(ll i = 1; i <= min(x, y); i = last + 1) {
+        last = min(x / (x / i), y / (y / i));
+        res = (res + (sum[last] - sum[i - 1]) * query(x / i, y / i) % mod) % mod;
+    }
+    return res;
+}
+int main() {
+    cin>>n>>m;
+    getmu(min(n, m));
+    for(ll i = 1; i <= min(n, m); i++) sum[i] = (sum[i - 1] + (i * i * mu[i]) % mod) % mod;
+    ll last;
+    for(ll d = 1; d <= min(n, m); d = last + 1) {
+        last = min(n / (n / d), m / (m / d));
+        ans = (ans + (last - d + 1) * (d + last) / 2 % mod * F(n / d, m / d) % mod) % mod;
+    }
+    ans = (ans + mod) % mod;
+    cout<<ans<<endl;
+    return 0;
+}
+\end{lstlisting}
+
+总结一下：当推式子陷入僵局的时候，尝试将一些东西处理出来，通过分块、反演等方法降低复杂度。对于式子本身的特性进行观察，有时也可以发现优化的地方。\\
+在推式子过程中，将有关变量放在一块处理是化简的常用技巧。\\
+
+\subsection{Sieve}
+Example: 51nod1239 欧拉函数之和\\
+S(n) = Phi(1) + Phi(2) + ...... Phi(n)，给出n，求S(n)%1e9+7\\
+\begin{lstlisting}
+//杜教筛
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 1e7 + 5, mod = 1000000007;
+vector<int> prime;
+int phi[MAXN], P[MAXN];
+bool isp[MAXN];
+unordered_map<LL, int> mp;
+void Euler(int n) {
+    phi[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime.push_back(i);
+            phi[i] = i - 1;
+        }
+        for(auto x : prime) {
+            if(i * x > n) break;
+            isp[i * x] = 1;
+            if(i % x == 0) {
+                phi[i * x] = phi[i] * x;
+                break;
+            }
+            phi[i * x] = phi[i] * (x - 1);
+        }
+    }
+    for(int i = 1; i <= n; i++) P[i] = (P[i - 1] + phi[i]) % mod;
+}
+LL cal(LL n) {
+    if(n < MAXN) return P[n];
+    if(mp.count(n)) return mp[n];
+    LL res = 0;
+    for(LL i = 2, last; i <= n; i = last + 1) {
+        last = n / (n / i);
+        res += (last - i + 1) % mod * cal(n / i) % mod;
+        res %= mod;
+    }
+    mp[n] = res = ((__int128)n * (n + 1) / 2 % mod + mod - res) % mod;
+    return res;
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    Euler(MAXN - 1);
+    LL n; cin >> n;
+    cout << cal(n) << endl;
+    return 0;
+}
+//min25
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 1e6 + 5, mod = 1e9 + 7;
+const int inv2 = (mod + 1) / 2, inv6 = (mod + 1) / 6;
+int prime[MAXN], isp[MAXN], cnt;
+LL g[3][MAXN << 1], h[3][MAXN << 1];
+LL w[MAXN << 1];
+int id1[MAXN], id2[MAXN];
+inline int MOD(LL x) { return x >= mod ? x - mod : x; }
+//inline int MOD(LL x) { return x % mod; }
+inline int add(LL x, LL y) { return MOD(MOD(x) + MOD(y)); }
+void Euler(int n) {
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime[++cnt] = i;
+            h[0][cnt] = h[0][cnt - 1] + 1;
+            h[1][cnt] = add(h[1][cnt - 1], i);
+            h[2][cnt] = add(h[2][cnt - 1], (LL)i * i % mod);
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                break;
+            }
+        }
+    }
+}
+LL n;
+int sz, m;
+inline int id(LL x) {
+    return x <= sz ? id1[x] : id2[n / x];
+}
+//f(p ^ k)
+inline int f(int p, LL pk) {
+    return pk / p * (p - 1) % mod;
+}
+LL S(LL x, int y) {
+    if(x <= 1 || prime[y] > x) return 0;
+    //g(x) - h(j - 1)
+    LL res = add(add(g[1][id(x)], mod - g[0][id(x)]), mod - add(h[1][y - 1], mod - h[0][y - 1]));
+    for(int j = y, k = 1; j <= cnt && (LL)prime[j] * prime[j] <= x; j++, k = 1) {
+        for(LL pk = prime[j]; pk * prime[j] <= x; pk *= prime[j], k++) {
+            res = add(res, S(x / pk, j + 1) * f(prime[j], pk) % mod + f(prime[j], pk * prime[j]));
+        }
+    }
+    return res;
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    cin >> n; 
+    sz = sqrt(n) + 1;
+    Euler(sz);
+    for(LL i = 1, last, t; i <= n; i = last + 1) {
+        last = n / (n / i);
+        w[++m] = n / i, t = n / i % mod;
+        w[m] <= sz ? id1[w[m]] = m : id2[last] = m;
+        g[0][m] = MOD(t + mod - 1);
+        g[1][m] = add(t * (t + 1) % mod * inv2 % mod, mod - 1);
+        g[2][m] = add((2 * t + 1) % mod * t * (t + 1) % mod * inv6 % mod, mod - 1);
+    }
+    for(int j = 1; j <= cnt; j++) {
+        for(int i = 1; i <= m && (LL)prime[j] * prime[j] <= w[i]; i++) {
+            g[0][i] = MOD(g[0][i] + mod - (g[0][id(w[i] / prime[j])] - h[0][j - 1]));
+            g[1][i] = MOD(g[1][i] + mod - ((LL)prime[j] * MOD(g[1][id(w[i] / prime[j])] + mod - h[1][j - 1]) % mod));
+            g[2][i] = MOD(g[2][i] + mod - ((LL)prime[j] * prime[j] % mod * MOD(g[2][id(w[i] / prime[j])] + mod - h[2][j - 1]) % mod));
+        }
+    }
+    //S(n, 1) + F(1);
+    LL ans = MOD(S(n, 1) + 1);
+    cout << ans << endl;
+    return 0;
+}
+\end{lstlisting}
+
+Example: 51nod1224 莫比乌斯函数之和\\
+S(a,b) = miu(a) + miu(a + 1) + ...... miu(b)\\
+\begin{lstlisting}
+//杜教筛
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 3e7 + 5;
+vector<int> prime;
+int mu[MAXN];
+int M[MAXN];
+bool isp[MAXN];
+unordered_map<LL, LL> mp;
+void Euler(int n) {
+    mu[1] = 1;
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime.push_back(i);
+            mu[i] = -1;
+        }
+        for(auto x : prime) {
+            if(i * x > n) break;
+            isp[i * x] = 1;
+            if(i % x == 0) {
+                mu[i * x] = 0;
+                break;
+            }
+            mu[i * x] = -mu[i];
+        }
+    }
+    for(int i = 1; i <= n; i++) M[i] = M[i - 1] + mu[i];
+}
+LL cal(LL n) {
+    if(n < MAXN) return M[n];
+    if(mp.count(n)) return mp[n];
+    LL res = 0;
+    for(LL i = 2, last; i <= n; i = last + 1) {
+        last = n / (n / i);
+        res += (last - i + 1) * cal(n / i);
+    }
+    mp[n] = 1 - res;
+    return 1 - res;
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    Euler(MAXN - 1);
+    LL a, b;
+    cin >> a >> b;
+    cout << cal(b) - cal(a - 1) << endl;
+    return 0;
+}
+//min25
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 1e6 + 5;
+int prime[MAXN], isp[MAXN], cnt;
+LL g[3][MAXN << 1], h[3][MAXN << 1];
+LL w[MAXN << 1];
+int id1[MAXN], id2[MAXN];
+void Euler(int n) {
+    for(int i = 2; i <= n; i++) {
+        if(!isp[i]) {
+            prime[++cnt] = i;
+            h[0][cnt] = h[0][cnt - 1] + 1;
+        }
+        for(int j = 1; j <= cnt && i * prime[j] <= n; j++) {
+            isp[i * prime[j]] = 1;
+            if(i % prime[j] == 0) {
+                break;
+            }
+        }
+    }
+}
+LL a, b;
+LL n;
+int sz, m;
+inline int id(LL x) {
+    return x <= sz ? id1[x] : id2[n / x];
+}
+//f(p ^ k)
+inline int f(int p, int k) {
+    return k == 1 ? -1 : 0;
+}
+LL S(LL x, int y) {
+    if(x <= 1 || prime[y] > x) return 0;
+    //g(x) - h(j - 1)
+    LL res = - g[0][id(x)] + h[0][y - 1];
+    for(int j = y, k = 1; j <= cnt && (LL)prime[j] * prime[j] <= x; j++, k = 1) {
+        for(LL pk = prime[j]; pk * prime[j] <= x; pk *= prime[j], k++) {
+            res += S(x / pk, j + 1) * f(prime[j], k) + f(prime[j], k + 1);
+        }
+    }
+    return res;
+}
+LL cal(LL x) {
+    n = x;
+    m = 0;
+    sz = sqrt(n);
+    for(LL i = 1, last, t; i <= n; i = last + 1) {
+        last = n / (n / i);
+        w[++m] = n / i, t = n / i;
+        w[m] <= sz ? id1[w[m]] = m : id2[last] = m;
+        g[0][m] = t - 1;
+    }
+    for(int j = 1; j <= cnt; j++) {
+        for(int i = 1; i <= m && (LL)prime[j] * prime[j] <= w[i]; i++) {
+            g[0][i] = g[0][i] - (g[0][id(w[i] / prime[j])] - h[0][j - 1]);
+        }
+    }
+    return S(x, 1) + 1;
+} 
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    cin >> a >> b; 
+    Euler(sqrt(b));
+
+    //S(n, 1) + F(1);
+    cout << cal(b) - cal(a - 1) << endl;
+    return 0;
+}
+\end{lstlisting}
 
 \newpage
 \section{Geometry}
@@ -1273,7 +2026,7 @@ SJ定理说明：先手必胜，当且仅当以下两个条件同时成立或同
 
 
 \newpage
-\section{动态规划}
+\section{DP}
 \subsection{最大子矩阵}
 单调栈法：
 \begin{lstlisting}
