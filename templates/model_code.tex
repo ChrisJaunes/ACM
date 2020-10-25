@@ -333,6 +333,536 @@ int main() {
 }
 \end{lstlisting}
 
+\subsubsection{Tree Divide and Conquer}
+Example: poj1741 tree \\
+给一颗n个节点的树，每条边上有一个距离v（v<=1000）。定义d(u,v)为u到v的最小距离。给定k值，求有多少点对（u，v）使u到v的距离小于等于k。数据范围：$n<=10000,k<2^{31}$ \\
+解：\\
+这个点延伸出的几棵子树各做一次dfs，记录子树中出现的距离值，对于一棵树的距离值数组，把它排序求一次ans1，再对每棵子树分别求一个自己对自己的ans2，$ans1-\sum ans2$ 即为最后的ans。\\
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+using namespace std;
+const int MAXN = 10003;
+struct Edge {
+    int to, nxt, w;
+    Edge() {}
+    Edge(int _to, int _nxt, int _w):to(_to), nxt(_nxt), w(_w) {}
+}e[MAXN << 1];
+int h[MAXN], p;
+int sz[MAXN];
+bool vis[MAXN];
+int dep[MAXN], cnt, d[MAXN];
+int n, k, ans;
+inline void add_edge(int u, int v, int w) {
+    e[++p] = Edge(v, h[u], w); h[u] = p;
+    e[++p] = Edge(u, h[v], w); h[v] = p;
+}
+int getsz(int x, int fa) {
+    sz[x] = 1;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        sz[x] += getsz(y, x);
+    }
+    return sz[x];
+}
+int getrt(int x) {
+    int tot = getsz(x, 0) / 2;
+    while(1) {
+        int u = -1;
+        for(int i = h[x]; i; i = e[i].nxt) {
+            int y = e[i].to;
+            if(vis[y] || sz[y] > sz[x]) continue;
+            if(u == -1 || sz[y] > sz[u]) u = y;
+        }
+        if(~u && sz[u] > tot) x = u;
+        else break;
+    }
+    return x;
+}
+void getdep(int x, int fa) {
+    dep[++cnt] = d[x];
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        d[y] = d[x] + e[i].w;
+        getdep(y, x);
+    }
+}
+int cal(int x, int v) {
+    d[x] = v; cnt = 0;
+    getdep(x, 0);
+    sort(dep + 1, dep + cnt + 1);
+    int l = 1, r = cnt, res = 0;
+    while(l < r) {
+        if(dep[l] + dep[r] <= k) res += r - l, l++;
+        else r--;
+    }
+    return res;
+}
+void solve(int x) {
+    vis[x] = 1;
+    ans += cal(x, 0);
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        ans -= cal(y, e[i].w);
+        solve(getrt(y));
+    }
+}
+inline void init() {
+    memset(h, 0, sizeof(h)); p = 0;
+    memset(vis, 0, sizeof(vis));
+    ans = 0;
+}
+int main() {
+    while(scanf("%d%d", &n, &k) && (n || k)) {
+        init();
+        for(int i = 1, u, v, w; i < n; i++) {
+            scanf("%d%d%d", &u, &v, &w);
+            add_edge(u, v, w);
+        }
+        solve(getrt(1));
+        printf("%d\n", ans);
+    }
+    return 0;
+}
+\end{lstlisting}
+
+Example:bzoj2152 聪聪可可\\
+由爸爸在纸上画n个“点”，并用n-1条“边”把这n个“点”恰好连通（其实这就是一棵树）。并且每条“边”上都有一个数。接下来由聪聪和可可分别随即选一个点（当然他们选点时是看不到这棵树的），如果两个点之间所有边上数的和加起来恰好是3的倍数，则判聪聪赢，否则可可赢。聪聪非常爱思考问题，在每次游戏后都会仔细研究这棵树，希望知道对于这张图自己的获胜概率是多少。现请你帮忙求出这个值以验证聪聪的答案是否正确。\\
+解：\\
+与上一题类似，在计算路径长度时对3取模，用t[0],t[1],t[2]分别记录模为0、1、2的情况，那么显然答案就是t[1]*t[2]*2+t[0]*t[0]
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+const int MAXN = 20003;
+struct Edge {
+    int to, nxt, w;
+    Edge() {}
+    Edge(int _to, int _nxt, int _w):to(_to), nxt(_nxt), w(_w) {}
+}e[MAXN << 1];
+int h[MAXN], p;
+int sz[MAXN];
+int d[MAXN], t[5], ans;
+bool vis[MAXN];
+inline void add_edge(int u, int v, int w) {
+    e[++p] = Edge(v, h[u], w); h[u] = p;
+    e[++p] = Edge(u, h[v], w); h[v] = p;
+}
+int getsz(int x, int fa) {
+    sz[x] = 1;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        sz[x] += getsz(y, x);
+    }
+    return sz[x];
+}
+int getrt(int x) {
+    int tot = getsz(x, 0) / 2;
+    while(1) {
+        int u = -1;
+        for(int i = h[x]; i; i = e[i].nxt) {
+            int y = e[i].to;
+            if(vis[y] || sz[y] > sz[x]) continue;
+            if(u == -1 || sz[y] > sz[u]) u = y;
+        }
+        if(~u && sz[u] > tot) x = u;
+        else break;
+    }
+    return x;
+}
+void getdep(int x, int fa) {
+    t[d[x]]++;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        d[y] = (d[x] + e[i].w) % 3;
+        getdep(y, x);
+    }
+}
+int cal(int x, int v) {
+    t[0] = t[1] = t[2] = 0;
+    d[x] = v % 3;
+    getdep(x, 0);
+    return t[0] * t[0] + t[1] * t[2] * 2;
+}
+void solve(int x) {
+    vis[x] = 1;
+    ans += cal(x, 0);
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        ans -= cal(y, e[i].w);
+        solve(getrt(y));
+    }
+}
+int main() {
+    int n;
+    scanf("%d", &n);
+    for(int i = 1, u, v, w; i < n; i++) {
+        scanf("%d%d%d", &u, &v, &w);
+        add_edge(u, v, w);
+    }
+    solve(getrt(1));
+    printf("%d/%d\n", ans / __gcd(ans, n * n), n * n / __gcd(ans, n * n));
+    return 0;
+}
+\end{lstlisting}
+
+Example:bzoj2599 Race\\
+给一棵树,每条边有权.求一条路径,权值和等于K,且边的数量最小.数据范围：N<=2e5, K<=1e6\\
+解：\\
+开一个100W的数组t,t[i]表示权值为i的路径最少边数\\
+找到重心分成若干子树后， 得出一棵子树的所有点到根的权值和x，到根a条边，用t[k-x]+a更新答案，全部查询完后，再用所有a更新t[x]\\
+这样可以保证不出现点分治中的不合法情况\\
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+#include <cstring>
+using namespace std;
+const int MAXN = 200003;
+const int INF = 0x3f3f3f3f;
+struct Edge {
+    int to, nxt, w;
+    Edge() {}
+    Edge(int _to, int _nxt, int _w):to(_to), nxt(_nxt), w(_w) {}
+}e[MAXN << 1];
+int h[MAXN], p;
+int sz[MAXN], dep[MAXN], d[MAXN], t[1000003];
+bool vis[MAXN];
+int n, k, ans;
+inline void add_edge(int u, int v, int w) {
+    e[++p] = Edge(v, h[u], w); h[u] = p;
+    e[++p] = Edge(u, h[v], w); h[v] = p;
+}
+int getsz(int x, int fa) {
+    sz[x] = 1;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        sz[x] += getsz(y, x);
+    }
+    return sz[x];
+}
+int getrt(int x) {
+    int tot = getsz(x, 0) >> 1;
+    while(1) {
+        int u = -1;
+        for(int i = h[x]; i; i = e[i].nxt) {
+            int y = e[i].to;
+            if(vis[y] || sz[y] > sz[x]) continue;
+            if(u == -1 || sz[y] > sz[u]) u = y;
+        }
+        if(~u && sz[u] > tot) x = u;
+        else break;
+    }
+    return x;
+}
+void getdep(int x, int fa) {
+    if(d[x] > k) return;
+    ans = min(ans, t[k - d[x]] + dep[x]);
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        d[y] = d[x] + e[i].w;
+        dep[y] = dep[x] + 1;
+        getdep(y, x);
+    }
+}
+void update(int x, int fa, int fg) {
+    if(d[x] > k) return;
+    if(fg) t[d[x]] = min(t[d[x]], dep[x]);
+    else t[d[x]] = INF;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        update(y, x, fg);
+    }
+}
+void cal(int x, int w) {
+    d[x] = w; dep[x] = 1;
+    getdep(x, 0);
+}
+void solve(int x) {
+    vis[x] = 1;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        cal(y, e[i].w);
+        update(y, 0, 1);
+    }
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        update(y, 0, 0);
+    }
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        solve(getrt(y));
+    }
+}
+int main() {
+    scanf("%d%d", &n, &k);
+    for(int i = 1, u, v, w; i < n; i++) {
+        scanf("%d%d%d", &u, &v, &w);
+        add_edge(u + 1, v + 1, w);
+    }
+    ans = INF;
+    memset(t, 0x3f, sizeof(t));
+    t[0] = 0;
+    solve(getrt(1));
+    if(ans != INF) printf("%d\n", ans);
+    else puts("-1");
+    return 0;
+}
+\end{lstlisting}
+
+Example:bzoj3697 采药人的路径\\
+采药人的药田是一个树状结构，每条路径上都种植着同种药材。
+采药人以自己对药材独到的见解，对每种药材进行了分类。大致分为两类，一种是阴性的，一种是阳性的。
+采药人每天都要进行采药活动。他选择的路径是很有讲究的，他认为阴阳平衡是很重要的，所以他走的一定是两种药材数目相等的路径。采药工作是很辛苦的，所以他希望他选出的路径中有一个可以作为休息站的节点（不包括起点和终点），满足起点到休息站和休息站到终点的路径也是阴阳平衡的。他想知道他一共可以选择多少种不同的路径。\\
+解：\\
+本题可以考虑树的点分治。问题就变成求过根满足条件的路径数。\\
+路径上的休息站一定是在起点到根的路径上，或者根到终点的路径上。\\
+如何判断一条从根出发的路径是否包含休息站？只要在dfs中记录下这条路径的和x，同时用个标志数组判断这条路径是否存在前缀和为x的节点。\\
+这样我们枚举根节点的每个子树。用f[i][0…1]，g[i][0…1]分别表示前面几个子树以及当前子树和为i的路径数目，0和1用于区分路径上是否存在前缀和为i的节点。\\
+那么当前子树的贡献就是$f[0][0] * g[0][0] + \sum f [i][0] * g [-i][1] + f[i][1] * g[-i][0] + f[i][1] * g[-i][1]$，其中i的范围[-d,d]，d为当前子树的深度。
+\begin{lstlisting}
+#include <cstdio>
+#include <algorithm>
+using namespace std;
+typedef long long ll;
+const int MAXN = 100003;
+struct Edge {
+    int to, nxt, w;
+    Edge() {}
+    Edge(int _to, int _nxt, int _w):to(_to), nxt(_nxt), w(_w) {}
+}e[MAXN << 1];
+int h[MAXN], p;
+int sz[MAXN], dep[MAXN], d[MAXN];
+int t[MAXN << 1];
+ll ans, f[MAXN << 1][2], g[MAXN << 1][2];//分别表示前面几个子树以及当前子树和为i-n的路径数目，0和1用于区分路径上是否存在前缀和为i-n的节点
+bool vis[MAXN];
+int n;
+inline void add_edge(int u, int v, int w) {
+    e[++p] = Edge(v, h[u], w); h[u] = p;
+    e[++p] = Edge(u, h[v], w); h[v] = p;
+}
+int getsz(int x, int fa) {
+    sz[x] = 1;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        sz[x] += getsz(y, x);
+    }
+    return sz[x];
+}
+int getrt(int x) {
+    int tot = getsz(x, 0) >> 1;
+    while(1) {
+        int u = -1;
+        for(int i = h[x]; i; i = e[i].nxt) {
+            int y = e[i].to;
+            if(vis[y] || sz[y] > sz[x]) continue;
+            if(u == -1 || sz[y] > sz[u]) u = y;
+        }
+        if(~u && sz[u] > tot) x = u;
+        else break;
+    }
+    return x;
+}
+int getdep(int x, int fa) {
+    int mx = dep[x];
+    if(t[d[x]]) f[d[x]][1]++;
+    else f[d[x]][0]++;
+    t[d[x]]++;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        d[y] = d[x] + e[i].w;
+        dep[y] = dep[x] + 1;
+        mx = max(mx, getdep(y, x));
+    }
+    t[d[x]]--;
+    return mx;
+}
+ll cal(int x) {
+    int mx = 0, mxd;
+    ll res = 0;
+    g[n][0] = 1;//初始化子树和为0的边数量为1
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        d[y] = n + e[i].w;
+        dep[y] = 1;
+        mx = max(mx, mxd = getdep(y, 0));
+        res += (g[n][0] - 1) * f[n][0];
+        for(int j = -mxd; j <= mxd; j++)
+            res += f[n + j][0] * g[n - j][1] + f[n + j][1] * g[n - j][0] + f[n + j][1] * g[n - j][1];
+        for(int j = n - mxd; j <= n + mxd; j++) {
+            g[j][0] += f[j][0];
+            g[j][1] += f[j][1];
+            f[j][0] = f[j][1] = 0;
+        }
+    }
+    for(int i = n - mx; i <= n + mx; i++) g[i][0] = g[i][1] = 0;
+    return res;
+}
+void solve(int x) {
+    vis[x] = 1;
+    ans += cal(x);
+    for(int i = h[x]; i; i = e[i].nxt)
+        if(!vis[e[i].to]) solve(getrt(e[i].to));
+}
+int main() {
+    scanf("%d", &n);
+    for(int i = 1, u, v, w; i < n; i++) {
+        scanf("%d%d%d", &u, &v, &w); if(!w) w = -1;
+        add_edge(u, v, w);
+    }
+    solve(getrt(1));
+    printf("%lld\n", ans);
+    return 0;
+}
+\end{lstlisting}
+
+Example: hdu 4670 Cube number on a tree\\
+题目大意：树上路径乘积为立方数的路径数\\
+解：立方数的性质是每个因子的个数为3的倍数，那么每个因子只需要保存0-2三个状态即可，然后路径就可以转化为一个K位3进制数，点分治后，便可以用一个map来查询路径经过根的答案。\\
+\begin{lstlisting}
+#pragma comment(linker, "/STACK:1024000000,1024000000")
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 50003;
+struct Edge {
+    int to, nxt;
+}e[MAXN << 1];
+int head[MAXN], ecnt;
+int sz[MAXN];
+LL d[MAXN], ans;
+LL p[MAXN];
+LL prime[31];
+LL pw[31];
+int k, cnt;
+int vis[MAXN];
+unordered_map<LL, int> Hash;
+LL s[MAXN];
+inline void add_edge(int u, int v) {
+    e[++ecnt] = (Edge) {v, head[u]}; head[u] = ecnt;
+    e[++ecnt] = (Edge) {u, head[v]}; head[v] = ecnt;
+}
+int getsz(int x, int fa) {
+    sz[x] = 1;
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        sz[x] += getsz(y, x);
+    }
+    return sz[x];
+}
+int getrt(int x) {
+    int tot = getsz(x, 0) / 2;
+    while(1) {
+        int u = -1;
+        for(int i = head[x]; i; i = e[i].nxt) {
+            int y = e[i].to;
+            if(vis[y] || sz[y] > sz[x]) continue;
+            if(u == -1 || sz[y] > sz[u]) u = y;
+        }
+        if(~u && sz[u] > tot) x = u;
+        else break;
+    }
+    return x;
+}
+LL inv(LL x) {
+    LL res = 0;
+    for(int i = 0; i < k; i++) res += (3 - x / pw[i] % 3 ) % 3 * pw[i];
+    return res;
+}
+LL add(LL x, LL y) {
+    LL res = 0;
+    for(int i = 0; i < k; i++) res += (x / pw[i] % 3 + y / pw[i] % 3 + 3) % 3 * pw[i];
+    return res;
+}
+void upd(LL x) {
+    if(!Hash.count(x)) Hash[x] = 0;
+    Hash[x]++;
+}
+void getdep(int x, int fa) {
+    s[++cnt] = d[x];
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y] || y == fa) continue;
+        d[y] = add(d[x], p[y]);
+        getdep(y, x);
+    }
+}
+LL cal(int x, LL v) {
+    cnt = 0;
+    Hash.clear();
+    getdep(x, 0);
+    LL res = 0;
+    for(int i = 1; i <= cnt; i++) {
+        res += Hash[inv(s[i])];
+        Hash[add(s[i], -v)]++;
+    }
+    return res;
+}
+void solve(int x) {
+    vis[x] = 1;
+    d[x] = p[x];
+    ans += cal(x, p[x]) + (p[x] == 0);
+    for(int i = head[x]; i; i = e[i].nxt) {
+        int y = e[i].to;
+        if(vis[y]) continue;
+        d[y] = add(p[x], p[y]);
+        ans -= cal(y, p[x]);
+        solve(getrt(y));
+    }
+}
+inline void init(int n) {
+    for(int i = 0; i <= n; i++) {
+        vis[i] = head[i] = 0;
+    }
+    ans = 0; ecnt = 0;
+}
+int main() {
+    pw[0] = 1;
+    for(int i = 1; i < 30; i++) pw[i] = pw[i - 1] * 3;
+    int n;
+    while(~scanf("%d%d", &n, &k)) {
+        init(n);
+        for(int i = 0; i < k; i++) scanf("%lld", prime + i);
+        LL tmp;
+        for(int i = 1; i <= n; i++) {
+            scanf("%lld", &tmp);
+            p[i] = 0;
+            for(int j = 0; j < k; j++) {
+                int cur = 0;
+                while(tmp % prime[j] == 0) {
+                    cur++;
+                    tmp /= prime[j];
+                }
+                p[i] += cur % 3 * pw[j];
+            }
+        }
+        for(int i = 1, u, v; i < n; i++) {
+            scanf("%d%d", &u, &v);
+            add_edge(u, v);
+        }
+        solve(getrt(1));
+        printf("%lld\n", ans);
+    }
+    return 0;
+}
+\end{lstlisting}
+
 \subsection{LCA}
 尚未开始
 \subsection{Tarjan}
