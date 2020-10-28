@@ -5990,7 +5990,7 @@ namespace CG{
         return l.p0+v*(Dot(v,a-l.p0)/Dot(v,v));
     }
     bool SegmentIntersection(const Line n,const Line m,bool p){
-        double c1=Cross(n.p1-n.p0,m.p1-m.p0);
+        double c1=Cross(n.p1-n.p0,m.p0-n.p0);
         double c2=Cross(n.p1-n.p0,m.p1-n.p0);
         double c3=Cross(m.p1-m.p0,n.p0-m.p0);
         double c4=Cross(m.p1-m.p0,n.p1-m.p0);

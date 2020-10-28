@@ -2003,6 +2003,78 @@ int main() {
 \section{Math}
 \subsection{FFT}
 分治FFT:\\
+解决一类自己更新自己的卷积问题。\\
+给定序列$g_{1...n-1}$，求序列$f_{0...n-1}$，其中$f_i = \sum_{j=1}^i f_{i-j}g_j$, 边界$f_0 = 1$
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 300005, G = 3, mod = 998244353;
+namespace NTT {
+    int rev[MAXN], T;
+    LL qpow(LL x, LL y) {
+        LL res = 1;
+        while(y) {
+            if(y & 1) res = res * x % mod;
+            x = x * x % mod;
+            y >>= 1;
+        }
+        return res;
+    }
+    void ntt(LL *a, int r) {
+        for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+        for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
+            LL gn = qpow(G, (mod - 1) / i);
+            if(r == -1) gn = qpow(gn, mod - 2);
+            for(int j = 0; j < T; j += i) {
+                LL cur = 1, tmp;
+                for(int k = j; k < j + mid; k++, cur = cur * gn % mod) {
+                    tmp = a[k + mid] * cur % mod;
+                    a[k + mid] = ((a[k] - tmp) % mod + mod) % mod;
+                    a[k] = (a[k] + tmp) % mod;
+                }
+            }
+        }
+        if(r == -1) {
+            LL inv = qpow(T, mod - 2);
+            for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
+        }
+    }
+    void init(int n) {
+        for(T = 1; T <= n; T <<= 1);
+        for(int i = 0; i < T; i++) {
+            if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+            else rev[i] = rev[i >> 1] >> 1;
+        }
+    }
+}
+LL f[MAXN], g[MAXN], A[MAXN], B[MAXN];
+using namespace NTT;
+void solve(int l, int r) {
+    if(l == r) return;
+    int mid = (l + r) >> 1;
+    solve(l, mid);
+    init(r - l);
+    for(int i = 0; i < T; i++) A[i] = B[i] = 0;
+    for(int i = 0; i <= mid - l; i++) A[i] = f[i + l];
+    for(int i = 0; i <= r - l; i++) B[i] = g[i];
+    ntt(A, 1); ntt(B, 1);
+    for(int i = 0; i < T; i++) A[i] = A[i] * B[i] % mod;
+    ntt(A, -1);
+    for(int i = mid + 1; i <= r; i++) f[i] =(f[i] + A[i - l]) % mod;
+    solve(mid + 1, r);
+}
+int main() {
+    int n; scanf("%d", &n);
+    for(int i = 1; i < n; i++) scanf("%lld", g + i); 
+    f[0] = 1;
+    solve(0, n - 1);
+    for(int i = 0; i < n; i++) printf("%lld%c", f[i], i == n - 1 ? '\n' : ' ');
+    return 0;
+}
+\end{lstlisting}
+
+Example:
 对集合S，$val(s) = F_{sum(s)}$,where sum(s) is the sum of all the elements of the set.\\
 Given a set S having N elements, please calculate the sum of the values of all subsets of S of size K.\\
 $$
@@ -3042,4 +3114,340 @@ int main() {
 \subsection{四边形不等式优化}
 \subsection{忘情水二分}
 
+\newpage
+\section{Probability and Expectation}
+\subsection{存粹的概率期望题}
+通过概率期望公式推导证明得到O(1)的解答式，常见于时空复杂的异常过大不可解情况。
+\begin{lstlisting}
+/*
+存粹的理论概率题
+
+题意：袋子中有a个红球，b个绿球，c个蓝球，不放回地取球，如果某一种球取完了，则游戏结束，先取完红球得一等奖，先取完绿球得二等奖，先取完蓝球得三等奖。求得一等、二等、三等奖的概率。
+
+分析：这题一开始是直接概率dp的。。。然而根本不可做，因为abc范围太大，都达到了1e3，且题目输出的是一个分子/分母的形式，交上去都直接t掉了。。。
+要解决还是需要一定的数学基础的。考虑先取完红球的情况，所有可能情况无外乎两种：
+(1) 先取完红，在取完绿球，在取完蓝球；
+蓝球是最后一个取完的概率是c/(a+b+c)，这个概率论课上讲过一个结论，第n次取得蓝球的概率和第一次取得蓝球的概率是相同的，这个可以通过多重集排列证明。
+还需要保证绿球晚于红球取完，而绿球在红球和绿球的排列中是最后一个的概率是b/(a+b)，很容易知道这两者的交集包含了所有的先取完红，在取完绿球，在取完蓝球的情况，所以第一种情况的概率就是两者相乘。
+(2) 先取完红，在取完绿球，在取完蓝球；
+与上面类似，概率为b/(a+b+c)∗c/(a+c)。
+那么先取完红球的概率就是bc(a+b+c+a)/(a+b+c)∗(a+c)∗(a+b)。
+先取完绿球和先取完蓝球的概率同理可得分别为ac(a+b+c+b)/(a+b+c)∗(b+c)∗(a+b)，ab(a+b+c+c)/(a+b+c)∗(b+c)∗(a+c)。
+从本题可以看出，在一些概率的计算问题中只要选取合适的分类，那么计算也会相应变得清楚和简单了。培养自己多角度思考问题和观察问题的能力还是很重要的。
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+
+typedef long long LL;
+int main() {
+    LL a, b, c;
+    while (~scanf("%I64d %I64d %I64d", &a, &b, &c)) {
+        LL sum = a + b + c;
+        LL fraa = b * c * (sum + a), numa = sum * (a + b) * (a + c);
+        LL frab = a * c * (sum + b), numb = sum * (a + b) * (b + c);
+        LL frac = b * a * (sum + c), numc = sum * (c + b) * (a + c);
+        LL ga = __gcd(fraa, numa), gb = __gcd(frab, numb), gc = __gcd(frac, numc);
+        printf("%I64d/%I64d %I64d/%I64d %I64d/%I64d\n", fraa / ga, numa / ga, frab / gb, numb / gb, frac / gc, numc / gc);
+    }
+    return 0;
+}
+\end{lstlisting}
+
+\subsection{概率DP}
+\begin{lstlisting}
+/*
+    给你n种硬币，并给你每种硬币的个数和正面朝上的概率。每次将所有的硬币投掷一下。背面朝上的抛弃。直到只剩下一种硬币或者没有硬币。最后剩下的那种硬币叫幸运硬币，问每种硬币成为幸运硬币的概率。
+    无法直接算出成为幸运硬币的概率，但可以通过计算第i种硬币在第j轮前全死光的概率killed和未死光的概率recv，最后答案就是每种硬币在第j轮成为幸运硬币的概率和。
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+const int maxn = 75;
+const int maxm = 15;
+int t,n;
+int num[maxm];
+double p[maxm];
+double killed[maxm][maxn+5];
+double recv[maxm][maxn+5];
+double ans[maxm];
+void solve(){
+    int i,j,k;
+    for(i = 0; i < maxm; i++){
+        ans[i] = 0.0;
+    }
+    if(n == 1){
+        printf("%.6f\n",1.0);
+        return;
+    }
+    for(i = 0; i < n; i++){
+        double tmp = p[i];
+        for(j = 1; j <= maxn; j++){
+            killed[i][j] = pow(1-tmp,num[i]);
+            recv[i][j] = 1 - killed[i][j];
+            tmp *= p[i];
+        }
+    }
+    for(i = 0; i < n; i++){
+        for(j = 1; j < maxn; j++){
+            double tmp = 1.0;
+            for(k = 0; k < n; k++){
+                if(k != i) tmp *= killed[k][j];
+            }
+            ans[i] += (recv[i][j] - recv[i][j+1]) * tmp;
+        }
+    }
+    for(i = 0; i < n; i++){
+        printf("%.6f%c",ans[i],i == n-1 ? '\n' : ' ');
+    }
+    return;
+}
+int main(){
+    int i;
+    scanf("%d",&t);
+    while(t--){
+        scanf("%d",&n);
+        for(i = 0; i < n; i++){
+            scanf("%d%lf",&num[i],&p[i]);
+        }
+        solve();
+    }
+    return 0;
+}
+\end{lstlisting}
+
+\subsection{求递推式系数}
+\begin{lstlisting}
+    /*
+    题意：有n个人排队等着在官网上激活游戏。Tomato排在第m个。
+    对于队列中的第一个人。有以下情况：
+    1、激活失败，留在队列中等待下一次激活（概率为p1)
+    2、失去连接，出队列，然后排在队列的最后（概率为p2）
+    3、激活成功，离开队列（概率为p3）
+    4、服务器瘫痪，服务器停止激活，所有人都无法激活了。
+    求服务器发生瘫痪且这时Tomato在队列中的位置<=k的概率。
+
+    dp[i][j] 表示队列中当前有i个人，且站在第j个位置上时最终会到达终态的概率。
+    如果1<j<=k，那么dp[i][j]=p1∗dp[i][j]+p2∗dp[i][j−1]+p3∗dp[i−1][j−1]+p4;考虑当前状态到达终态由四种转移而来：激活失败、失去连接、服务器瘫痪。
+    这里j==1特判一下，有dp[i][1]=dp[i][1]∗p1+p2∗dp[i][i]+p4;
+    如果k<j<=i，那么dp[i][j]=p1∗dp[i][j]+p2∗dp[i][j−1]+p3∗dp[i−1][j−1]；那么当前状态不可能通过服务器瘫痪到达终态。
+
+    令tp2=p2/(1−p1),tp3=p3/(1−p1),tp4=p4/(1−p1)。已知量用v[j]表示。
+
+    dp[i][1]=dp[i][i]∗tp2+v[1].....j=1
+    dp[i][j]=dp[i][j−1]∗tp2+v[j].....2<=j<=i
+
+    (1.0−(tp2)^i)dp[i][i]=∑^i_(j=1)c[j]∗(tp2)^(i−j)。
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 2010;
+double dp[N][N], va[N];
+
+int main() {
+    int n, m, k;
+    double p1, p2, p3, p4;
+    while (~scanf("%d %d %d %lf %lf %lf %lf", &n, &m, &k, &p1, &p2, &p3, &p4)) {
+        if (abs(p4) < 1e-5) puts("0.00000");
+        else {
+            double tp1 = 1.0 / (1.0 - p1), tp2 = p2 * tp1, tp3 = p3 * tp1, tp4 = p4 * tp1;
+            va[1] = tp4;
+            dp[1][1] = tp4 / (1.0 - tp2);
+            for (int i = 2; i <= n; i++) {
+                int mi = min(i, k);
+                for (int j = 2; j <= mi; j++) va[j] = dp[i-1][j-1] * tp3 + tp4;
+                for (int j = k + 1; j <= i; j++) va[j] = dp[i-1][j-1] * tp3;
+                double t = 1.0, sum = 0;
+                for (int j = i; j; j--, t *= tp2) sum += va[j] * t;
+                dp[i][i] = sum / (1.0 - t);
+                dp[i][1] = dp[i][i] * tp2 + tp4;
+                for (int j = 2; j < i; j++) dp[i][j] = dp[i][j-1] * tp2 + va[j];
+            }
+            printf("%.5f\n", dp[n][m]);
+        }
+    }
+    return 0;
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+    /*
+    推出递推式，多项式待定系数求解
+    
+    题意：
+    有n个房间，由n-1条隧道连通起来，实际上就形成了一棵树，
+    从结点1出发，开始走，在每个结点i都有3种可能：
+        1.被杀死，回到结点1处（概率为ki）
+        2.找到出口，走出迷宫 （概率为ei）
+        3.和该点相连有m条边，随机走一条
+    求：走出迷宫所要走的边数的期望值。
+
+    设 E[i]表示在结点i处，要走出迷宫所要走的边数的期望。E[1]即为所求。
+
+    叶子结点：
+    E[i] = ki*E[1] + ei*0 + (1-ki-ei)*(E[father[i]] + 1);
+         = ki*E[1] + (1-ki-ei)*E[father[i]] + (1-ki-ei);
+
+    非叶子结点：（m为与结点相连的边数）
+    E[i] = ki*E[1] + ei*0 + (1-ki-ei)/m*( E[father[i]]+1 + ∑( E[child[i]]+1 ) );
+         = ki*E[1] + (1-ki-ei)/m*E[father[i]] + (1-ki-ei)/m*∑(E[child[i]]) + (1-ki-ei);
+
+    设对每个结点：E[i] = Ai*E[1] + Bi*E[father[i]] + Ci;
+
+    对于非叶子结点i，设j为i的孩子结点，则
+    ∑(E[child[i]]) = ∑E[j]
+                   = ∑(Aj*E[1] + Bj*E[father[j]] + Cj)
+                   = ∑(Aj*E[1] + Bj*E[i] + Cj)
+    带入上面的式子得
+    (1 - (1-ki-ei)/m*∑Bj)*E[i] = (ki+(1-ki-ei)/m*∑Aj)*E[1] + (1-ki-ei)/m*E[father[i]] + (1-ki-ei) + (1-ki-ei)/m*∑Cj;
+    由此可得
+    Ai =        (ki+(1-ki-ei)/m*∑Aj)   / (1 - (1-ki-ei)/m*∑Bj);
+    Bi =        (1-ki-ei)/m            / (1 - (1-ki-ei)/m*∑Bj);
+    Ci = ( (1-ki-ei)+(1-ki-ei)/m*∑Cj ) / (1 - (1-ki-ei)/m*∑Bj);
+
+    对于叶子结点
+    Ai = ki;
+    Bi = 1 - ki - ei;
+    Ci = 1 - ki - ei;
+
+    从叶子结点开始，直到算出 A1,B1,C1;
+
+    E[1] = A1*E[1] + B1*0 + C1;
+    所以
+    E[1] = C1 / (1 - A1);
+    若 A1趋近于1则无解...
+
+*/
+#include<stdio.h>
+#include<string.h>
+#include<algorithm>
+#include<iostream>
+#include<math.h>
+#include<vector>
+using namespace std;
+const int MAXN=10010;
+const double eps=1e-9;//这里1e-8会WA。设为1e-9和1e-10可以
+double k[MAXN],e[MAXN];
+double A[MAXN],B[MAXN],C[MAXN];
+
+vector<int>vec[MAXN];//存树
+
+bool dfs(int t,int pre)//t的根结点是pre
+{
+    int m=vec[t].size();//点t的度
+    A[t]=k[t];
+    B[t]=(1-k[t]-e[t])/m;
+    C[t]=1-k[t]-e[t];
+    double tmp=0;
+    for(int i=0;i<m;i++)
+    {
+        int v=vec[t][i];
+        if(v==pre)continue;
+        if(!dfs(v,t))return false;
+        A[t]+=(1-k[t]-e[t])/m*A[v];
+        C[t]+=(1-k[t]-e[t])/m*C[v];
+        tmp+=(1-k[t]-e[t])/m*B[v];
+    }
+    if(fabs(tmp-1)<eps)return false;
+    A[t]/=(1-tmp);
+    B[t]/=(1-tmp);
+    C[t]/=(1-tmp);
+    return true;
+}
+int main()
+{
+    int T;
+    int n;
+    int u,v;
+    int iCase=0;
+    scanf("%d",&T);
+    while(T--)
+    {
+        iCase++;
+        scanf("%d",&n);
+        for(int i=1;i<=n;i++)vec[i].clear();
+        for(int i=1;i<n;i++)
+        {
+            scanf("%d%d",&u,&v);
+            vec[u].push_back(v);
+            vec[v].push_back(u);
+        }
+        for(int i=1;i<=n;i++)
+        {
+            scanf("%lf%lf",&k[i],&e[i]);
+            k[i]/=100;
+            e[i]/=100;
+        }
+        printf("Case %d: ",iCase);
+        if(dfs(1,-1)&&fabs(1-A[1])>eps)
+        {
+            printf("%.6lf\n",C[1]/(1-A[1]));
+        }
+        else printf("impossible\n");
+    }
+}
+\end{lstlisting}
+
+\subsection{双重概率期望}
+\begin{lstlisting}
+    /*
+    题意：DAG，起点为1且仅有出度，终点为n且仅有入读，机器人等概率走到下个点或停留原地，每日耐久消耗比前一天多1
+    双重期望，先求出每个点到终点的期望天数E[i]，这里期望可以看每天耐久消耗恒为1，再求每个点到终点的期望耐久消耗F[i]，此时每个点的耐久消耗就是E[i]
+*/
+
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+typedef double DB;
+typedef pair <int, int> P;
+typedef pair <int, P> PP;
+const int MAXN = 2e5+7;
+const DB EPS = 1e-9;
+const DB DB_INF = 1e100;
+const DB PI=acos(-1.0);
+const int INT_INF = 1e9 + 7;
+const int MOD = 1e9 + 7;
+vector <int> in[MAXN], out[MAXN];
+int cnt_in[MAXN], cnt_out[MAXN];
+DB E[MAXN], F[MAXN];
+void dfs(int u, int n) {
+    if (u == n) return;
+    if (E[u] != 0 || F[u] != 0) return;
+    for (auto v : out[u]) {
+        dfs(v, n);
+        E[u] += E[v];
+        F[u] += F[v];
+    }
+    E[u] += cnt_out[u] + 1;
+    E[u] /= cnt_out[u];
+    F[u] += (cnt_out[u] + 1) * E[u];
+    F[u] /= cnt_out[u];
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(2); cout << fixed;
+    int ca;
+    for (cin >> ca; ca; ca--) {
+        int n, m;
+        cin >> n >> m;
+        for (int i = 1; i <= n; i++) {
+            in[i].clear();
+            out[i].clear();
+            cnt_in[i] = cnt_out[i] = 0;
+            E[i] = F[i] = 0;
+        }
+        for (int i = 0; i < m; i++) {
+            int u, v;
+            cin >> u >> v;
+            in[v].emplace_back(u);
+            out[u].emplace_back(v);
+            cnt_in[v]++; cnt_out[u]++;
+        }
+        dfs(1, n);
+        cout << F[1] << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
 \end{document}
