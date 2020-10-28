@@ -3793,6 +3793,8 @@ namespace SA {
 \end{lstlisting}
 \subsubsection{Suffix Automaton}
 \begin{lstlisting}
+//root = 1
+//len[i]: i表示的状态集中最长的字符串长度
 namespace SAM{
 	int scnt, root, last;
 	int fa[MAXN<<1], len[MAXN<<1], ch[MAXN<<1][26];
@@ -3837,9 +3839,9 @@ namespace SAM{
 			extend(s[i] - 'a');
 		radix_sort(n);
 		//以下sc集合意义不同 
-		{//每个节点对应的位置之后有多少个不同子串
+		{//预处理从每个节点出发，还有多少本质不同的子串可以到达, 注意sc 要开 long long
 			for(int i = scnt; i >= 1; i--) {
-				int S = 0;
+				LL S = 0;
 				for(int j = 0; j < 26; j++) 
 					S += sc[ ch[rs[i]][j] ];
 				sc[rs[i]] = S + 1;

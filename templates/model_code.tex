@@ -1238,7 +1238,390 @@ int main() {
 \subsection{String Matching}
 尚未开始
 \subsection{Suffix Related}
-尚未开始
+在状态转移图中，minl和maxl对应后缀自动机初态到当前态的最短路径和最长路径\\
+1. 求长度为x的字串，最长出现次数\\
+解：|Right(s)|去更新F[Max(s)]的值。同时最后从大到小依次用F[i]去更新F[i-1]\\
+\begin{lstlisting}
+void sol() {
+	scanf("%s",s);
+	int n = strlen(s);
+	for(int i = 0; i < n; ++i) extend(s[i] - 'a');
+	radix_sort(n);
+	int cur = root;
+	for(int i = 0; i < n; ++i) {
+		cur = ch[cur][s[i]-'a'];
+		sc[cur]++;
+		f[i] = 0;
+	}
+	for(int i = scnt; i >= 1; --i) {
+		f[ len[rs[i]] ] = max(f[ len[rs[i]] ], sc[rs[i]]);
+		sc[ fa[rs[i]] ] += sc[rs[i]];
+	}
+	for(int i = n; i; --i)
+		f[i] = max(f[i], f[i + 1]);
+	for(int i = 1; i <= n;++i)
+		printf("%d\n",f[i]);
+}
+\end{lstlisting}
+2. 维护一个串，支持在末尾添加一个字符和询问一个串在其中出现了多少次这两个操作\\
+解：方法1：使用动态树维护Parent树。方法2：使用平衡树维护Parent树的dfs序列\\
+3. 每次询问的所有本质不同子串中，字典序第K小的\\
+解：预处理从每个节点出发，还有多少本质不同的子串可以到达，dfs一遍SAM\\
+4. 求本质不同的字串个数\\
+解: 方法1: 三做法下的sc[root] - 1 \\
+方法2: $ \sum_{i=1}^{scnt}{maxlen[i]−minlen[i]+1} , 其中 minlen[i]=maxlen[fa[i]]+1 $\\
+5. 每次询问的所有子串中，字典序第K小的\\
+输入: 第一行是一个仅由小写英文字母构成的字符串 s\\
+第二行为两个整数 t 和 k，t 为 0 则表示不同位置的相同子串算作一个，t 为 1 则表示不同位置的相同子串算作多个\\
+解：sc[rs[i]] = S + 1;改为sc[rs[i]] = S + 出现次数;\\
+\begin{lstlisting}
+LL f[MAXN << 1], g[MAXN << 1];
+void solve() {
+	init();
+	int sn = strlen(s);
+	for(int i = 0; i < sn; i++) extend(s[i] - 'a');
+	LL t, k;
+	cin >> t >> k;
+	radix_sort(sn);
+	int cur = root;
+	for(int i = 0; i < sn; i++) f[cur = ch[cur][s[i] - 'a']] = 1;
+	for(int i = scnt; i; i--) f[fa[rs[i]]] += f[rs[i]];
+	for(int i = 1; i <= scnt; i++) 
+		t == 0 ? g[i] = f[i] = 1 : g[i] = f[i];
+	g[1] = f[1] = 0;
+	for(int i = scnt; i; i--) {
+		for(int j = 0; j < 26; j++) 
+			if(ch[rs[i]][j] ) g[rs[i]] += g[ch[ rs[i]][j] ];
+	}
+	if(g[1] < k) cout << -1 << endl;
+	else{
+		cur = root;
+		while(k > f[cur]) {
+			k -= f[cur];
+			for(int i = 0; i < 26; i++) {
+				int _ch = ch[cur][i];
+				if (!_ch) continue;
+				if (g[_ch] < k) {k -= g[_ch]; continue;}
+				cout << char(i + 'a');
+				cur = _ch; break;
+			}
+		}
+		cout << endl;
+	}
+}
+\end{lstlisting}
+6. 所有字符中不同子串个数，真广义自动机\\
+可以根据后缀自动机的性质得到，以点i为结束节点的子串个数等于len[i] - len[link[i]]\\
+所以可以遍历所有的节点求和得到
+\begin{lstlisting}
+#include<bits/stdc++.h>
+using namespace std;
+const int MAXN = 5e5+7;
+typedef long long  LL;
+#include <bits/stdc++.h>
+using namespace std;
+#define MAXN 2000000
+#define CHAR_NUM 30
+struct exSAM {
+    int len[MAXN]; 
+    int fa[MAXN];
+    int ch[MAXN][CHAR_NUM];
+    int scnt;
+    void init() {
+        scnt = 1;
+        fa[0] = -1;
+    }
+    int insertSAM(int last, int c) {
+        int cur = ch[last][c];
+        if (len[cur]) return cur;
+        len[cur] = len[last] + 1;
+        int p = fa[last];
+        for(;p != -1 && !ch[p][c]; p = fa[p]) ch[p][c] = cur; 
+        if (p == -1) {
+            fa[cur] = 0;
+            return cur;
+        }
+        int q = ch[p][c];
+        if (len[p] + 1 == len[q]) {
+            fa[cur] = q;
+            return cur;
+        }
+        int clone = scnt++;
+        for (int i = 0; i < CHAR_NUM; ++i)
+            ch[clone][i] = len[ch[q][i]] != 0 ? ch[q][i] : 0;
+        len[clone] = len[p] + 1;
+        while (p != -1 && ch[p][c] == q) {
+            ch[p][c] = clone;
+            p = fa[p];
+        }
+        fa[clone] = fa[q];
+        fa[cur] = clone;
+        fa[q] = clone;
+        return cur;
+    }
+    int insertTrie(int cur, int c) {
+        if (ch[cur][c]) return ch[cur][c];
+        return ch[cur][c] = scnt++;
+    }
+    void insert(const string &s) {
+        int root = 0;
+        for (auto it : s) root = insertTrie(root, it - 'a');
+    }
+    void insert(const char *s, int n) {
+        int root = 0;
+        for (int i = 0; i < n; ++i) root = insertTrie(root, s[i] - 'a');
+    }
+    void build() {
+        queue<pair<int, int>> q;
+        for (int i = 0; i < 26; ++i) if (ch[0][i]) q.push({i, 0});
+        while (!q.empty()) {
+            auto item = q.front();
+            q.pop();
+            auto last = insertSAM(item.second, item.first);
+            for (int i = 0; i < 26; ++i)
+            if (ch[last][i]) q.push({i, last});
+        }
+    }
+} exSam;
+char s[1000100];
+int main() {
+    int n; cin >> n;
+    exSam.init();
+    for (int i = 0; i < n; ++i) {
+        cin >> s;
+        int len = strlen(s);
+        exSam.insert(s, len);
+    }
+    exSam.build();
+    long long ans = 0;
+    for (int i = 1; i < exSam.scnt; ++i) {
+        ans += exSam.len[i] - exSam.len[exSam.fa[i]];
+    }
+    cout << ans << endl;
+    return 0;
+}
+\end{lstlisting}
+7. 每个问题均有a,b,c,d四个参数，子串s[a..b]的所有子串和s[c..d]的最长公共前缀的长度的最大值是多少\\
+解：二分长度len\\
+SA: 会存在一个后缀S，它的开头在[a,b-mid+1]当中。lcp(S,c)>=len\\
+二分出区间[l,r]使得h[l,r] >= mid; 在区间中[l, r]中查询[a, a+len-1]出现的个数\\
+SAM: 反转字符串，线段树合并，查询对应状态下[b+lim-1, a]的出现次数\\
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN=1e5+5;
+namespace SA{
+    char s[MAXN];
+    int sa[MAXN], rnk[MAXN], height[MAXN];
+    int t[MAXN], t2[MAXN], c[MAXN], n;
+    void clear() { n = 0; memset(sa, 0, sizeof(sa)); }
+    void build(int m) {
+        int *x = t, *y = t2;
+        for(int i = 0; i < m; i++) c[i] = 0;
+        for(int i = 0; i < n; i++) c[x[i] = s[i]]++;
+        for(int i = 1; i < m; i++) c[i] += c[i - 1];
+        for(int i = n - 1; i >= 0; i--) sa[--c[x[i]]] = i;
+        for(int k = 1; k <= n; k <<= 1) {
+            int p = 0;
+            for(int i = n - k; i < n; i++) y[p++] = i;
+            for(int i = 0; i < n; i++) if(sa[i] >= k) y[p++] = sa[i] - k;
+            for(int i = 0; i < m; i++) c[i] = 0;
+            for(int i = 0; i < n; i++) c[x[y[i]]]++;
+            for(int i = 1; i < m; i++) c[i] += c[i - 1];
+            for(int i = n - 1; i >= 0; i--) sa[--c[x[y[i]]]] = y[i];
+            swap(x, y);
+            p = 1; x[sa[0]] = 0;
+            for(int i = 1; i < n; i++)
+                x[sa[i]] = y[sa[i - 1]] == y[sa[i]] && y[sa[i - 1] + k] == y[sa[i] + k] ? p - 1 : p++;
+            if(p >= n) break;
+            m = p;
+            //cerr << ">" << endl;
+            //for(int i = 0; i < n; i++) cerr << sa[i] << " ";
+        }
+    }
+    void buildHeight() {
+        int k = 0;
+        for(int i = 0; i < n; i++) rnk[sa[i]] = i;
+        for(int i = 0; i < n; i++) {
+            if(k) k--;
+            int j = sa[rnk[i] - 1];
+            while(s[i + k] == s[j + k]) k++;
+            height[rnk[i]] = k;
+        }
+        //for(int i = 0; i <= n; i++) cerr <<">" << i << " " << rnk[i] << endl;
+        //for(int i = 0; i <= n; i++) cerr <<"!" << i << " " << sa[i] << endl;
+    }
+    int st[MAXN][21], LOG[MAXN];
+    void init() {
+        n = strlen(s) + 1;
+        build('z' + 1);
+        buildHeight();
+        for(int i=0;i<=n;++i) st[i][0]=height[i];
+        for(int j=1;(1<<j)<=n;j++) {
+            for(int i=0;i+(1<<(j-1))<=n+1;++i) {
+                st[i][j]=min(st[i][j-1],st[i+(1<<(j-1))][j-1]);
+            }
+        }
+        LOG[0]=-1;
+        for(int i=1;i<=n;++i) LOG[i]=LOG[i>>1]+1;
+    }
+    inline int lcp(int l,int r) {
+        int lg=LOG[r-l+1];
+        return min(st[l][lg],st[r-(1<<lg)+1][lg]);
+    }
+    pair<int, int> getLR(int len, int pos) {
+        pair<int, int> LR;
+        int l = 1, r = pos, mid;
+        while(l < r) {
+            mid = (l+r)>>1;
+            if(lcp(mid+1, pos) >= len) r = mid; else l=mid+1;
+        }
+        LR.first = l;
+        l = pos, r = n;
+        while(l < r) {
+            mid=(l+r+1)>>1;
+            if(lcp(pos+1,mid) >= len) l=mid; else r=mid-1;
+        }
+        LR.second = l;
+        return LR;
+    }
+}
+struct Node {int ls,rs,sum;} tr[MAXN*40];
+int rt[MAXN], tcnt;
+void insert(int &cur, const int &las, const int &l, const int &r, const int &pos) {
+    tr[cur = ++tcnt] = tr[las]; ++tr[cur].sum;
+    if(l==r) return;
+    int mid = (l + r) >> 1;
+    if(pos <= mid) insert(tr[cur].ls, tr[las].ls, l, mid, pos);
+    else insert(tr[cur].rs, tr[las].rs, mid+1, r, pos);
+}
+int query(int x, int y, int l, int r, int ql, int qr) {
+    if(ql <= l && r <= qr) return tr[y].sum-tr[x].sum;
+    int mid=(l+r)>>1;
+    int res=0;
+    if(ql<=mid) res+=query(tr[x].ls, tr[y].ls, l, mid, ql, qr);
+    if(qr>mid)  res+=query(tr[x].rs, tr[y].rs, mid+1,r,ql, qr);
+    return res;
+}
+int main() {
+    int n, m; 
+    scanf("%d%d%s", &n,&m,SA::s);
+    SA::init();
+    for(int i=1;i<=n;++i) insert(rt[i], rt[i-1], 0, n, SA::sa[i]);
+    while(m--) {
+        int a, b, c, d;
+        scanf("%d%d%d%d", &a, &b, &c, &d); 
+        --a;--b;--c;--d;
+        int l=1,r=min(b-a+1,d-c+1);
+        while(l<=r) {
+            int mid=(l+r)/2;
+            auto LR = SA::getLR(mid, SA::rnk[c]);
+            if (query(rt[LR.first-1], rt[LR.second],0,n,a,b-mid+1)) 
+                l=mid+1;else r=mid-1;
+        }
+        printf("%d\n", l-1);
+    }
+    return 0;
+}
+\end{lstlisting}
+\begin{lstlisting}
+#include<bits/stdc++.h>
+using namespace std;
+const int MAXN = 1e5 + 7;
+int scnt, root, last;
+int fa[MAXN<<1], len[MAXN<<1], ch[MAXN<<1][26];
+int newnode(int _len, int q = 0) {
+    fa[++scnt] = fa[q]; len[scnt] = _len;
+    for(int i = 0; i < 26; i++) ch[scnt][i] = ch[q][i];
+    return scnt;
+}
+void init() {
+    scnt = 0;
+    root = last = newnode(0);
+}
+void extend(int c) {
+    int p = last, np = newnode(len[p] + 1);
+    for(;p && ch[p][c] == 0; p = fa[p]) ch[p][c] = np;
+    if(!p) fa[np] = root;
+    else{
+        int q = ch[p][c];
+        if(len[p] + 1 == len[q]) fa[np] = q;
+        else{
+            int nq = newnode(len[p] + 1, q);
+            fa[np] = fa[q] = nq;
+            for(; p && ch[p][c] == q; p = fa[p]) ch[p][c] = nq;
+        }
+    }
+    last = np;
+}
+int c[MAXN], rnk[MAXN << 1];
+void radix_sort(int n){
+    for(int i = 0; i <= n; i++) c[i] = 0; 
+    for(int i = 1; i <= scnt; i++) c[len[i]]++;
+    for(int i = 1; i <= n; i++) c[i] += c[i-1];
+    for(int i = scnt; i >= 1; i--) rnk[c[len[i]]--] = i;
+}
+char str[MAXN];
+int ls[MAXN<<6],rs[MAXN<<6],sum[MAXN<<6],rt[MAXN<<1],tcnt;
+void pushup(const int &rt) {sum[rt]=sum[ls[rt]]+sum[rs[rt]];}
+int merge(const int &x,const int &y,const int &l,const int &r) {
+    if(!x||!y)return x+y;
+    if(l==r){sum[x]+=sum[y];return x;}
+    int mid=(l+r)>>1, z=++tcnt;
+    ls[z]=merge(ls[x],ls[y],l,mid);
+    rs[z]=merge(rs[x],rs[y],mid+1,r);
+    pushup(z);
+    return z;
+}
+void update(int &rt,const int &l,const int &r,const int &p) {
+    if(!rt) rt=++tcnt;
+    if(l==r){sum[rt]++;return;}
+    int mid=(l+r)>>1;
+    if(p<=mid)update(ls[rt],l,mid,p); else update(rs[rt],mid+1,r,p);
+    pushup(rt);
+}
+int query(const int &rt,const int &l,const int &r,const int &L,const int &R) {
+    if(!rt)return 0;
+    if(L<=l&&r<=R)return sum[rt];
+    int mid=(l+r)>>1,ret=0;
+    if(L<=mid)ret+=query(ls[rt],l,mid,L,R);
+    if(R>mid)ret+=query(rs[rt],mid+1,r,L,R);
+    return ret;
+}
+int F[MAXN<<1][21],pos[MAXN];
+inline bool check(const int &lim,int p,const int &l,const int &r, const int &n) {
+    for(int i=20;~i;i--)if(len[F[p][i]]>=lim&&F[p][i]) p=F[p][i];
+    return query(rt[p],1, n, l+lim-1,r);
+}
+int main() {
+    int n, m;
+    scanf("%d%d%s", &n,&m, str+1);
+    reverse(str+1,str+n+1);
+    init();
+    for(int i=1;i<=n;i++) {extend(str[i]-'a');update(rt[last],1,n,i);pos[i]=last;}
+    radix_sort(n);
+    for(int i=scnt;i>=1;i--)if(fa[rnk[i]]){
+        rt[fa[rnk[i]]]=merge(rt[fa[rnk[i]]],rt[rnk[i]],1,n);
+        F[i][0]=fa[i];
+    }
+    for(int j=1;j<=20;j++)
+        for(int i=1;i<=scnt;i++)
+            F[i][j]=F[F[i][j-1]][j-1];
+    while(m--) {
+        int a, b, c, d;
+        scanf("%d%d%d%d", &a,&b,&c,&d);
+        a = n - a + 1; b = n - b + 1; c = n - c + 1; d = n - d + 1;
+        int l=1,r=min(a-b+1,c-d+1);
+        while(l<=r) {
+            int mid=(l+r)>>1;
+            if(check(mid,pos[c],b,a,n))l=mid+1;else r=mid-1;
+        }
+        printf("%d\n", l-1);
+    }
+    return 0;
+}    
+\end{lstlisting}
+
 \subsection{Palindrome Related}
 周期：若$0 < p \leq |S|, {\forall}1 \leq i \leq{|s|-p}, s[i] = s[i+p]$ 就称p是s的周期\\
 border：若$0 \leq r < |S|, pre(s, r) = suf(s,r)$ 就称pre(s,r)是s的border\\
