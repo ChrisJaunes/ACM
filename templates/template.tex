@@ -3611,6 +3611,8 @@ namespace KMP {
 		}
 	}
 }
+nxt[i]是t和从i开始的t的后缀的最大公共前缀长度。
+t,s的第一个字符下标为0，最后一个字符下标为n-1。
 namespace exKMP {
 	int nxt[MAXN], ext[MAXN];
 	void get_nxt(char* t, int tn) {
@@ -3741,7 +3743,6 @@ namespace AC {
 //				cnt[j] = -1;
 //			}
 //		}
-
 }
 \end{lstlisting}
 \subsection{Suffix Related}

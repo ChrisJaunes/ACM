@@ -1220,7 +1220,85 @@ int main() {
 \newpage
 \section{Data Structures}
 \subsection{Basic Structures}
-尚未开始
+可持久化并查集\\
+给定 n 个集合，第 i 个集合内初始状态下只有一个数，为 i\\
+有 m 次操作。操作分为 3 种：\\
+1 a b 合并 a,b 所在集合；\\
+2 k 回到第 k 次操作（执行三种操作中的任意一种都记为一次操作）之后的状态；\\
+3 a b 询问 a,b 是否属于同一集合，如果是则输出 1 ，否则输出 0
+\begin{lstlisting}
+#include<bits/stdc++.h>
+using namespace std;
+const int MAXN = 301000;
+int ls[MAXN*30],rs[MAXN*30],fa[MAXN*30],dep[MAXN*30];
+int Rt[MAXN*30];
+namespace Persistant_Union_Set {
+    int tcnt;
+    void build(int &cur,int l,int r) {
+        cur = ++tcnt;
+        if(l==r) {fa[cur]=l;return ;}
+        int mid = (l+r)>>1;
+        build(ls[cur], l, mid);
+        build(rs[cur], mid+1, r);
+    }
+    void merge(int last,int &cur,int l,int r,int pos,int Fa) {
+        cur=++tcnt; ls[cur]=ls[last]; rs[cur]=rs[last];
+        if(l==r) {
+            fa[cur]=Fa;
+            dep[cur]=dep[last];
+            return;
+        }
+        int mid = (l+r) >> 1;
+        if(pos<=mid)merge(ls[last],ls[cur],l, mid, pos,Fa);
+        else merge(rs[last],rs[cur],mid+1, r, pos,Fa);
+    }
+    void update(int cur,int l,int r,int pos) {
+        if(l==r){dep[cur]++;return ;}
+        int mid = (l+r)>>1;
+        if(pos<=mid)update(ls[cur],l,mid,pos); else update(rs[cur],mid+1,r,pos);
+    }
+    int query(int cur,int l,int r,int pos) {
+        if(l==r) {return cur;}
+        int mid = (l+r)>>1;
+        if(pos<=mid)return query(ls[cur],l,mid,pos); 
+        return query(rs[cur],mid+1,r,pos);
+    }
+    int find(int cur, int n, int pos) {
+        int now = query(cur,1, n,pos);
+        if(fa[now]==pos)return now;
+        return find(cur,n, fa[now]);
+    }
+}
+using namespace Persistant_Union_Set;
+int main() {
+    int n, m; cin >> n >> m;
+    build(Rt[0], 1, n);
+    for(int i = 1; i <= m; i++) {
+        static int opt,x,y;
+        cin >> opt >> x;
+        if(opt==1) {
+            cin >> y;
+            static int posx,posy;
+            Rt[i] = Rt[i-1];
+            posx = find(Rt[i],n,x); posy=find(Rt[i],n,y);
+            if(fa[posx]!=fa[posy]) {
+                if(dep[posx]>dep[posy])swap(posx,posy);
+                merge(Rt[i-1],Rt[i],1,n,fa[posx],fa[posy]);
+                if(dep[posx]==dep[posy])update(Rt[i],1,n,fa[posy]);
+            }
+        }
+        else if(opt==2) Rt[i]=Rt[x];
+        else if(opt==3) {
+            cin >> y;
+            Rt[i]=Rt[i-1];
+            static int posx,posy;
+            posx=find(Rt[i],n,x);posy=find(Rt[i],n,y);
+            cout << (fa[posx]==fa[posy] ? "1" : "0") << endl;
+        }
+    }
+    return 0;
+}    
+\end{lstlisting}
 \subsection{Heap Structures}
 尚未开始
 \subsection{Sequence Structures}
@@ -1234,9 +1312,202 @@ int main() {
 \newpage
 \section{String}
 \subsection{Basics}
-尚未开始
+
+\subsection{01-Trie}
+异或和\\
+01-trie 是指字符集为{0, 1} 的trie。01-trie可以用来维护一些数字的异或和，支持修改（删除 + 重新插入），和全局加一\\
+如果要维护异或和，需要按值从低位到高位建立 trie\\
+ch[v][0/1] 指节点 v 的两个儿子， ch[v][0] 指下一位是 0 ，同理 ch[v][1] 指下一位是 1\\
+w[v] 指节点 v 到其父亲节点这条边上数值的数量（权值）。每插入一个数字 x，x二进制拆分后在 trie 上 路径的权值都会 +1\\
+xorv[v] 指以 v 为根的子树维护的异或和\\
+1. 给你一棵n个结点的树，每个结点有权值。m次操作。需要支持以下操作。\\
+将树上与一个节点x距离为1的节点上的权值+1。这里树上两点间的距离定义为从一点出发到另外一点的最短路径上边的条数。\\
+在一个节点x上的权值-v。\\
+询问树上与一个节点x距离为1的所有节点上的权值的异或和。 保证任意时刻每个节点的权值非负。
+解：每个结点建立一棵 trie 维护其儿子的权值，trie 应该支持全局加一。可以使用在每一个结点上设置懒标记来标记儿子的权值的增加量。
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 5e5 + 10;
+namespace Trie {
+    int rt[MAXN * 25], ch[MAXN * 25][2];
+    int w[MAXN * 25], xorv[MAXN * 25];
+    int tcnt = 0;
+    void maintain(int v) {
+        w[v] = xorv[v] = 0;
+        if (ch[v][0]) {
+            w[v] += w[ch[v][0]];
+            xorv[v] ^= xorv[ch[v][0]] << 1;
+        }
+        if (ch[v][1]) {
+            w[v] += w[ch[v][1]];
+            xorv[v] ^= (xorv[ch[v][1]] << 1) | (w[ch[v][1]] & 1);
+        }
+    }
+    inline int newnode() {
+        ++tcnt;
+        ch[tcnt][0] = ch[tcnt][1] = 0;
+        w[tcnt] = xorv[tcnt] = 0;
+        return tcnt;
+    }
+    void insert(int &v, int x, int pos) {
+        if (!v) v = newnode();
+        if (pos > 20) return (void)(w[v]++);
+        insert(ch[v][x & 1], x >> 1, pos + 1);
+        maintain(v);
+    }
+    void erase(int v, int x, int pos) {
+        if (pos > 20) return (void)(w[v]--);
+        erase(ch[v][x & 1], x >> 1, pos + 1);
+        maintain(v);
+    }
+    void addall(int v) {
+        swap(ch[v][1], ch[v][0]);
+        if (ch[v][0]) addall(ch[v][0]);
+        maintain(v);
+    }
+}
+int V[MAXN], lazy[MAXN], fa[MAXN];
+vector<int> G[MAXN];
+void dfs(int u, int _fa) {
+    fa[u] = _fa;
+    for(auto &v : G[u]) if(v != _fa) dfs(v, u);
+}
+inline int get(int x) { return (fa[x] == -1 ? 0 : lazy[fa[x]]) + V[x]; }
+int main() {
+    int n, m; cin >> n >> m;
+    for(int i = 1, u, v; i < n; i++) {
+        cin >> u >> v;
+        G[u].push_back(v);
+        G[v].push_back(u);
+    }
+    int rt = 1;
+    dfs(rt, -1);
+    for (int i = 1; i <= n; i++) {
+        cin >> V[i];
+        if(fa[i] != -1) Trie::insert(Trie::rt[fa[i]], V[i], 0);
+    }
+    while (m--) {
+        int opt, x; cin >> opt >> x;
+        if (opt == 1) {
+            lazy[x]++;
+            if (x != rt) {
+                if (fa[fa[x]] != -1) Trie::erase(Trie::rt[fa[fa[x]]], get(fa[x]), 0);
+                V[fa[x]]++;
+                if (fa[fa[x]] != -1) Trie::insert(Trie::rt[fa[fa[x]]], get(fa[x]), 0);
+            }
+            Trie::addall(Trie::rt[x]);
+        } else if (opt == 2) {
+            int v; cin >> v;
+            if (x != rt) Trie::erase(Trie::rt[fa[x]], get(x), 0);
+            V[x] -= v;
+            if (x != rt) Trie::insert(Trie::rt[fa[x]], get(x), 0);
+        } else {
+            int res = 0;
+            res = Trie::xorv[Trie::rt[x]];
+            res ^= get(fa[x]);
+            printf("%d\n", res);
+        }
+    }
+    return 0;
+}
+\end{lstlisting}
+2. 给定一棵n个结点的有根树，结点从1开始编号，根结点为1号结点，每个结点有一个正整数权值vi。 设x号结点的子树内（包含x自身）的所有结点编号为c1,c2..ck\\
+定义val(X)的价值为：$ val(X) = (v_{c_1} + d(c_1, x)) \oplus (v_{c_2} + d(c_2, x)) \oplus ... \oplus (v_{c_k} + d(c_k, x))$\\
+其中d(x,y)表示树上x号结点与y号结点间唯一简单路径所包含的边数,d(x,x)=0。$ \oplus $表示异或运算。 请你求出$ \sum_{i=1}^{n} {val[i]}$的结果\\
+解：考虑每个结点对其所有祖先的贡献。 每个结点建立 trie，初始先只存这个结点的权值，然后从底向上合并每个儿子结点上的 trie，然后再全局加一，完成后统计答案
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 525010 + 10;
+namespace Trie {
+    int rt[MAXN * 25], ch[MAXN * 25][2];
+    int w[MAXN * 25], xorv[MAXN * 25];
+    int tcnt = 0;
+    void maintain(int v) {
+        w[v] = xorv[v] = 0;
+        if (ch[v][0]) {
+            w[v] += w[ch[v][0]];
+            xorv[v] ^= xorv[ch[v][0]] << 1;
+        }
+        if (ch[v][1]) {
+            w[v] += w[ch[v][1]];
+            xorv[v] ^= (xorv[ch[v][1]] << 1) | (w[ch[v][1]] & 1);
+        }
+    }
+    inline int newnode() {
+        ++tcnt;
+        ch[tcnt][0] = ch[tcnt][1] = 0;
+        w[tcnt] = xorv[tcnt] = 0;
+        return tcnt;
+    }
+    void insert(int &v, int x, int pos) {
+        if (!v) v = newnode();
+        if (pos > 20) return (void)(w[v]++);
+        insert(ch[v][x & 1], x >> 1, pos + 1);
+        maintain(v);
+    }
+    void erase(int v, int x, int pos) {
+        if (pos > 20) return (void)(w[v]--);
+        erase(ch[v][x & 1], x >> 1, pos + 1);
+        maintain(v);
+    }
+    void addall(int v) {
+        swap(ch[v][1], ch[v][0]);
+        if (ch[v][0]) addall(ch[v][0]);
+        maintain(v);
+    }
+    int marge(int a, int b) {
+        if (!a) return b;
+        if (!b) return a;
+        w[a] = w[a] + w[b];
+        xorv[a] ^= xorv[b];
+        ch[a][0] = marge(ch[a][0], ch[b][0]);
+        ch[a][1] = marge(ch[a][1], ch[b][1]);
+        return a;
+    }
+}
+int rt[MAXN], V[MAXN];
+long long Ans = 0;
+vector<int> G[MAXN];
+void dfs(int u) {
+    for (auto &v : G[u]) {
+        dfs(v);
+        rt[u] = Trie::marge(rt[u], rt[v]);
+    }
+    Trie::addall(rt[u]);
+    Trie::insert(rt[u], V[u], 0);
+    Ans += Trie::xorv[rt[u]];
+}
+int main() {
+    int n; cin >> n;
+    for(int i = 1; i <= n; i++) cin >> V[i];
+    for(int i = 2; i <= n; i++) {
+        int fa; cin >> fa;
+        G[fa].push_back(i);
+    }
+    dfs(1);
+    cout << Ans << endl;
+    return 0;
+}
+\end{lstlisting}
+
 \subsection{String Matching}
-尚未开始
+1. 每个模式串可能会在文本串中出现多次。你需要找出哪些模式串在文本串 T 中出现的次数最多
+AC自动机里q是拓扑排序结果
+\begin{lstlisting}
+char t[MAXM];
+void sol() {
+    cin >> t;
+    int tn = strlen(t), cur = root;
+    for(int i = 0; i < tn; ++i) {
+        cur = ch[cur][idx(t[i])];
+        cnt[cur] ++;
+    }
+    for(int i = qt; i ; i--) cnt[fa[q[i]]] += cnt[q[i]];
+}
+\end{lstlisting}
+
 \subsection{Suffix Related}
 在状态转移图中，minl和maxl对应后缀自动机初态到当前态的最短路径和最长路径\\
 1. 求长度为x的字串，最长出现次数\\
