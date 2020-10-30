@@ -2379,6 +2379,303 @@ int main() {
 
 \newpage
 \section{Math}
+\subsection{Euler's Theorem}
+\begin{equation*}
+    a^b\equiv\left\{
+    \begin{aligned}
+    &a^{b\%\varphi(p)} & & \gcd(a,p)=1&\\
+    &a^b & &\gcd(a,p)\not=1,b<\varphi(p) \\
+    &a^{b\%\varphi(p) + \varphi(p)} & & \gcd(a,p)\not=1,b\geq \varphi(p) &
+    \end{aligned}
+    \right\}
+    (mod\ p)
+\end{equation*}
+\subsection{Möbius Inversion}
+{
+Dirichlet Convolution is $(f\times g)(N)=\sum_{d|N} f(d) * g(\frac{N}{d})$
+\par
+Theorem:
+\begin{equation*}
+    \left\{
+        \begin{aligned} 
+            f &= g \times 1 \\
+            g &= f \times \mu
+        \end{aligned} 
+    \right. 
+\end{equation*}
+}
+
+\begin{equation}
+    \left\{
+        \begin{aligned}
+            id(n) &= \sum_{d|n} \varphi(d) \\
+            e(n) &= \sum_{d|n} \mu(d) \\
+        \end{aligned} 
+    \right.
+\end{equation}
+\begin{equation}
+    \left\{
+        \begin{aligned}
+            \sum_i^n\sum_j^mgcd(i, j)&=\sum_d^{\max(n, m)}\varphi(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
+            \sum_i^n\sum_j^me(gcd(i, j))&=\sum_d^{\min(n, m)}\mu(d) * \lfloor\frac{n}{d}\rfloor\lfloor\frac{m}{d}\rfloor \\
+            \sum_{i = 1}^n |\mu(i)|&=\sum_{i = 1}^{\lfloor \sqrt{n} \rfloor}\mu(i)*\lfloor \frac{n}{i * i} \rfloor
+        \end{aligned} 
+    \right.
+\end{equation}
+\begin{equation}
+    \left\{
+        \begin{aligned} 
+            sum(x, y) &= \sum_i^x\sum_j^yi*j=\frac{x*(x + 1)}{2} * \frac{y * (y + 1)}{2}\\
+            F(x, y) &= \sum_{i = 1}^{\min(x, y)} i^2 * \mu(i) * sum(\lfloor\frac{x}{i}\rfloor, \lfloor\frac{y}{i}\rfloor) \\
+            \sum_i^n\sum_j^mlcm(i, j) &= \sum_{i = 1}^{\min(n, m)} d * F(\lfloor\frac{n}{i}\rfloor, \lfloor\frac{y}{i}\rfloor)
+        \end{aligned} 
+    \right. 
+\end{equation}
+\subsection{Sieve Tips}
+\begin{equation}
+    \varphi(nm) = \varphi(n) \cdot \varphi(m) \cdot \frac{gcd(n,m)}{\varphi(gcd(n,m))}
+\end{equation}
+\begin{equation}
+\varphi(n) = \sum_{i=1}^n[(n,i)=1]\cdot i=\frac{n* \varphi(n)+[n=1]}{2}
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        id &= \varphi \times 1 \\
+        \frac{n \cdot (n + 1)}{2} &= \sum_{i=1}^n i = \sum_{i=1}^n \sum_{d|i}\varphi(d) = \sum_{\frac{i}{d} = 1}^n \sum_{d=1}^{\lfloor\frac{n}{\frac{i}{d}}\rfloor} \varphi(d) = \sum_{i=1}^n \phi(\lfloor\frac{n}{i}\rfloor) 
+    \end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        e &= \mu \times 1 \\
+        1 &= \sum_{i=1}^n [i=1] = \sum_{i=1}^n \sum_{d|i} \mu(d) = \sum_{i=1}^n\sum_{d=1}^{\lfloor\frac{n}{i}\rfloor} \mu(d) = \sum_{i=1}^n M(\lfloor\frac{n}{i}\rfloor)
+    \end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+    \begin{aligned}
+        id^2 &= (id \cdot \varphi) \times id \\
+        \phi ^\prime (n) &= \sum_{i=1}^n i \cdot \varphi(i) \\
+        \frac{n \cdot (n + 1) \cdot (2n + 1)}{6} &= \sum_{i=1}^n i^2 = \sum_{i=1}^n \sum_{d|i} d \cdot \varphi(d) \cdot \frac {i}{d} = \sum_{\frac{i}{d}=1}^{n} \frac{i}{d} \sum_{d=1}^{\lfloor{\frac{n}{\frac{i}{d}}}\rfloor} d \cdot \varphi(d) = \sum_{i=1}^n i \cdot \phi ^\prime (\lfloor\frac{n}{i}\rfloor)
+    \end{aligned}
+\right.
+\end{equation}
+\subsection{Newton's method}
+Iff
+$$
+f^{'}(x) \neq 0 \ \&\& \ f^{''}(x) continuous
+$$
+Then
+$$
+x_{n+1} = x_n - \frac{f(x_n)}{f^{'}(x_n)}
+$$
+\subsection{Cantor Expansion}
+康托展开是一个全排列到一个自然数的双射，常用于构建哈希表时的空间压缩。 康托展开的实质是计算当前排列在所有由小到大全排列中的顺序，因此是可逆的。
+以下称第x个全排列是都是指由小到大的顺序。\\
+$$
+X = a_n(n-1)! + a_{n-1}(n-2)! + \cdots + a_1\cdot 0!
+$$
+其中$a_i$为排列的第i个元素值\\
+例如，3 5 7 4 1 2 9 6 8 展开为 98884。因为X=2*8!+3*7!+4*6!+2*5!+0*4!+0*3!+2*2!+0*1!+0*0!=98884.\\
+解释：\\
+排列的第一位是3，比3小的数有两个，以这样的数开始的排列有8!个，因此第一项为2*8!\\
+排列的第二位是5，比5小的数有1、2、3、4，由于3已经出现，因此共有3个比5小的数，这样的排列有7!个，因此第二项为3*7!\\
+以此类推，直至0*0!\\
+用途：\\
+显然，n位（0~n-1）全排列后，其康托展开唯一且最大约为n!，因此可以由更小的空间来储存这些排列。由公式可将X逆推出唯一的一个排列。\\
+逆运算：\\
+如n=5,x=96时：\\
+首先用96-1得到95，说明x之前有95个排列.(将此数本身减去1)\\
+用95去除4! 得到3余23，说明有3个数比第1位小，所以第一位是4.\\
+用23去除3! 得到3余5，说明有3个数比第2位小，所以是4，但是4已出现过，因此是5.\\
+用5去除2!得到2余1，类似地，这一位是3.\\
+用1去除1!得到1余0，这一位是2.\\
+最后一位只能是1.\\
+所以这个数是45321.\\
+按以上方法可以得出通用的算法。\\
+\subsection{$\sum_{i=1}^n i^k$}
+\begin{equation*}
+\begin{aligned}
+\sum_i^n i &= \frac{n(n + 1)}{2}\\
+\sum_i^n i^2 &= \frac{n(n + 1)(2n + 1)}{6}\\
+\sum_i^n i^3 &= [\frac{n(n + 1)}{2}] ^ 2
+\end{aligned}
+\end{equation*}
+{\large\bfseries 差分和组合数:$O(k^2)$\par}
+考虑数列\{$1_k,2_k,\cdots,i_k$\}\\
+相邻两项做差之后，得到的数列的每项应 该是一个 k - 1 次关于 i 的多项式。\\
+再次相邻两项做差之后，得到的数列的每项应该是一个 k - 2 次 关于 i 的多项式。\\
+如此进行 k 次，得到的数列的每项应该是一个 0 次关于 i 的多项式，即常数数列。\\
+再次相邻两项做差之后，一定会得到一个全是 0 的数列。 \\
+假设经过 i 次差分数列之后的数列第一项为 $r_i$ 那么答案就是\\
+$$
+\sum_{i=0}^k r_i \binom{n}{i+1}
+$$
+举例来说，考虑数列\\
+1,8,27,64,125,216,... \\
+求差分可得\\
+7,19,37,61,91,... \\
+12,18,24,30,... \\
+6,6,6,...\\
+0,0,...\\
+每个数列的第一项为 1, 7, 12, 6。所以最终的答案即为\\
+$$
+\binom{n}{1} + 7\binom{n}{2}+12\binom{n}{3}+6\binom{n}{4} =\frac{n^2(n+1)^2}{4}
+$$
+{\large\bfseries 拉格朗日插值:$O(k)$\par}
+\subsection{Generating Function}
+{\Large\bfseries 生成函数\par}
+{\large\bfseries 普通型\par}
+$$
+A(x) = \sum_{i=0}^{\infty}a_ix^i
+$$
+
+已知 \{$a_i$\}, \{$b_i$\} 的生成函数分别是 A(x), B(x)。\\
+那么 \{$a_i$ $\pm$ $b_i$\} 的生成函数是 A(x) $\pm$ B(x)。 \\
+值得注意的是数列 \{$a_i$\}, \{$b_i$\} 的卷积的生成函数，恰好是 C(x) = A(x)B(x)。\\
+$$
+c_i = \sum_j a_jb_{i-j}
+$$
+{\large\bfseries 关键公式\par}
+\begin{equation*}
+\begin{aligned}
+    \frac{1}{1-x} &= 1 + x + x^2 + x^3 + \cdots = \sum_{i}x^i\\
+    \frac{1}{1-x^2} &= 1+x^2+x^4+x^6+\cdots=\sum_i x^{2i}
+\end{aligned}
+\end{equation*}
+推广的二项式定理\\
+$$
+(1+x)^n = \binom n0 x^0 + \binom n1 x^1 + \binom n2 x^2 + \cdots = \sum_i \binom ni x^i
+$$
+其中有$\beta$函数和$\Gamma$函数
+$$
+\begin{aligned}
+\Gamma(s) &= \int_0^{+\infty} x^{s-1} e^{-x} dx\\
+B(p, q) &= \binom {p + q}{p} = \int_0^1 x^{p-1}(1-x)^{q-1}dx =\frac{\Gamma(p) \Gamma(q)}{\Gamma(p+q)}
+\end{aligned}
+$$
+分别有递推公式
+$$
+\begin{aligned}
+\Gamma(s + 1) &= s \Gamma(s) \\
+B(p, q) &= B(q, p) \\
+&= \frac{q - 1}{p + q - 1} B(p, q - 1)\\
+&= \frac{p - 1}{p + q - 1} B(p - 1, q)\\
+&= \frac{(p - 1)(q - 1)}{(p + q - 1)(p + q - 2)} B(p - 1, q - 1)
+\end{aligned}
+$$
+{\large\bfseries 例子\par}
+{\large\bfseries Fibonacci生成函数\par}
+构造一个与${f_n}$有关得幂级数\\
+$$
+F(x) = f_0 + f_1x +f_2x^2 + \cdots + f_n x^n + \cdots
+$$
+亦即
+$$
+F(x) = xF(x) + x^2F(x) + f_0 + (f_1 - f_0)x
+$$
+带入$f_0=0,f_1=1$\\
+$$
+F(x) = \frac{x}{1-x-x^2}
+$$
+如果想继续计算通项，我们需要解方程得到\\
+$$
+\frac{x}{1-x-x^2} = \frac{a}{1-\alpha x} + \frac{b}{1-\beta x}
+$$
+解出
+$$
+\left\{
+\begin{aligned}
+\alpha &= \frac{1+\sqrt5}{2} \\
+\beta &= \frac{1-\sqrt5}{2}
+\end{aligned}
+\right.
+$$
+带入方程有
+$$
+a = \frac{1}{\sqrt5}, b = -\frac{1}{\sqrt5}
+$$
+则
+$$
+\begin{aligned}
+F(x) &= \frac{a}{1-\alpha x} + \frac{b}{1-\beta x}\\
+&= a(1+\alpha x + \alpha^2x^2+\cdots) + b(1+\beta x + \beta^2x^2+\cdots)
+\end{aligned}
+$$
+蕴含通项为
+$$
+f_n = a\alpha^n + b\beta^n = \frac{(\frac{1+\sqrt5}{2})^n - (\frac{1-\sqrt5}{2})^n}{\sqrt5}
+$$
+{\large\bfseries Catalan数\par}
+$$
+c_n = \sum_{i=1}^{n-1} c_ic_{n-i}
+$$
+生成函数
+$$
+C(x) = c_1x+c_2x^2+\cdots
+$$
+亦即
+$$
+C(x) = xC(x)^2 + 1
+$$
+解得
+$$
+C(x) = \frac{1 - \sqrt{1-4x}}{2x}
+$$
+利用推广的二项式定理展开$\sqrt{1-4x}$可得通项
+$$
+c_n = \frac1n \binom{2n-2}{n-1}
+$$
+{\Large\bfseries 指数型生成函数\par}
+$$
+A(x) = \sum_{i=0}^{\infty} \frac{a_ix^i}{i!}
+$$
+已知 \{$a_i$\}, \{$b_i$\} 的生成函数分别是 A(x), B(x)。\\
+那么 \{$a_i$ $\pm$ $b_i$\} 的生成函数是 A(x) $\pm$ B(x)。 \\
+值得注意的是数列 \{$a_i$\}, \{$b_i$\} 的卷积的生成函数，恰好是 C(x) = A(x)B(x)。\\
+$$
+c_i = \sum_j \binom{i}{j} a_jb_{i-j}
+$$
+{\large\bfseries 关键公式\par}
+\begin{equation*}
+\begin{aligned}
+e^x &= 1 + x + \frac12x^2 + \frac16x^3+\cdots = \sum_i \frac{x^i}{i!}\\
+e^{-x} &= 1 - x + \frac12x^2 - \frac16x^3+\cdots = \sum_i \frac{(-x)^i}{i!}\\
+\frac{e^x + x^{-x}}{2} &= 1+\frac12x^2+\frac1{24}x^4+\cdots = \sum_i \frac{x^{2i}}{(2i)!}
+\end{aligned}
+\end{equation*}
+\subsection{Polya}
+设 G 是 p 个对象的一个置换群，用 k 种颜色去染这 p 个对象，若一种染色方案在群 G 的作用下变为另一种方案，则这两个方案当作是同一种方案，这样的不同染色方案数为:\\
+$$
+\frac{1}{|G|} \times \sum(k^{C(f)}), f \in G
+$$
+C( f ) 为循环节，|G| 表示群的置换方法数\\
+对于有 n 个位置的手镯，有 n 种旋转置换和 n 种翻转置换\\
+对于旋转置换:\\
+$$
+C(f_i) = gcd(n, i)
+$$
+i 表示一次转过 i 颗宝石，i = 0 时 c = n;\\
+对于翻转置换:\\
+如果n为偶数:则有 $\frac n2$ 个置换 $C(f)=\frac n2$，有 $\frac n2$ 个置换 $C(f)=\frac n2 +1$\\
+如果 n 为奇数: $C(f) = \frac n2 + 1$\\
+\subsection{FWT}
+\begin{equation*}
+\left\{
+    \begin{aligned}
+        C_k&=\sum_{i\oplus j=k}A_i*B_j \\
+        DWT(A)_i&=\sum_j^nA_j*f_{i,j} \\
+        DWT(C)_i&=DWT(A)_i*DWT(B)_i\\
+        f_{i,j} \cdot f_{i,k} &=f_{i,j\oplus k}\\
+        f_{i,j} &= [i \ and \ j == i] \  &(and)\\
+        f_{i,j} &= [i \  and \  j == j] \ &(or)\\
+        f_{i,j} &= (-1)^{| i \  and \  j |} \ &(xor)
+    \end{aligned}
+\right.
+\end{equation*}
 \subsection{FFT}
 分治FFT:\\
 解决一类自己更新自己的卷积问题。\\
@@ -3354,8 +3651,61 @@ int main() {
 
 \newpage
 \section{Geometry}
-尚未开始
-
+\subsection{The Number of Ingeter Point on a Circle}
+Set $r = const$ is the radius of the circle.
+$$r^2 = {p_1}^{a_1} + {p_2}^{a_2} + \cdots + {p_m}^{a_m} = \sum_{i = 1}^{m} {p_i}^{a_i}$$
+\par 
+Define
+\[
+    \chi(n)=
+    \begin{cases}
+        1 & {n \% 4 = 1} \\
+        -1 & {n \% 4 = 3} \\
+        0 & {n \% 2 = 0}
+    \end{cases}
+\]
+\par
+By the way, $\chi(n)$ is a multiplicative function. 
+\par
+Define
+\[
+    \Gamma(p_i,a_i)=\sum_{j = 0}^{a_i}\chi(p_i^j)=
+    \begin{cases}
+        1 & {p_i = 2 \quad || \quad (p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 0)} \\
+        0 & {p_i \% 4 = 3 \quad \&\& \quad a_i \% 2 = 1} \\
+        a_i + 1 & {p_i \% 4 = 1}
+    \end{cases}
+\]
+\par
+Define cnt is the number of integer point on circle
+$$cnt(r) = 4 \prod_{i = 1}^{m} \sum_{j = 0}^{a_i} \chi(p_i^j) = 4 \prod_{i = 1}^{m} \Gamma(p_i,a_i) = 4 \sum_{k | r^2}\chi(k)$$
+\par
+Define CNT is the number of integer point in circle
+$$CNT(r) = 1 + \sum_{i = 1}^{r^2}cnt(i) = 1 + \sum_{i = 1}^{r^2} \lfloor \frac{r^2}{i} \rfloor \chi(i)$$
+\subsection{Josephus}
+\subsubsection{$J(n, m)$}
+\textbf{The last surviving person in n persons while per m person will be killed. (based-0, $(m - 1) \% n$ is the first be killed. $O(mlogn)$)}
+\begin{lstlisting}
+int J(int n, int k) {
+    if (n == 1) return 0;
+    if (k == 1) return n - 1;
+    if (k > n) return (J(n - 1, k) + k) % n;
+    int res = J(n - n / k, k);
+    res -= n % k;
+    if (res < 0) res += n;
+    else res += res / (k - 1);
+    return res;
+}
+\end{lstlisting}
+\subsubsection{$J(n, m, k)$}
+\textbf{The k-th surviving person in n persons while per m person will be killed. (based-0, $(m - 1) \% n$ is the first be killed. $O(mlogn)$)}
+\begin{lstlisting}
+int J(int n, int m, int k){
+    if (m == 1) return n - 1;
+    for (k = k * m + m - 1; k >= n; k = k - n + (k - n) / (m - 1));
+    return k;
+}
+\end{lstlisting}
 
 \newpage
 \section{Game Theory}
