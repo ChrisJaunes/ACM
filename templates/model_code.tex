@@ -1304,7 +1304,114 @@ int main() {
 \subsection{Sequence Structures}
 尚未开始
 \subsection{Persistent Data Structures}
-尚未开始
+\subsubsection{Chairman Tree}
+Example: bzoj4448 情报传递 \\
+一棵树，每个节点cnt初始值为0。Q天，每天一次操作，操作为以下两种之一：\\
+1.输入(x) 令一个节点x的cnt开始变化，以后每天增加1\\
+2.输入(x,y,C) 询问两个节点(x, y)的路径上的节点个数和cnt超过C的节点个数\\
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+const int MAXN = 200003;
+struct Edge {
+    int to, nxt;
+    Edge() {}
+    Edge(int to, int nxt):to(to), nxt(nxt) {}
+}e[MAXN << 1];
+int h[MAXN], p;
+int n, m;
+int l[MAXN * 20], r[MAXN * 20], rt[MAXN * 20], sum[MAXN * 20];
+int sz[MAXN], dep[MAXN], top[MAXN], fa[MAXN], son[MAXN], w[MAXN], id[MAXN];
+int totw;
+int x[MAXN], y[MAXN], c[MAXN], t[MAXN];
+int cnt, cnt2;
+inline void add_edge(int x, int y) {
+    if(x == 0 || y == 0) return;
+    e[++p] = Edge(y, h[x]); h[x] = p;
+    e[++p] = Edge(x, h[y]); h[y] = p;
+}
+void dfs1(int x) {
+    sz[x] = 1; son[x] = 0;
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(v == fa[x]) continue;
+        fa[v] = x;
+        dep[v] = dep[x] + 1;
+        dfs1(v);
+        sz[x] += sz[v];
+        if(sz[v] > sz[son[x]]) son[x] = v;
+    }
+}
+void dfs2(int x) {
+    if(son[x]) {
+        top[son[x]] = top[x];
+        w[son[x]] = ++totw;
+        id[son[x]] = totw;
+        dfs2(son[x]);
+    }
+    for(int i = h[x]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if(v == fa[x] || v == son[x]) continue;
+        top[v] = v;
+        w[v] = ++totw;
+        id[v] = totw;
+        dfs2(v);
+    }
+}
+void update(int pre, int &x, int ll, int rr, int v) {
+    x = ++cnt; l[x] = l[pre]; r[x] = r[pre]; sum[x] = sum[pre] + 1;
+    if(ll == rr) return;
+    int mid = ll + rr >> 1;
+    if(v <= mid) update(l[pre], l[x], ll, mid, v);
+    else update(r[pre], r[x], mid + 1, rr, v);
+}
+int query(int x, int y, int c) {
+    int L = rt[x - 1], R = rt[y], ll = 1, rr = m, res = 0;
+    while(ll != rr) {
+        int mid = ll + rr >> 1;
+        if(c <= mid) L = l[L], R = l[R], rr = mid;
+        else res += sum[l[R]] - sum[l[L]], L = r[L], R = r[R], ll = mid + 1;
+    }
+    if(c >= ll) res += sum[R] - sum[L];
+    return res;
+}
+void solve(int x, int y, int c) {
+    int ans = 0, tmp = dep[x] + dep[y];
+    while(top[x] != top[y]) {
+        if(dep[top[x]] < dep[top[y]]) swap(x, y);
+        ans += query(w[top[x]], w[x], c);
+        x = fa[top[x]];
+    }
+    if(dep[x] < dep[y]) swap(x, y);
+    ans += query(w[y], w[x], c);
+    printf("%d %d\n", tmp - (dep[y] << 1) + 1, ans);
+}
+int main() {
+    scanf("%d", &n);
+    for(int i = 1, a; i <= n; i++) {
+        scanf("%d", &a);
+        add_edge(a, i);
+    }
+    fa[1] = 1; dep[1] = 1; top[1] = 1; w[1] = 1; totw = 1; id[1] = 1;
+    dfs1(1); dfs2(1);
+    scanf("%d", &m);
+    for(int i = 1; i <= n; i++) t[i] = m;
+    for(int i = 1, a; i <= m; i++) {
+        scanf("%d", &a);
+        if(a == 1) {
+            int X, Y, C;
+            scanf("%d%d%d", &X, &Y, &C);
+            x[cnt2] = X; y[cnt2] = Y; c[cnt2++] = i - C - 1;
+        }
+        else {
+            scanf("%d", &a);
+            t[a] = i;
+        }
+    }
+    for(int i = 1; i <= n; i++) update(rt[i - 1], rt[i], 1, m, t[id[i]]);
+    for(int i = 0; i < cnt2; i++) solve(x[i], y[i], c[i]);
+}
+\end{lstlisting}
 \subsection{Tree Structures}
 尚未开始
 
@@ -2496,6 +2603,151 @@ int main() {
     return 0;
 }
 \end{lstlisting}
+
+Example: 2020CCPC(net) 1013
+$$
+f_1(x) = \sum_{i=0}^n a_i x^i \\
+f_i(x) = b_i(f_{i-1}(x))' + c_i f_{i-1}(x)
+$$
+Calculate $f_n(x)$ mod $998244353$ \\
+
+Solution:
+令$f_i(x) = \sum_{j=0}^n d_{i,j}f_1(x)^{(j)}$，是$f_1(x)$若干阶导的线性组合\\
+令$g_i(x) = \sum_{j=0}^n d_{i,j}x^{j}$\\
+由$g_i(x) = b_i(g_{i-1}(x))x + c_i g_{i-1}(x)$，可得
+$$
+g_n(x) = \prod_{i=2}^n (b_ix + c_i)
+$$
+分治FFT求$g_n$ \\
+考虑如何求$[x^i]f_n(x)$，即$f_n(x)$中$x_i$的系数。\\
+考虑每一阶导对它的贡献，对于$[x^j]f_1(x)$，一定是求了$j-i$次导以后产生贡献，则
+$$
+[x^i]f_n(x) = \sum_{j=i}^n d_{n,j-i} (\prod_{k=i+1}^j k) ([x^j]f_1(x))
+$$
+即
+$$
+[x^i]f_n(x) = \frac{1}{i !} \sum_{j=i}^n d_{n, j-i} (j! a_j)
+$$
+翻转下标，令$A_{n-j} = j!a_j$，有
+$$
+[x^{n-i}]f_n(x) = \frac{1}{i!} \sum_{j=i}^n d_{n, j-i} A_{n-j}
+$$
+FFT加速即可
+
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int MAXN = 5e5 + 5, G = 3, mod = 998244353;
+namespace NTT {
+    int rev[MAXN], T;
+    LL qpow(LL x, LL y) {
+        LL res = 1;
+        while(y) {
+            if(y & 1) res = res * x % mod;
+            x = x * x % mod;
+            y >>= 1;
+        }
+        return res;
+    }
+    void ntt(LL *a, int r) {
+        for(int i = 0; i < T; i++) if(rev[i] > i) swap(a[rev[i]], a[i]);
+        for(int i = 2, mid = 1; i <= T; mid = i, i <<= 1) {
+            LL gn = qpow(G, (mod - 1) / i);
+            if(r == -1) gn = qpow(gn, mod - 2);
+            for(int j = 0; j < T; j += i) {
+                LL cur = 1, tmp;
+                for(int k = j; k < j + mid; k++, cur = cur * gn % mod) {
+                    tmp = a[k + mid] * cur % mod;
+                    a[k + mid] = ((a[k] - tmp) % mod + mod) % mod;
+                    a[k] = (a[k] + tmp) % mod;
+                }
+            }
+        }
+        if(r == -1) {
+            LL inv = qpow(T, mod - 2);
+            for(int i = 0; i < T; i++) a[i] = a[i] * inv % mod;
+        }
+    }
+    void init(int n) {
+        for(T = 1; T <= n; T <<= 1);
+        for(int i = 0; i < T; i++) {
+            if(i & 1) rev[i] = (rev[i >> 1] >> 1) ^ (T >> 1);
+            else rev[i] = rev[i >> 1] >> 1;
+        }
+    }
+    void cal(LL *a, LL *b) {
+        ntt(a, 1); ntt(b, 1);
+        for(int i = 0; i < T; i++) a[i] = a[i] * b[i] % mod;
+        ntt(a, -1);
+    }
+}
+LL f[MAXN], g[MAXN], A[MAXN], B[MAXN], C[MAXN];
+LL x[MAXN], y[MAXN];
+void solve(int l, int r) {
+    if(l == r) {
+        f[0] = C[l + 2];
+        f[1] = B[l + 2];
+        return;
+    }
+    int mid = (l + r) >> 1;
+    solve(l, mid);
+    LL tmp[mid - l + 5];
+    for(int i = 0; i <= mid - l + 1; i++) tmp[i] = f[i];
+    solve(mid + 1, r);
+    NTT::init(r - l + 1);
+    for(int i = 0; i < NTT::T; i++) x[i] = y[i] = 0;
+    for(int i = 0; i <= mid - l + 1; i++) x[i] = tmp[i];
+    for(int i = 0; i <= r - mid; i++) y[i] = f[i];
+    NTT::cal(x, y);
+    for(int i = 0; i <= r - l + 1; i++) {
+        f[i] = x[i];
+    }
+}
+LL fac[MAXN], ifac[MAXN];
+inline void First() {
+    ifac[0] = ifac[1] = 1;
+    fac[0] = fac[1] = 1;
+    for(int i = 2; i < MAXN; i++) {
+        ifac[i] = (mod - mod / i) * ifac[mod % i] % mod;
+    }
+    for(int i = 2; i < MAXN; i++) {
+        fac[i] = fac[i - 1] * i % mod;
+        ifac[i] = ifac[i] * ifac[i - 1] % mod;
+    }
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    cout.tie(0);
+    First();
+    int T;
+    cin >> T;
+    while(T--) {
+        int n; cin >> n;
+        for(int i = 0; i <= n; i++) cin >> A[i];
+        for(int i = 0; i <= n - 2; i++) cin >> B[i + 2];
+        for(int i = 0; i <= n - 2; i++) cin >> C[i + 2];
+        for(int i = 0; i <= n; i++) f[i] = 0;
+        solve(0, n - 2);
+        NTT::init(2 * n + 1);
+        for(int i = 0; i <= NTT::T; i++) B[i] = C[i] = 0;
+        for(int i = 0; i <= n; i++) {
+            B[n - i] = A[i] * fac[i] % mod;
+            C[i] = f[i];
+        }
+        NTT::cal(B, C);
+        for(int i = 0; i <= n; i++) {
+            cout << B[n - i] * ifac[i] % mod;
+            if(i != n) cout << " ";
+        }
+        cout << endl;
+    }
+    return 0;
+}
+\end{lstlisting}
+
+
+
 \subsection{FWT}
 题目大意:\\ 
 给一个$n*m$矩阵$(a)_{ij}$，行向量为$v_i$, 求$\oplus_{x=0}^{2^k}(count(x) * 3^x\space mod(10^9+7))$
