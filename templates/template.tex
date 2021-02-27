@@ -4500,6 +4500,45 @@ LL det(int n){
 	if(ret<0)ret = -ret;
 	return ret;
 }
+//bitset求逆
+#include <bits/stdc++.h>
+using namespace std;
+bitset<1005> A[505];
+int Gauss(int n) {
+    int num = 0;
+    for(int k = 0; k < n; k++) {
+        int t = -1;
+        for(int j = num; j <= n; j++) if(A[j][k] == 1) { t = j; break; }
+        if(~t) {
+            swap(A[t], A[num]);
+            for(int j = 0; j <= n; j++) if(j != num && A[j][k] == 1) A[j] ^= A[num];
+            num++;
+        }
+    }
+    return num;
+}
+int main() {
+    ios::sync_with_stdio(0); cin.tie(0); cout.precision(6); cout << fixed;
+    int n;
+    cin >> n;
+    for(int i = 0, k; i < n; i++) {
+        for(int j = 0; j < n; j++) {
+            cin >> k;
+            A[i][j] = k;
+        }
+        A[i][i + n] = 1;
+    }
+    if(Gauss(n) < n) cout << "-1" << endl;
+    else {
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                if(A[i][j + n]) cout << j + 1 << " ";
+            }
+            cout << endl;
+        }
+    }
+    return 0;
+}
 \end{lstlisting}
 \subsubsection{Polynomial}
 Inverse: \\
